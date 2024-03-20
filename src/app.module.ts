@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { typeOrmDbConfig } from 'ormconfig';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { typeOrmDbConfig } from 'ormconfig';
     TypeOrmModule.forRoot(typeOrmDbConfig),
     UserModule,
     AuthModule,
+    EmailModule,
   ],
   controllers: [AppController],
   providers: [AppService],
