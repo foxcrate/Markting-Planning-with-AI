@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { SignUpDto } from './dto/sign-up.dto';
 import { SignInDto } from './dto/sign-in.dto';
 import { GoogleSignInUpDto } from './dto/sign-up-with-google.dto';
+import { VerifyEmailDto } from './dto/verify-email.dto';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
@@ -26,5 +27,10 @@ export class AuthController {
   @Post('sign-in')
   async signIn(@Body() signInDto: SignInDto) {
     return this.authService.signIn(signInDto);
+  }
+
+  @Post('email-verification')
+  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
+    return this.authService.emailVerification(verifyEmailDto.token);
   }
 }

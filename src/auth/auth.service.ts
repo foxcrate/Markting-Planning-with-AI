@@ -7,6 +7,9 @@ import { JwtService } from '@nestjs/jwt';
 import { GoogleAuthService } from 'src/auth/google-auth.service';
 import { UserModel } from '../user/user.model';
 import { FacebookAuthService } from './facebook-auth.service';
+import { ConfigService } from '@nestjs/config';
+import { EmailService } from 'src/email/email.service';
+import VerificationEmail from 'src/email/templates/verificaiton-email';
 
 @Injectable()
 export class AuthService {
@@ -15,6 +18,8 @@ export class AuthService {
   constructor(
     private readonly userModel: UserModel,
     private readonly jwtService: JwtService,
+    private readonly emailService: EmailService,
+    private config: ConfigService,
     private readonly googleAuthService: GoogleAuthService,
     private readonly facebookAuthService: FacebookAuthService,
   ) {}
@@ -24,7 +29,7 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  async signUp(signUp: SignUpDto): Promise<{ user: UserDto; token: string }> {
+  async signUp(signUp: SignUpDto): Promise<{ user: UserDto; message: string }> {
     const existingUser = await this.userModel.findUserByEmail(signUp.email);
     if (existingUser) {
       throw new UnprocessableEntityException('email already exists');
@@ -37,7 +42,23 @@ export class AuthService {
       ...signUp,
       password: hashedPassword,
     });
-    return { user: createdUser, token: this.createUserToken(createdUser) };
+
+    //create jwt token contain user id
+    let emailVerificationToken = this.createUserToken(createdUser);
+
+    console.log({ emailVerificationToken });
+
+    this.emailService.sendEmail(
+      createdUser.email,
+      'Crespo Email Verification',
+      VerificationEmail(createdUser.firstName, emailVerificationToken),
+    );
+
+    // return { user: createdUser, token: this.createUserToken(createdUser) };
+    return {
+      user: createdUser,
+      message: 'Please check your email for verification',
+    };
   }
 
   async googleSignInUp(
@@ -104,6 +125,9 @@ export class AuthService {
     if (!theUser) {
       throw new UnprocessableEntityException('User not found');
     }
+    if (!theUser.emailVerified) {
+      throw new UnprocessableEntityException('Email not verified');
+    }
     const { password, ...restProperties } = theUser;
     const isPasswordValid = await bcrypt.compare(signIn.password, password);
     if (!isPasswordValid) {
@@ -111,5 +135,28 @@ export class AuthService {
     }
     let user = restProperties;
     return { user, token: this.createUserToken(restProperties) };
+  }
+
+  async emailVerification(token) {
+    let decoded = this.verifyToken(token);
+    let userId = decoded.sub;
+    await this.userModel.verifyEmail(userId);
+    let theUser = await this.userModel.findById(userId);
+
+    return { user: theUser, token: this.createUserToken(theUser) };
+  }
+
+  private verifyToken(token) {
+    try {
+      const decoded = this.jwtService.verify(
+        token,
+        this.config.get('JWT_SECRET'),
+      );
+      return decoded;
+    } catch (error) {
+      console.log({ error });
+
+      throw new UnprocessableEntityException('Wrong Token');
+    }
   }
 }

@@ -20,7 +20,7 @@ export class SignUpDto {
   email: string;
 
   @IsNotEmpty()
-  @IsPhoneNumber()
+  // @IsPhoneNumber()
   phoneNumber: string;
 
   @IsNotEmpty()

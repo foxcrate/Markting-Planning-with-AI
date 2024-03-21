@@ -17,6 +17,9 @@ export class UserEntity {
   @Column()
   password: string;
 
+  @Column({ type: 'boolean', default: false })
+  emailVerified: boolean;
+
   @Column({ nullable: true })
   phoneNumber: string;
 

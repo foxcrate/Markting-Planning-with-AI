@@ -14,6 +14,15 @@ export class UserModel {
     return this.entityManager.query(query, [email, googleId]);
   }
 
+  async verifyEmail(userId) {
+    const query = `
+        UPDATE users
+        SET emailVerified = true
+        WHERE id = ?
+      `;
+    await this.entityManager.query(query, [userId]);
+  }
+
   async findUsersByEmailOrFacebookId(email, facebookId): Promise<UserDto[]> {
     const query = `
         SELECT * FROM users
@@ -34,7 +43,7 @@ export class UserModel {
     } = user;
 
     const query = `
-      INSERT INTO users (username, email, phoneNumber, password${google_id ? ', google_id' : ''}${facebook_id ? ', facebook_id' : ''}) VALUES (?, ?, ?,?${google_id ? ', ?' : ''}${facebook_id ? ', ?' : ''})
+      INSERT INTO users (firstName, lastName, email, phoneNumber, password${google_id ? ', google_id' : ''}${facebook_id ? ', facebook_id' : ''}) VALUES (?,?, ?, ?,?${google_id ? ', ?' : ''}${facebook_id ? ', ?' : ''})
     `;
     const params = [firstName, lastName, email, phoneNumber, password];
     if (google_id) {
@@ -43,6 +52,8 @@ export class UserModel {
     if (facebook_id) {
       params.push(facebook_id);
     }
+
+    // console.log(query);
 
     const createdUser = await this.entityManager.query(query, params);
     return new UserDto({
@@ -66,7 +77,8 @@ export class UserModel {
     let query = `
     SELECT
       users.id,
-      users.username,
+      users.firstName,
+      users.lastName,
       users.email
     FROM users
     WHERE users.id = ?

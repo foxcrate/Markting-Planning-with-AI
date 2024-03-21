@@ -28,7 +28,7 @@ export class EmailService {
     };
   }
 
-  sendEmail({ to, subject, html }) {
+  sendEmail(to, subject, html) {
     const options = {
       from: this.from,
       to: to,

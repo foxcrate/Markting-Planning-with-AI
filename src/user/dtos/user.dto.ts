@@ -5,6 +5,7 @@ export class UserDto {
   email?: string;
   password?: string;
   phoneNumber?: string;
+  emailVerified?: boolean;
   google_id?: string;
   facebook_id?: string;
 
