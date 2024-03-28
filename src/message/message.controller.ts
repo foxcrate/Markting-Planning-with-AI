@@ -1,13 +1,16 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { SendMessageDto } from './dtos/send-message.dto';
 import { MessageService } from './message.service';
+import { AuthGuard } from 'src/gurads/auth.guard';
+import { UserId } from 'src/decorators/user-id.decorator';
 
 @Controller({ path: 'message', version: '1' })
 export class MessageController {
   constructor(private readonly messageService: MessageService) {}
 
   @Post('send')
-  async sendMessage(@Body() message: SendMessageDto) {
-    return this.messageService.sendMessage(message.content);
+  @UseGuards(AuthGuard)
+  async sendMessage(@Body() message: SendMessageDto, @UserId() userId: string) {
+    return this.messageService.sendMessage(message.content, userId);
   }
 }

@@ -9,7 +9,7 @@ export class UserDto {
   emailVerified?: boolean;
   googleId?: string;
   facebookId?: string;
-  openAiThreadId?: string;
+  threadId?: number;
 
   constructor(partial: Partial<UserDto>) {
     Object.assign(this, partial);

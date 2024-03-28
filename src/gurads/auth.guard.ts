@@ -7,14 +7,14 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
-import { UserModel } from 'src/user/user.model';
+import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private config: ConfigService,
-    private userModel: UserModel,
+    private readonly entityManager: EntityManager,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -25,7 +25,7 @@ export class AuthGuard implements CanActivate {
     }
 
     let payload = this.verifyToken(token);
-    console.log({ payload });
+    // console.log({ payload });
 
     // let payload: IAuthToken = this.authService.verifyToken(token);
     if (payload.sub === null) {
@@ -63,10 +63,23 @@ export class AuthGuard implements CanActivate {
   }
 
   private async userAvailable(userId) {
-    let theUser = await this.userModel.findById(userId);
+    let theUser = await this.findUserById(userId);
     if (!theUser) {
       return false;
     }
     return true;
+  }
+
+  private async findUserById(userId) {
+    let query = `
+    SELECT
+      users.id
+    FROM users
+    WHERE users.id = ?
+  `;
+
+    const [theUser] = await this.entityManager.query(query, [userId]);
+
+    return theUser;
   }
 }

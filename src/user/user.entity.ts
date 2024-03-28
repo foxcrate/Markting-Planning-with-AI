@@ -1,4 +1,13 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { ThreadEntity } from '../thread/thread.entity';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToOne,
+  JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 
 @Entity({ name: 'users' })
 export class UserEntity {
@@ -17,9 +26,6 @@ export class UserEntity {
   @Column()
   password: string;
 
-  @Column()
-  openAiThreadId: string;
-
   @Column({ type: 'boolean', default: false })
   emailVerified: boolean;
 
@@ -29,9 +35,22 @@ export class UserEntity {
   @Column({ nullable: true })
   phoneNumber: string;
 
+  @OneToOne(() => ThreadEntity, (thread) => thread.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn()
+  thread: ThreadEntity;
+
   @Column({ nullable: true })
   googleId: string;
 
   @Column({ nullable: true })
   facebookId: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

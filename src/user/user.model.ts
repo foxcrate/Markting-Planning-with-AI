@@ -47,20 +47,20 @@ export class UserModel {
       email,
       password,
       phoneNumber,
-      openAiThreadId,
+      threadId,
       googleId,
       facebookId,
     } = user;
 
     const query = `
-      INSERT INTO users (firstName, lastName, email, phoneNumber, openAiThreadId, password${googleId ? ', googleId' : ''}${facebookId ? ', facebook_id' : ''}) VALUES (?, ?, ?, ?, ?, ?${googleId ? ', ?' : ''}${facebookId ? ', ?' : ''})
+      INSERT INTO users (firstName, lastName, email, phoneNumber, threadId, password${googleId ? ', googleId' : ''}${facebookId ? ', facebook_id' : ''}) VALUES (?, ?, ?, ?, ?, ?${googleId ? ', ?' : ''}${facebookId ? ', ?' : ''})
     `;
     const params = [
       firstName,
       lastName,
       email,
       phoneNumber,
-      openAiThreadId,
+      threadId,
       password,
     ];
     if (googleId) {
@@ -99,13 +99,19 @@ export class UserModel {
     await this.entityManager.query(query, [password, userId]);
   }
 
-  async findById(userId) {
+  async findById(userId): Promise<UserDto> {
     let query = `
     SELECT
       users.id,
       users.firstName,
       users.lastName,
-      users.email
+      users.email,
+      users.emailVerified,
+      users.phoneNumber,
+      users.threadId,
+      users.googleId,
+      users.facebookId,
+      users.forgetPasswordOtp
     FROM users
     WHERE users.id = ?
   `;

@@ -10,6 +10,7 @@ import { typeOrmDbConfig } from 'ormconfig';
 import { EmailModule } from './email/email.module';
 import { MessageModule } from './message/message.module';
 import { OpenAiModule } from './open-ai/open-ai.module';
+import { ThreadModule } from './thread/thread.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { OpenAiModule } from './open-ai/open-ai.module';
     EmailModule,
     MessageModule,
     OpenAiModule,
+    ThreadModule,
   ],
   controllers: [AppController],
   providers: [AppService],

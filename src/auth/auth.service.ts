@@ -9,9 +9,9 @@ import { UserModel } from '../user/user.model';
 import { FacebookAuthService } from './facebook-auth.service';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from 'src/email/email.service';
-import { OpenAiService } from 'src/open-ai/open-ai.service';
 import VerificationEmail from 'src/email/templates/verification-email.template';
 import ForgetPasswordEmail from 'src/email/templates/forget-password-otp.template';
+import { ThreadModel } from 'src/thread/thread.model';
 
 @Injectable()
 export class AuthService {
@@ -19,12 +19,12 @@ export class AuthService {
 
   constructor(
     private readonly userModel: UserModel,
+    private readonly threadModel: ThreadModel,
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
     private config: ConfigService,
     private readonly googleAuthService: GoogleAuthService,
     private readonly facebookAuthService: FacebookAuthService,
-    private readonly openAiService: OpenAiService,
   ) {}
 
   private createUserToken(user: UserDto) {
@@ -41,11 +41,12 @@ export class AuthService {
       signUp.password,
       AuthService.SALT_ROUNDS,
     );
-    let openAiThreadId = await this.openAiService.createUserThread();
+    let newThread = await this.threadModel.create();
+
     const createdUser = await this.userModel.create({
       ...signUp,
       password: hashedPassword,
-      openAiThreadId: openAiThreadId,
+      threadId: newThread.id,
     });
 
     //create jwt token contain user id
@@ -88,12 +89,12 @@ export class AuthService {
       const [user] = existingUsers;
       return { user, token: this.createUserToken(user) };
     }
-    let openAiThreadId = await this.openAiService.createUserThread();
+    let newThread = await this.threadModel.create();
     const createdUser = await this.userModel.create({
       firstName: googleUser.given_name,
       lastName: googleUser.family_name,
       email: googleUser.email,
-      openAiThreadId: openAiThreadId,
+      threadId: newThread.id,
       googleId: googleUser.googleId,
     });
     return { user: createdUser, token: this.createUserToken(createdUser) };
@@ -119,12 +120,12 @@ export class AuthService {
       const [user] = existingUsers;
       return { user, token: this.createUserToken(user) };
     }
-    let openAiThreadId = await this.openAiService.createUserThread();
+    let newThread = await this.threadModel.create();
     const createdUser = await this.userModel.create({
       firstName: facebookUser.firstName,
       lastName: facebookUser.lastName,
       email: facebookUser.email,
-      openAiThreadId: openAiThreadId,
+      threadId: newThread.id,
       facebookId: facebookUser.facebookId,
     });
     return { user: createdUser, token: this.createUserToken(createdUser) };

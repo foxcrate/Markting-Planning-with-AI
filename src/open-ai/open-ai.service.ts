@@ -60,8 +60,8 @@ export class OpenAiService implements OnModuleInit {
     }
   }
 
-  async createUserThread(): Promise<string> {
+  async createUserThread() {
     const thread = await this.instance.beta.threads.create();
-    return thread.id;
+    return thread;
   }
 }

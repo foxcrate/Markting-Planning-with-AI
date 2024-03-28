@@ -1,6 +1,8 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { UserEntity } from './src/user/user.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
+import { MessageEntity } from './src/message/message.entity';
+import { ThreadEntity } from './src/thread/thread.entity';
 require('dotenv').config();
 
 export const typeOrmDbConfig: TypeOrmModuleOptions = {
@@ -11,7 +13,7 @@ export const typeOrmDbConfig: TypeOrmModuleOptions = {
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   synchronize: false,
-  entities: [UserEntity],
+  entities: [UserEntity, MessageEntity, ThreadEntity],
   migrations: [__dirname + '/migrations/**/*'],
   migrationsTableName: 'migrations',
   poolSize: 10,
