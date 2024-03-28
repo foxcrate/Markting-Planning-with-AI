@@ -9,8 +9,9 @@ import { UserModel } from '../user/user.model';
 import { FacebookAuthService } from './facebook-auth.service';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from 'src/email/email.service';
-import VerificationEmail from 'src/email/templates/verificaiton-email';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
+import VerificationEmail from 'src/email/templates/verification-email.template';
+import ForgetPasswordEmail from 'src/email/templates/forget-password-otp.template';
 
 @Injectable()
 export class AuthService {
@@ -55,10 +56,12 @@ export class AuthService {
     this.emailService.sendEmail(
       createdUser.email,
       'Crespo Email Verification',
-      VerificationEmail(createdUser.firstName, emailVerificationToken),
+      VerificationEmail(
+        `${createdUser.firstName}` + ' ' + `${createdUser.lastName}`,
+        emailVerificationToken,
+      ),
     );
 
-    // return { user: createdUser, token: this.createUserToken(createdUser) };
     return {
       user: createdUser,
       message: 'Please check your email for verification',
@@ -91,7 +94,7 @@ export class AuthService {
       lastName: googleUser.family_name,
       email: googleUser.email,
       openAiThreadId: openAiThreadId,
-      google_id: googleUser.googleId,
+      googleId: googleUser.googleId,
     });
     return { user: createdUser, token: this.createUserToken(createdUser) };
   }
@@ -122,7 +125,7 @@ export class AuthService {
       lastName: facebookUser.lastName,
       email: facebookUser.email,
       openAiThreadId: openAiThreadId,
-      facebook_id: facebookUser.facebookId,
+      facebookId: facebookUser.facebookId,
     });
     return { user: createdUser, token: this.createUserToken(createdUser) };
   }
@@ -154,6 +157,43 @@ export class AuthService {
     return { user: theUser, token: this.createUserToken(theUser) };
   }
 
+  async forgetPassword(email) {
+    let theUser = await this.userModel.findUserByEmail(email);
+    if (!theUser) {
+      throw new UnprocessableEntityException('User not found');
+    }
+    let theOtp = this.createForgetPasswordOtp();
+    await this.userModel.saveForgetPasswordOtp(theOtp, theUser.id);
+
+    this.emailService.sendEmail(
+      theUser.email,
+      'Crespo Forget Password',
+      ForgetPasswordEmail(
+        `${theUser.firstName}` + ' ' + `${theUser.lastName}`,
+        theOtp,
+      ),
+    );
+    return true;
+  }
+
+  async validateForgetPasswordOtp(otp, email) {
+    let theUser = await this.userModel.findUserByEmail(email);
+    if (!theUser) {
+      throw new UnprocessableEntityException('User not found');
+    }
+    if (theUser.forgetPasswordOtp !== otp) {
+      throw new UnprocessableEntityException('Invalid otp');
+    }
+    return { token: this.createUserToken(theUser) };
+  }
+
+  async changePassword(password: string, userId: number) {
+    const hashedPassword = await bcrypt.hash(password, AuthService.SALT_ROUNDS);
+    await this.userModel.changePassword(hashedPassword, userId);
+    let theUser = await this.userModel.findById(userId);
+    return { user: theUser, token: this.createUserToken(theUser) };
+  }
+
   private verifyToken(token) {
     try {
       const decoded = this.jwtService.verify(
@@ -166,5 +206,10 @@ export class AuthService {
 
       throw new UnprocessableEntityException('Wrong Token');
     }
+  }
+
+  private createForgetPasswordOtp() {
+    let otp = Math.floor(Math.random() * 1000000);
+    return String(otp);
   }
 }

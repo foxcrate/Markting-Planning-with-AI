@@ -9,7 +9,7 @@ export class UserModel {
   async findUsersByEmailOrGoogleId(email, googleId): Promise<UserDto[]> {
     const query = `
         SELECT * FROM users
-        WHERE (email = ? OR google_id = ?)
+        WHERE (email = ? OR googleId = ?)
       `;
     return this.entityManager.query(query, [email, googleId]);
   }
@@ -23,10 +23,19 @@ export class UserModel {
     await this.entityManager.query(query, [userId]);
   }
 
+  async saveForgetPasswordOtp(otp: string, userId: number) {
+    const query = `
+        UPDATE users
+        SET forgetPasswordOtp = ?
+        WHERE id = ?
+      `;
+    await this.entityManager.query(query, [otp, userId]);
+  }
+
   async findUsersByEmailOrFacebookId(email, facebookId): Promise<UserDto[]> {
     const query = `
         SELECT * FROM users
-        WHERE (email = ? OR facebook_id = ?)
+        WHERE (email = ? OR facebookId = ?)
       `;
     return this.entityManager.query(query, [email, facebookId]);
   }
@@ -39,12 +48,12 @@ export class UserModel {
       password,
       phoneNumber,
       openAiThreadId,
-      google_id,
-      facebook_id,
+      googleId,
+      facebookId,
     } = user;
 
     const query = `
-      INSERT INTO users (firstName, lastName, email, phoneNumber, openAiThreadId, password${google_id ? ', google_id' : ''}${facebook_id ? ', facebook_id' : ''}) VALUES (?, ?, ?, ?, ?, ?${google_id ? ', ?' : ''}${facebook_id ? ', ?' : ''})
+      INSERT INTO users (firstName, lastName, email, phoneNumber, openAiThreadId, password${googleId ? ', googleId' : ''}${facebookId ? ', facebook_id' : ''}) VALUES (?, ?, ?, ?, ?, ?${googleId ? ', ?' : ''}${facebookId ? ', ?' : ''})
     `;
     const params = [
       firstName,
@@ -54,11 +63,11 @@ export class UserModel {
       openAiThreadId,
       password,
     ];
-    if (google_id) {
-      params.push(google_id);
+    if (googleId) {
+      params.push(googleId);
     }
-    if (facebook_id) {
-      params.push(facebook_id);
+    if (facebookId) {
+      params.push(facebookId);
     }
 
     // console.log(query);
@@ -79,6 +88,15 @@ export class UserModel {
       `;
     const [user] = await this.entityManager.query(query, [email]);
     return user;
+  }
+
+  async changePassword(password: string, userId: number) {
+    const query = `
+        UPDATE users
+        SET password = ?
+        WHERE id = ?
+      `;
+    await this.entityManager.query(query, [password, userId]);
   }
 
   async findById(userId) {

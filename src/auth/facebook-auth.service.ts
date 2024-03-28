@@ -4,7 +4,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import axios from 'axios';
-import { FacebookUserDto } from './dtos/facebook-user-dto';
+import { FacebookUserDto } from './dtos/facebook-user.dto';
 
 @Injectable()
 export class FacebookAuthService {
