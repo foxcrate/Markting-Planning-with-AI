@@ -6,10 +6,10 @@ export class UserEntity {
   id: number;
 
   @Column()
-  firstname: string;
+  firstName: string;
 
   @Column()
-  lastname: string;
+  lastName: string;
 
   @Column()
   email: string;
@@ -21,11 +21,14 @@ export class UserEntity {
   emailVerified: boolean;
 
   @Column({ nullable: true })
+  forgetPasswordOtp: string;
+
+  @Column({ nullable: true })
   phoneNumber: string;
 
   @Column({ nullable: true })
-  google_id: string;
+  googleId: string;
 
   @Column({ nullable: true })
-  facebook_id: string;
+  facebookId: string;
 }

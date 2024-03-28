@@ -5,9 +5,10 @@ export class UserDto {
   email?: string;
   password?: string;
   phoneNumber?: string;
+  forgetPasswordOtp?: string;
   emailVerified?: boolean;
-  google_id?: string;
-  facebook_id?: string;
+  googleId?: string;
+  facebookId?: string;
 
   constructor(partial: Partial<UserDto>) {
     Object.assign(this, partial);
