@@ -1,6 +1,6 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { SignUpDto } from './dto/sign-up.dto';
-import { SignInDto } from './dto/sign-in.dto';
+import { SignUpDto } from './dtos/sign-up.dto';
+import { SignInDto } from './dtos/sign-in.dto';
 import { UserDto } from '../user/dtos/user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -10,6 +10,7 @@ import { FacebookAuthService } from './facebook-auth.service';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from 'src/email/email.service';
 import VerificationEmail from 'src/email/templates/verificaiton-email';
+import { OpenAiService } from 'src/open-ai/open-ai.service';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +23,7 @@ export class AuthService {
     private config: ConfigService,
     private readonly googleAuthService: GoogleAuthService,
     private readonly facebookAuthService: FacebookAuthService,
+    private readonly openAiService: OpenAiService,
   ) {}
 
   private createUserToken(user: UserDto) {
@@ -38,9 +40,11 @@ export class AuthService {
       signUp.password,
       AuthService.SALT_ROUNDS,
     );
+    let openAiThreadId = await this.openAiService.createUserThread();
     const createdUser = await this.userModel.create({
       ...signUp,
       password: hashedPassword,
+      openAiThreadId: openAiThreadId,
     });
 
     //create jwt token contain user id
@@ -81,10 +85,12 @@ export class AuthService {
       const [user] = existingUsers;
       return { user, token: this.createUserToken(user) };
     }
+    let openAiThreadId = await this.openAiService.createUserThread();
     const createdUser = await this.userModel.create({
       firstName: googleUser.given_name,
       lastName: googleUser.family_name,
       email: googleUser.email,
+      openAiThreadId: openAiThreadId,
       google_id: googleUser.googleId,
     });
     return { user: createdUser, token: this.createUserToken(createdUser) };
@@ -110,10 +116,12 @@ export class AuthService {
       const [user] = existingUsers;
       return { user, token: this.createUserToken(user) };
     }
+    let openAiThreadId = await this.openAiService.createUserThread();
     const createdUser = await this.userModel.create({
       firstName: facebookUser.firstName,
       lastName: facebookUser.lastName,
       email: facebookUser.email,
+      openAiThreadId: openAiThreadId,
       facebook_id: facebookUser.facebookId,
     });
     return { user: createdUser, token: this.createUserToken(createdUser) };

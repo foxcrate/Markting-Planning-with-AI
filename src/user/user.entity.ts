@@ -17,6 +17,9 @@ export class UserEntity {
   @Column()
   password: string;
 
+  @Column()
+  openAiThreadId: string;
+
   @Column({ type: 'boolean', default: false })
   emailVerified: boolean;
 

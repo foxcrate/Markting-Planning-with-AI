@@ -39,6 +39,7 @@
     "jsonwebtoken": "^9.0.2",
     "mariadb": "^3.2.3",
     "nodemailer": "^6.9.12",
+    "openai": "^4.29.2",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.20"

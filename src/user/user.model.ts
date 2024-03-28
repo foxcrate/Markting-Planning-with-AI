@@ -38,14 +38,22 @@ export class UserModel {
       email,
       password,
       phoneNumber,
+      openAiThreadId,
       google_id,
       facebook_id,
     } = user;
 
     const query = `
-      INSERT INTO users (firstName, lastName, email, phoneNumber, password${google_id ? ', google_id' : ''}${facebook_id ? ', facebook_id' : ''}) VALUES (?,?, ?, ?,?${google_id ? ', ?' : ''}${facebook_id ? ', ?' : ''})
+      INSERT INTO users (firstName, lastName, email, phoneNumber, openAiThreadId, password${google_id ? ', google_id' : ''}${facebook_id ? ', facebook_id' : ''}) VALUES (?, ?, ?, ?, ?, ?${google_id ? ', ?' : ''}${facebook_id ? ', ?' : ''})
     `;
-    const params = [firstName, lastName, email, phoneNumber, password];
+    const params = [
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      openAiThreadId,
+      password,
+    ];
     if (google_id) {
       params.push(google_id);
     }

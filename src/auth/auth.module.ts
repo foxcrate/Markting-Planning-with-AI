@@ -5,10 +5,11 @@ import { GoogleAuthService } from './google-auth.service';
 import { UserModule } from 'src/user/user.module';
 import { FacebookAuthService } from './facebook-auth.service';
 import { EmailModule } from 'src/email/email.module';
+import { OpenAiModule } from 'src/open-ai/open-ai.module';
 
 @Module({
   providers: [AuthService, GoogleAuthService, FacebookAuthService],
   controllers: [AuthController],
-  imports: [UserModule, EmailModule],
+  imports: [UserModule, EmailModule, OpenAiModule],
 })
 export class AuthModule {}

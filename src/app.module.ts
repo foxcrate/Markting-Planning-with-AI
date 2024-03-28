@@ -8,6 +8,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { typeOrmDbConfig } from 'ormconfig';
 import { EmailModule } from './email/email.module';
+import { MessageModule } from './message/message.module';
+import { OpenAiModule } from './open-ai/open-ai.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { EmailModule } from './email/email.module';
     UserModule,
     AuthModule,
     EmailModule,
+    MessageModule,
+    OpenAiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

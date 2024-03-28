@@ -1,9 +1,9 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SignUpDto } from './dto/sign-up.dto';
-import { SignInDto } from './dto/sign-in.dto';
-import { GoogleSignInUpDto } from './dto/sign-up-with-google.dto';
-import { VerifyEmailDto } from './dto/verify-email.dto';
+import { SignUpDto } from './dtos/sign-up.dto';
+import { SignInDto } from './dtos/sign-in.dto';
+import { GoogleSignInUpDto } from './dtos/sign-up-with-google.dto';
+import { VerifyEmailDto } from './dtos/verify-email.dto';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
