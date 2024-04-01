@@ -1,3 +1,4 @@
+import { FunnelEntity } from '../funnel/funnel.entity';
 import { ThreadEntity } from '../thread/thread.entity';
 import {
   Entity,
@@ -7,6 +8,7 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 
 @Entity({ name: 'users' })
@@ -41,6 +43,10 @@ export class UserEntity {
   })
   @JoinColumn()
   thread: ThreadEntity;
+
+  @OneToMany(() => FunnelEntity, (funnel) => funnel.user)
+  @JoinColumn()
+  funnels: FunnelEntity[];
 
   @Column({ nullable: true })
   googleId: string;

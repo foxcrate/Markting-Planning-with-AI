@@ -3,6 +3,8 @@ import { UserEntity } from './src/user/user.entity';
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { MessageEntity } from './src/message/message.entity';
 import { ThreadEntity } from './src/thread/thread.entity';
+import { FunnelEntity } from './src/funnel/funnel.entity';
+import { StageEntity } from './src/funnel/stage.entity';
 require('dotenv').config();
 
 export const typeOrmDbConfig: TypeOrmModuleOptions = {
@@ -13,7 +15,13 @@ export const typeOrmDbConfig: TypeOrmModuleOptions = {
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   synchronize: false,
-  entities: [UserEntity, MessageEntity, ThreadEntity],
+  entities: [
+    UserEntity,
+    MessageEntity,
+    ThreadEntity,
+    FunnelEntity,
+    StageEntity,
+  ],
   migrations: [__dirname + '/migrations/**/*'],
   migrationsTableName: 'migrations',
   poolSize: 10,
