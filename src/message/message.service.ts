@@ -4,6 +4,7 @@ import { OpenAiService } from 'src/open-ai/open-ai.service';
 import { UserModel } from 'src/user/user.model';
 import { ThreadModel } from 'src/thread/thread.model';
 import { SenderRole } from 'src/enums/sender-role.enum';
+import { ThreadReturnDto } from 'src/thread/dtos/thread-return.dto';
 
 @Injectable()
 export class MessageService {
@@ -13,24 +14,27 @@ export class MessageService {
     private readonly messageModel: MessageModel,
     private readonly openAiService: OpenAiService,
   ) {}
-  async sendMessage(message: string, userId: string) {
-    let theUser = await this.userModel.findById(userId);
-
-    let theThread = await this.threadModel.findById(theUser.threadId);
+  async sendMessage(message: string, threadId: number, userId: number) {
+    let theThread = {} as ThreadReturnDto;
+    if (!threadId) {
+      let newThread = await this.threadModel.create(userId);
+      theThread = newThread;
+    }
+    theThread = await this.threadModel.findById(threadId);
 
     //save user message
     await this.messageModel.create(message, theThread.id, SenderRole.USER);
-    let aiResposne = await this.openAiService.sendMessageReturnResponse(
+    let aiResponse = await this.openAiService.sendMessageReturnResponse(
       theThread.openAiId,
       message,
     );
 
     await this.messageModel.create(
-      aiResposne,
+      aiResponse.message,
       theThread.id,
       SenderRole.OPEN_AI,
     );
 
-    return aiResposne;
+    return aiResponse;
   }
 }

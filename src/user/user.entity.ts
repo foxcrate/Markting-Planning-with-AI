@@ -37,12 +37,9 @@ export class UserEntity {
   @Column({ nullable: true })
   phoneNumber: string;
 
-  @OneToOne(() => ThreadEntity, (thread) => thread.user, {
-    cascade: true,
-    onDelete: 'CASCADE',
-  })
+  @OneToMany(() => ThreadEntity, (thread) => thread.user)
   @JoinColumn()
-  thread: ThreadEntity;
+  threads: ThreadEntity[];
 
   @OneToMany(() => FunnelEntity, (funnel) => funnel.user)
   @JoinColumn()

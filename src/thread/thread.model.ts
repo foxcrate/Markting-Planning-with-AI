@@ -10,19 +10,21 @@ export class ThreadModel {
     private readonly openAiService: OpenAiService,
   ) {}
 
-  async create(): Promise<ThreadReturnDto> {
+  async create(userId: number): Promise<ThreadReturnDto> {
     let openAiThread = await this.openAiService.createUserThread();
 
     let query = `
        INSERT INTO threads
-       (openAiId)
-       values (?)
+       (openAiId, userId)
+       values (?,?)
       `;
-    await this.entityManager.query(query, [openAiThread.id]);
+    await this.entityManager.query(query, [openAiThread.id, userId]);
 
     query = `
     SELECT
-    id,openAiId
+    id,
+    openAiId,
+    userId
     FROM threads
     WHERE openAiId = ?
    `;
@@ -36,7 +38,8 @@ export class ThreadModel {
     let query = `
     SELECT
       threads.id,
-      threads.openAiId
+      threads.openAiId,
+      threads.userId
     FROM threads
     WHERE threads.id = ?
   `;

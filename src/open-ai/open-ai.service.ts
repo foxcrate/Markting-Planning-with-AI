@@ -25,7 +25,10 @@ export class OpenAiService implements OnModuleInit {
     });
   }
 
-  async sendMessageReturnResponse(threadId: string, message: string) {
+  async sendMessageReturnResponse(
+    threadId: string,
+    message: string,
+  ): Promise<{ message: string; threadId: string }> {
     await this.instance.beta.threads.messages.create(threadId, {
       role: 'user',
       content: message,
@@ -51,7 +54,10 @@ export class OpenAiService implements OnModuleInit {
       //   }
       //   console.log(messages.data);
 
-      return messages.data[0].content[0].text.value;
+      return {
+        message: messages.data[0].content[0].text.value,
+        threadId: threadId,
+      };
     } else {
       console.log(run.status);
       throw new UnprocessableEntityException(

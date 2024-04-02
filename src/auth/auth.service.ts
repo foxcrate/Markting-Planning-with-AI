@@ -41,12 +41,10 @@ export class AuthService {
       signUp.password,
       AuthService.SALT_ROUNDS,
     );
-    let newThread = await this.threadModel.create();
 
     const createdUser = await this.userModel.create({
       ...signUp,
       password: hashedPassword,
-      threadId: newThread.id,
     });
 
     //create jwt token contain user id
@@ -89,12 +87,10 @@ export class AuthService {
       const [user] = existingUsers;
       return { user, token: this.createUserToken(user) };
     }
-    let newThread = await this.threadModel.create();
     const createdUser = await this.userModel.create({
       firstName: googleUser.given_name,
       lastName: googleUser.family_name,
       email: googleUser.email,
-      threadId: newThread.id,
       googleId: googleUser.googleId,
     });
     return { user: createdUser, token: this.createUserToken(createdUser) };
@@ -120,12 +116,10 @@ export class AuthService {
       const [user] = existingUsers;
       return { user, token: this.createUserToken(user) };
     }
-    let newThread = await this.threadModel.create();
     const createdUser = await this.userModel.create({
       firstName: facebookUser.firstName,
       lastName: facebookUser.lastName,
       email: facebookUser.email,
-      threadId: newThread.id,
       facebookId: facebookUser.facebookId,
     });
     return { user: createdUser, token: this.createUserToken(createdUser) };

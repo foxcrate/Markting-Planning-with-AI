@@ -10,7 +10,11 @@ export class MessageController {
 
   @Post('send')
   @UseGuards(AuthGuard)
-  async sendMessage(@Body() message: SendMessageDto, @UserId() userId: string) {
-    return this.messageService.sendMessage(message.content, userId);
+  async sendMessage(@Body() message: SendMessageDto, @UserId() userId: number) {
+    return this.messageService.sendMessage(
+      message.content,
+      message.threadId,
+      userId,
+    );
   }
 }

@@ -5,10 +5,10 @@ import {
   PrimaryGeneratedColumn,
   OneToMany,
   JoinColumn,
-  OneToOne,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
 } from 'typeorm';
 
 @Entity({ name: 'threads' })
@@ -23,7 +23,10 @@ export class ThreadEntity {
   @JoinColumn()
   messages: MessageEntity[];
 
-  @OneToOne(() => UserEntity, (user) => user.thread)
+  @ManyToOne(() => UserEntity, (user) => user.threads, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
   user: UserEntity;
 
   @CreateDateColumn()

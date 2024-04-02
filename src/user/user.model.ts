@@ -47,22 +47,14 @@ export class UserModel {
       email,
       password,
       phoneNumber,
-      threadId,
       googleId,
       facebookId,
     } = user;
 
     const query = `
-      INSERT INTO users (firstName, lastName, email, phoneNumber, threadId, password${googleId ? ', googleId' : ''}${facebookId ? ', facebook_id' : ''}) VALUES (?, ?, ?, ?, ?, ?${googleId ? ', ?' : ''}${facebookId ? ', ?' : ''})
+      INSERT INTO users (firstName, lastName, email, phoneNumber, password${googleId ? ', googleId' : ''}${facebookId ? ', facebook_id' : ''}) VALUES (?, ?, ?, ?, ?${googleId ? ', ?' : ''}${facebookId ? ', ?' : ''})
     `;
-    const params = [
-      firstName,
-      lastName,
-      email,
-      phoneNumber,
-      threadId,
-      password,
-    ];
+    const params = [firstName, lastName, email, phoneNumber, password];
     if (googleId) {
       params.push(googleId);
     }
@@ -108,7 +100,6 @@ export class UserModel {
       users.email,
       users.emailVerified,
       users.phoneNumber,
-      users.threadId,
       users.googleId,
       users.facebookId,
       users.forgetPasswordOtp
