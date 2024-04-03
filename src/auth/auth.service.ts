@@ -11,7 +11,6 @@ import { ConfigService } from '@nestjs/config';
 import { EmailService } from 'src/email/email.service';
 import VerificationEmail from 'src/email/templates/verification-email.template';
 import ForgetPasswordEmail from 'src/email/templates/forget-password-otp.template';
-import { ThreadModel } from 'src/thread/thread.model';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +18,6 @@ export class AuthService {
 
   constructor(
     private readonly userModel: UserModel,
-    private readonly threadModel: ThreadModel,
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
     private config: ConfigService,
