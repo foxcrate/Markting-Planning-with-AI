@@ -6,7 +6,7 @@ import { StageCreateDto } from './dtos/stage-create.dto';
 import { FunnelUpdateDto } from './dtos/funnel-update.dto';
 
 @Injectable()
-export class FunnelModel {
+export class FunnelRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
   async create(funnelCreateBody: FunnelCreateDto, userId: number) {

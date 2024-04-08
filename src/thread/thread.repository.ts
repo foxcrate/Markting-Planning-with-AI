@@ -4,7 +4,7 @@ import { EntityManager } from 'typeorm';
 import { ThreadReturnDto } from './dtos/thread-return.dto';
 
 @Injectable()
-export class ThreadModel {
+export class ThreadRepository {
   constructor(
     private readonly entityManager: EntityManager,
     private readonly openAiService: OpenAiService,
