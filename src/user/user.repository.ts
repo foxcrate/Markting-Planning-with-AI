@@ -3,7 +3,7 @@ import { EntityManager } from 'typeorm';
 import { UserDto } from './dtos/user.dto';
 
 @Injectable()
-export class UserModel {
+export class UserRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
   async findUsersByEmailOrGoogleId(email, googleId): Promise<UserDto[]> {

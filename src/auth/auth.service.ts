@@ -5,7 +5,7 @@ import { UserDto } from '../user/dtos/user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { GoogleAuthService } from 'src/auth/google-auth.service';
-import { UserModel } from '../user/user.model';
+import { UserRepository } from '../user/user.repository';
 import { FacebookAuthService } from './facebook-auth.service';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from 'src/email/email.service';
@@ -17,7 +17,7 @@ export class AuthService {
   private static readonly SALT_ROUNDS = 10;
 
   constructor(
-    private readonly userModel: UserModel,
+    private readonly userRepository: UserRepository,
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
     private config: ConfigService,
@@ -31,7 +31,9 @@ export class AuthService {
   }
 
   async signUp(signUp: SignUpDto): Promise<{ user: UserDto; message: string }> {
-    const existingUser = await this.userModel.findUserByEmail(signUp.email);
+    const existingUser = await this.userRepository.findUserByEmail(
+      signUp.email,
+    );
     if (existingUser) {
       throw new UnprocessableEntityException('email already exists');
     }
@@ -40,7 +42,7 @@ export class AuthService {
       AuthService.SALT_ROUNDS,
     );
 
-    const createdUser = await this.userModel.create({
+    const createdUser = await this.userRepository.create({
       ...signUp,
       password: hashedPassword,
     });
@@ -69,7 +71,7 @@ export class AuthService {
     token: string,
   ): Promise<{ user: UserDto; token: string }> {
     const googleUser = await this.googleAuthService.verifyToken(token);
-    const existingUsers = await this.userModel.findUsersByEmailOrGoogleId(
+    const existingUsers = await this.userRepository.findUsersByEmailOrGoogleId(
       googleUser.email,
       googleUser.googleId,
     );
@@ -85,7 +87,7 @@ export class AuthService {
       const [user] = existingUsers;
       return { user, token: this.createUserToken(user) };
     }
-    const createdUser = await this.userModel.create({
+    const createdUser = await this.userRepository.create({
       firstName: googleUser.given_name,
       lastName: googleUser.family_name,
       email: googleUser.email,
@@ -98,10 +100,11 @@ export class AuthService {
     token: string,
   ): Promise<{ user: UserDto; token: string }> {
     const facebookUser = await this.facebookAuthService.verifyToken(token);
-    const existingUsers = await this.userModel.findUsersByEmailOrFacebookId(
-      facebookUser.email,
-      facebookUser.facebookId,
-    );
+    const existingUsers =
+      await this.userRepository.findUsersByEmailOrFacebookId(
+        facebookUser.email,
+        facebookUser.facebookId,
+      );
     if (Array.isArray(existingUsers) && existingUsers.length) {
       if (
         existingUsers.length > 1 ||
@@ -114,7 +117,7 @@ export class AuthService {
       const [user] = existingUsers;
       return { user, token: this.createUserToken(user) };
     }
-    const createdUser = await this.userModel.create({
+    const createdUser = await this.userRepository.create({
       firstName: facebookUser.firstName,
       lastName: facebookUser.lastName,
       email: facebookUser.email,
@@ -124,7 +127,7 @@ export class AuthService {
   }
 
   async signIn(signIn: SignInDto): Promise<{ user: UserDto; token: string }> {
-    let theUser = await this.userModel.findUserByEmail(signIn.email);
+    let theUser = await this.userRepository.findUserByEmail(signIn.email);
 
     if (!theUser) {
       throw new UnprocessableEntityException('User not found');
@@ -144,19 +147,19 @@ export class AuthService {
   async emailVerification(token) {
     let decoded = this.verifyToken(token);
     let userId = decoded.sub;
-    await this.userModel.verifyEmail(userId);
-    let theUser = await this.userModel.findById(userId);
+    await this.userRepository.verifyEmail(userId);
+    let theUser = await this.userRepository.findById(userId);
 
     return { user: theUser, token: this.createUserToken(theUser) };
   }
 
   async forgetPassword(email) {
-    let theUser = await this.userModel.findUserByEmail(email);
+    let theUser = await this.userRepository.findUserByEmail(email);
     if (!theUser) {
       throw new UnprocessableEntityException('User not found');
     }
     let theOtp = this.createForgetPasswordOtp();
-    await this.userModel.saveForgetPasswordOtp(theOtp, theUser.id);
+    await this.userRepository.saveForgetPasswordOtp(theOtp, theUser.id);
 
     this.emailService.sendEmail(
       theUser.email,
@@ -170,7 +173,7 @@ export class AuthService {
   }
 
   async validateForgetPasswordOtp(otp, email) {
-    let theUser = await this.userModel.findUserByEmail(email);
+    let theUser = await this.userRepository.findUserByEmail(email);
     if (!theUser) {
       throw new UnprocessableEntityException('User not found');
     }
@@ -182,8 +185,8 @@ export class AuthService {
 
   async changePassword(password: string, userId: number) {
     const hashedPassword = await bcrypt.hash(password, AuthService.SALT_ROUNDS);
-    await this.userModel.changePassword(hashedPassword, userId);
-    let theUser = await this.userModel.findById(userId);
+    await this.userRepository.changePassword(hashedPassword, userId);
+    let theUser = await this.userRepository.findById(userId);
     return { user: theUser, token: this.createUserToken(theUser) };
   }
 

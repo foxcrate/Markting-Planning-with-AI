@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ThreadController } from './thread.controller';
 import { ThreadService } from './thread.service';
-import { ThreadModel } from './thread.model';
+import { ThreadRepository } from './thread.repository';
 import { OpenAiModule } from 'src/open-ai/open-ai.module';
 
 @Module({
   controllers: [ThreadController],
-  providers: [ThreadService, ThreadModel],
+  providers: [ThreadService, ThreadRepository],
   imports: [OpenAiModule],
-  exports: [ThreadModel],
+  exports: [ThreadRepository],
 })
 export class ThreadModule {}

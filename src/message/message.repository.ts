@@ -3,7 +3,7 @@ import { EntityManager } from 'typeorm';
 import { MessageReturnDto } from './dtos/message-return.dto';
 
 @Injectable()
-export class MessageModel {
+export class MessageRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
   async create(message: string, threadId: number, role: string) {
