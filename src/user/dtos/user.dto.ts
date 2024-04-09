@@ -6,7 +6,7 @@ export class UserDto {
   password?: string;
   phoneNumber?: string;
   forgetPasswordOtp?: string;
-  emailVerified?: boolean;
+  phoneVerified?: boolean;
   googleId?: string;
   facebookId?: string;
 

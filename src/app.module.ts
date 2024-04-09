@@ -12,6 +12,7 @@ import { MessageModule } from './message/message.module';
 import { OpenAiModule } from './open-ai/open-ai.module';
 import { ThreadModule } from './thread/thread.module';
 import { FunnelModule } from './funnel/funnel.module';
+import { OtpModule } from './otp/otp.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { FunnelModule } from './funnel/funnel.module';
     OpenAiModule,
     ThreadModule,
     FunnelModule,
+    OtpModule,
   ],
   controllers: [AppController],
   providers: [AppService],

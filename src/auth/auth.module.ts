@@ -7,10 +7,11 @@ import { FacebookAuthService } from './facebook-auth.service';
 import { EmailModule } from 'src/email/email.module';
 import { OpenAiModule } from 'src/open-ai/open-ai.module';
 import { ThreadModule } from 'src/thread/thread.module';
+import { OtpModule } from 'src/otp/otp.module';
 
 @Module({
   providers: [AuthService, GoogleAuthService, FacebookAuthService],
   controllers: [AuthController],
-  imports: [UserModule, EmailModule, OpenAiModule, ThreadModule],
+  imports: [UserModule, EmailModule, OpenAiModule, ThreadModule, OtpModule],
 })
 export class AuthModule {}

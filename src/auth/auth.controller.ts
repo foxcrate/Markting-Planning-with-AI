@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dtos/sign-up.dto';
 import { SignInDto } from './dtos/sign-in.dto';
@@ -9,6 +9,8 @@ import { VerifyForgetPasswordOtpDto } from './dtos/verify-forget-password-otp.dt
 import { ChangePasswordDto } from './dtos/change-password.dto';
 import { AuthGuard } from 'src/gurads/auth.guard';
 import { UserId } from 'src/decorators/user-id.decorator';
+import { VerifyOtpDto } from './dtos/verify-otp.dto';
+import { RefreshTokenDto } from './dtos/refresh-token.dto';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
@@ -17,6 +19,14 @@ export class AuthController {
   @Post('sign-up')
   async signUp(@Body() signUpDto: SignUpDto) {
     return this.authService.signUp(signUpDto);
+  }
+
+  @Post('user/verify-signup-otp')
+  async verifySignupOtp1(@Body() verifyOtpData: VerifyOtpDto) {
+    return await this.authService.verifySignupOTP(
+      verifyOtpData.otp,
+      verifyOtpData.mobileNumber,
+    );
   }
 
   @Post('google')
@@ -32,6 +42,11 @@ export class AuthController {
   @Post('sign-in')
   async signIn(@Body() signInDto: SignInDto) {
     return this.authService.signIn(signInDto);
+  }
+
+  @Post('refresh-token')
+  async refreshToken(@Body() { refreshToken }: RefreshTokenDto) {
+    return await this.authService.refreshToken(refreshToken);
   }
 
   @Post('email-verification')
