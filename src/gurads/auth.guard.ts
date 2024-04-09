@@ -28,11 +28,13 @@ export class AuthGuard implements CanActivate {
     // console.log({ payload });
 
     // let payload: IAuthToken = this.authService.verifyToken(token);
-    if (payload.sub === null) {
+    if (payload.sub == null) {
       throw new UnauthorizedException('Wrong Credentials');
     }
 
     request['id'] = payload.sub;
+
+    // console.log(await this.userAvailable(request['id']));
 
     if (!(await this.userAvailable(request['id']))) {
       throw new UnauthorizedException('Wrong Credentials');
@@ -52,9 +54,11 @@ export class AuthGuard implements CanActivate {
         token,
         this.config.get('JWT_SECRET'),
       );
+      // console.log({ decoded });
+
       return decoded;
     } catch (error) {
-      // console.log('error in auth guard:', error);
+      console.log('error in auth guard:', error);
 
       return {
         sub: null,
@@ -64,6 +68,7 @@ export class AuthGuard implements CanActivate {
 
   private async userAvailable(userId) {
     let theUser = await this.findUserById(userId);
+
     if (!theUser) {
       return false;
     }

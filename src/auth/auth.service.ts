@@ -1,4 +1,8 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { SignUpDto } from './dtos/sign-up.dto';
 import { SignInDto } from './dtos/sign-in.dto';
 import { UserDto } from '../user/dtos/user.dto';
@@ -9,8 +13,10 @@ import { UserRepository } from '../user/user.repository';
 import { FacebookAuthService } from './facebook-auth.service';
 import { ConfigService } from '@nestjs/config';
 import { EmailService } from 'src/email/email.service';
-import VerificationEmail from 'src/email/templates/verification-email.template';
 import ForgetPasswordEmail from 'src/email/templates/forget-password-otp.template';
+import { OtpService } from 'src/otp/otp.service';
+import { AuthTokenDto } from './dtos/auth-token.dto';
+import { AuthReturnDto } from './dtos/auth-return.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +24,7 @@ export class AuthService {
 
   constructor(
     private readonly userRepository: UserRepository,
+    private readonly otpService: OtpService,
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
     private config: ConfigService,
@@ -25,17 +32,62 @@ export class AuthService {
     private readonly facebookAuthService: FacebookAuthService,
   ) {}
 
-  private createUserToken(user: UserDto) {
-    const payload = { sub: user.id, email: user.email };
-    return this.jwtService.sign(payload);
+  private createNormalToken(user: UserDto) {
+    const payload = { sub: user.id, tokenType: 'normal' };
+    return this.jwtService.sign(payload, {
+      expiresIn: '1d',
+    });
+  }
+
+  private createRefreshToken(user: UserDto) {
+    const payload = { sub: user.id, tokenType: 'refresh' };
+    return this.jwtService.sign(payload, {
+      expiresIn: '30d',
+    });
+  }
+
+  private verifyToken(token) {
+    try {
+      const decoded = this.jwtService.verify(
+        token,
+        this.config.get('JWT_SECRET'),
+      );
+      return decoded;
+    } catch (error) {
+      console.log({ error });
+
+      throw new UnprocessableEntityException('Wrong Token');
+    }
+  }
+
+  private createForgetPasswordOtp() {
+    let otp = Math.floor(Math.random() * 1000000);
+    return String(otp);
+  }
+
+  verifyRefreshToken(token: string): AuthTokenDto {
+    try {
+      const decoded = this.jwtService.verify(
+        token,
+        this.config.get('JWT_SECRET'),
+      );
+      return decoded;
+    } catch (error) {
+      // console.log('error in auth guard:', error);
+
+      return {
+        sub: null,
+        tokenType: null,
+      };
+    }
   }
 
   async signUp(signUp: SignUpDto): Promise<{ user: UserDto; message: string }> {
-    const existingUser = await this.userRepository.findUserByEmail(
-      signUp.email,
+    const existingUser = await this.userRepository.findUserByPhoneNumber(
+      signUp.phoneNumber,
     );
     if (existingUser) {
-      throw new UnprocessableEntityException('email already exists');
+      throw new UnprocessableEntityException('phone number already exists');
     }
     const hashedPassword = await bcrypt.hash(
       signUp.password,
@@ -47,29 +99,35 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    //create jwt token contain user id
-    let emailVerificationToken = this.createUserToken(createdUser);
-
-    console.log({ emailVerificationToken });
-
-    this.emailService.sendEmail(
-      createdUser.email,
-      'Crespo Email Verification',
-      VerificationEmail(
-        `${createdUser.firstName}` + ' ' + `${createdUser.lastName}`,
-        emailVerificationToken,
-      ),
-    );
+    await this.otpService.sendOtp(signUp.phoneNumber);
 
     return {
       user: createdUser,
-      message: 'Please check your email for verification',
+      message: 'Please check your mobile for otp verification',
     };
   }
 
-  async googleSignInUp(
-    token: string,
-  ): Promise<{ user: UserDto; token: string }> {
+  async verifySignupOTP(
+    otp: string,
+    mobileNumber: string,
+  ): Promise<AuthReturnDto> {
+    const existingUser =
+      await this.userRepository.findUserByPhoneNumber(mobileNumber);
+    if (!existingUser) {
+      throw new UnprocessableEntityException(`phone number doesn't exists`);
+    }
+    await this.otpService.verifyOTP(existingUser.phoneNumber, otp);
+    await this.userRepository.verifyPhoneNumber(existingUser.id);
+    const { password, ...restProperties } = existingUser;
+    let user = restProperties;
+    return {
+      user: user,
+      token: this.createNormalToken(user),
+      refreshToken: this.createRefreshToken(user),
+    };
+  }
+
+  async googleSignInUp(token: string): Promise<AuthReturnDto> {
     const googleUser = await this.googleAuthService.verifyToken(token);
     const existingUsers = await this.userRepository.findUsersByEmailOrGoogleId(
       googleUser.email,
@@ -85,7 +143,11 @@ export class AuthService {
         );
       }
       const [user] = existingUsers;
-      return { user, token: this.createUserToken(user) };
+      return {
+        user: user,
+        token: this.createNormalToken(user),
+        refreshToken: this.createRefreshToken(user),
+      };
     }
     const createdUser = await this.userRepository.create({
       firstName: googleUser.given_name,
@@ -93,12 +155,14 @@ export class AuthService {
       email: googleUser.email,
       googleId: googleUser.googleId,
     });
-    return { user: createdUser, token: this.createUserToken(createdUser) };
+    return {
+      user: createdUser,
+      token: this.createNormalToken(createdUser),
+      refreshToken: this.createRefreshToken(createdUser),
+    };
   }
 
-  async facebookSignInUp(
-    token: string,
-  ): Promise<{ user: UserDto; token: string }> {
+  async facebookSignInUp(token: string): Promise<AuthReturnDto> {
     const facebookUser = await this.facebookAuthService.verifyToken(token);
     const existingUsers =
       await this.userRepository.findUsersByEmailOrFacebookId(
@@ -115,7 +179,11 @@ export class AuthService {
         );
       }
       const [user] = existingUsers;
-      return { user, token: this.createUserToken(user) };
+      return {
+        user: user,
+        token: this.createNormalToken(user),
+        refreshToken: this.createRefreshToken(user),
+      };
     }
     const createdUser = await this.userRepository.create({
       firstName: facebookUser.firstName,
@@ -123,17 +191,53 @@ export class AuthService {
       email: facebookUser.email,
       facebookId: facebookUser.facebookId,
     });
-    return { user: createdUser, token: this.createUserToken(createdUser) };
+    return {
+      user: createdUser,
+      token: this.createNormalToken(createdUser),
+      refreshToken: this.createRefreshToken(createdUser),
+    };
   }
 
-  async signIn(signIn: SignInDto): Promise<{ user: UserDto; token: string }> {
+  async refreshToken(refreshToken: string): Promise<AuthReturnDto> {
+    let payload: any = this.verifyRefreshToken(refreshToken);
+
+    if (payload.sub == null) {
+      throw new UnauthorizedException('Wrong Credentials');
+    }
+    if (payload.tokenType != 'refresh') {
+      throw new UnauthorizedException('Wrong Credentials');
+    }
+
+    let tokenPayload = {
+      sub: payload.sub,
+      tokenType: 'normal',
+    };
+
+    let refreshTokenPayload = {
+      sub: payload.sub,
+      tokenType: 'refresh',
+    };
+    const user = await this.userRepository.findById(payload.sub);
+
+    return {
+      user: user,
+      token: this.jwtService.sign(tokenPayload, {
+        expiresIn: '1d',
+      }),
+      refreshToken: this.jwtService.sign(refreshTokenPayload, {
+        expiresIn: '30d',
+      }),
+    };
+  }
+
+  async signIn(signIn: SignInDto): Promise<AuthReturnDto> {
     let theUser = await this.userRepository.findUserByEmail(signIn.email);
 
     if (!theUser) {
       throw new UnprocessableEntityException('User not found');
     }
-    if (!theUser.emailVerified) {
-      throw new UnprocessableEntityException('Email not verified');
+    if (!theUser.phoneVerified) {
+      throw new UnprocessableEntityException('Phone Number not verified');
     }
     const { password, ...restProperties } = theUser;
     const isPasswordValid = await bcrypt.compare(signIn.password, password);
@@ -141,7 +245,11 @@ export class AuthService {
       throw new UnprocessableEntityException('Invalid credentials');
     }
     let user = restProperties;
-    return { user, token: this.createUserToken(restProperties) };
+    return {
+      user: user,
+      token: this.createNormalToken(user),
+      refreshToken: this.createRefreshToken(user),
+    };
   }
 
   async emailVerification(token) {
@@ -150,7 +258,11 @@ export class AuthService {
     await this.userRepository.verifyEmail(userId);
     let theUser = await this.userRepository.findById(userId);
 
-    return { user: theUser, token: this.createUserToken(theUser) };
+    return {
+      user: theUser,
+      token: this.createNormalToken(theUser),
+      refreshToken: this.createRefreshToken(theUser),
+    };
   }
 
   async forgetPassword(email) {
@@ -172,7 +284,7 @@ export class AuthService {
     return true;
   }
 
-  async validateForgetPasswordOtp(otp, email) {
+  async validateForgetPasswordOtp(otp, email): Promise<{ token: string }> {
     let theUser = await this.userRepository.findUserByEmail(email);
     if (!theUser) {
       throw new UnprocessableEntityException('User not found');
@@ -180,32 +292,20 @@ export class AuthService {
     if (theUser.forgetPasswordOtp !== otp) {
       throw new UnprocessableEntityException('Invalid otp');
     }
-    return { token: this.createUserToken(theUser) };
+    return { token: this.createNormalToken(theUser) };
   }
 
-  async changePassword(password: string, userId: number) {
-    const hashedPassword = await bcrypt.hash(password, AuthService.SALT_ROUNDS);
-    await this.userRepository.changePassword(hashedPassword, userId);
+  async changePassword(
+    password: string,
+    userId: number,
+  ): Promise<AuthReturnDto> {
     let theUser = await this.userRepository.findById(userId);
-    return { user: theUser, token: this.createUserToken(theUser) };
-  }
-
-  private verifyToken(token) {
-    try {
-      const decoded = this.jwtService.verify(
-        token,
-        this.config.get('JWT_SECRET'),
-      );
-      return decoded;
-    } catch (error) {
-      console.log({ error });
-
-      throw new UnprocessableEntityException('Wrong Token');
-    }
-  }
-
-  private createForgetPasswordOtp() {
-    let otp = Math.floor(Math.random() * 1000000);
-    return String(otp);
+    const hashedPassword = await bcrypt.hash(password, AuthService.SALT_ROUNDS);
+    await this.userRepository.changePassword(hashedPassword, theUser.id);
+    return {
+      user: theUser,
+      token: this.createNormalToken(theUser),
+      refreshToken: this.createRefreshToken(theUser),
+    };
   }
 }

@@ -14,10 +14,19 @@ export class UserRepository {
     return this.entityManager.query(query, [email, googleId]);
   }
 
-  async verifyEmail(userId) {
+  async verifyEmail(userId: number) {
     const query = `
         UPDATE users
         SET emailVerified = true
+        WHERE id = ?
+      `;
+    await this.entityManager.query(query, [userId]);
+  }
+
+  async verifyPhoneNumber(userId: number) {
+    const query = `
+        UPDATE users
+        SET phoneVerified = true
         WHERE id = ?
       `;
     await this.entityManager.query(query, [userId]);
@@ -82,6 +91,15 @@ export class UserRepository {
     return user;
   }
 
+  async findUserByPhoneNumber(phoneNumber): Promise<UserDto> {
+    const query = `
+        SELECT * FROM users
+        WHERE phoneNumber = ? LIMIT 1
+      `;
+    const [user] = await this.entityManager.query(query, [phoneNumber]);
+    return user;
+  }
+
   async changePassword(password: string, userId: number) {
     const query = `
         UPDATE users
@@ -98,7 +116,7 @@ export class UserRepository {
       users.firstName,
       users.lastName,
       users.email,
-      users.emailVerified,
+      users.phoneVerified,
       users.phoneNumber,
       users.googleId,
       users.facebookId,
