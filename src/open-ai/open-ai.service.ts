@@ -70,4 +70,21 @@ export class OpenAiService implements OnModuleInit {
     const thread = await this.instance.beta.threads.create();
     return thread;
   }
+
+  async promptToAiQuestion(prompt: string): Promise<string> {
+    try {
+      const completion = await this.instance.completions.create({
+        model: 'gpt-3.5-turbo-instruct',
+        prompt: prompt,
+      });
+      if (!completion.choices[0]) {
+        throw new UnprocessableEntityException('no response from openAI');
+      }
+      let aiQuestion = completion.choices[0].text;
+      return aiQuestion;
+    } catch (error: any) {
+      console.log(error);
+      throw new UnprocessableEntityException(error.error.message);
+    }
+  }
 }

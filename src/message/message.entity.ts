@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 import { ThreadEntity } from '../thread/thread.entity';
 import { SenderRole } from '../enums/sender-role.enum';
+import { UserTemplateFlowEntity } from '../template/user-template-flow.entity';
 
 @Entity({ name: 'messages' })
 export class MessageEntity {
@@ -30,6 +31,20 @@ export class MessageEntity {
     onDelete: 'CASCADE',
   })
   thread: ThreadEntity;
+
+  @ManyToOne(
+    () => UserTemplateFlowEntity,
+    (userTemplateFlow) => userTemplateFlow.messages,
+    {
+      cascade: true,
+      onDelete: 'SET NULL',
+      nullable: true,
+    },
+  )
+  userTemplateFlow: UserTemplateFlowEntity;
+
+  @Column({ nullable: true })
+  templateFlowStepNumber: number;
 
   @CreateDateColumn()
   createdAt: Date;

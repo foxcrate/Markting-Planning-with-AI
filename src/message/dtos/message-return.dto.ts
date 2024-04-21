@@ -3,4 +3,5 @@ export class MessageReturnDto {
   content: string;
   threadId: number;
   senderRole: string;
+  templateFlowStepNumber: number;
 }

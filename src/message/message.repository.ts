@@ -6,26 +6,32 @@ import { MessageReturnDto } from './dtos/message-return.dto';
 export class MessageRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
-  async create(message: string, threadId: number, role: string) {
-    const query = `
+  async create(
+    message: string,
+    threadId: number,
+    role: string,
+    templateFlowStepNumber: number = null,
+  ) {
+    let query = `
        INSERT INTO messages
-       (content, threadId, senderRole)
-       values (?,?,?)
+       (content, threadId, senderRole,templateFlowStepNumber)
+       values (?,?,?,?)
       `;
-    await this.entityManager.query(query, [message, threadId, role]);
+    let { insertId } = await this.entityManager.query(query, [
+      message,
+      threadId,
+      role,
+      templateFlowStepNumber,
+    ]);
 
-    //   query = `
-    //   SELECT
-    //   id,content,threadId,senderRole
-    //   FROM messages
-    //   WHERE content = ? AND threadId = ? AND senderRole = ?
-    //  `;
-    //   let [createdMessage] = await this.entityManager.query(query, [
-    //     message,
-    //     threadId,
-    //     role,
-    //   ]);
-    //   return createdMessage;
+    query = `
+      SELECT
+      id,content,threadId,senderRole,templateFlowStepNumber
+      FROM messages
+      WHERE id = ?
+     `;
+    let [createdMessage] = await this.entityManager.query(query, [insertId]);
+    return createdMessage;
   }
 
   async findById(messageId): Promise<MessageReturnDto> {
@@ -34,7 +40,8 @@ export class MessageRepository {
       messages.id,
       messages.content,
       messages.threadId,
-      messages.senderRole
+      messages.senderRole,
+      messages.templateFlowStepNumber
     FROM messages
     WHERE messages.id = ?
   `;

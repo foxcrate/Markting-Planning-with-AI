@@ -10,5 +10,6 @@ import { ThreadModule } from 'src/thread/thread.module';
   controllers: [MessageController],
   providers: [MessageService, MessageRepository],
   imports: [UserModule, OpenAiModule, ThreadModule],
+  exports: [MessageRepository],
 })
 export class MessageModule {}
