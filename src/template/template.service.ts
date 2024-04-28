@@ -86,7 +86,7 @@ export class TemplateService {
     await this.messageRepository.create(
       aiQuestion,
       thread.id,
-      SenderRole.OPEN_AI,
+      SenderRole.ASSISTANT,
       stepNumber,
     );
 

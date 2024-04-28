@@ -50,4 +50,19 @@ export class MessageRepository {
 
     return theMessage;
   }
+
+  async getAllThreadMessages(threadId: number): Promise<MessageReturnDto[]> {
+    let query = `
+    SELECT
+      messages.id,
+      messages.content,
+      messages.threadId,
+      messages.senderRole,
+      messages.templateFlowStepNumber
+    FROM messages
+    WHERE messages.threadId = ?
+  `;
+    const messages = await this.entityManager.query(query, [threadId]);
+    return messages;
+  }
 }
