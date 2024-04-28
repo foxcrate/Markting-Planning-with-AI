@@ -23,11 +23,18 @@ export class TemplateEntity {
   })
   type: TemplateType;
 
+  @Column({ nullable: true })
+  openaiAssistantId: string;
+
   @Column()
   name: string;
 
+  @Column('longtext')
+  descriptions: string;
+
   @Column({ type: 'json' })
   flow: object;
+  //parameters
 
   @OneToMany(() => ThreadEntity, (thread) => thread.template)
   @JoinColumn()

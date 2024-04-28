@@ -39,6 +39,7 @@ export class ThreadEntity {
     nullable: true,
   })
   template: TemplateEntity;
+  //should by one to one
 
   @CreateDateColumn()
   createdAt: Date;

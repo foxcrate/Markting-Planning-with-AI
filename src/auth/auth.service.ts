@@ -17,6 +17,7 @@ import ForgetPasswordEmail from 'src/email/templates/forget-password-otp.templat
 import { OtpService } from 'src/otp/otp.service';
 import { AuthTokenDto } from './dtos/auth-token.dto';
 import { AuthReturnDto } from './dtos/auth-return.dto';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -307,5 +308,42 @@ export class AuthService {
       token: this.createNormalToken(theUser),
       refreshToken: this.createRefreshToken(theUser),
     };
+  }
+
+  async getGoogleUserData(access_token) {
+    try {
+      const { data } = await axios({
+        url: 'https://www.googleapis.com/oauth2/v2/userinfo',
+        method: 'get',
+        headers: {
+          Authorization: `Bearer ${access_token}`,
+        },
+      });
+      return data;
+    } catch (err) {
+      console.log('error in getGoogleUserData() --', err);
+
+      throw new UnprocessableEntityException('Google token error');
+    }
+  }
+
+  async getFacebookUserData(access_token) {
+    try {
+      const { data } = await axios({
+        url: 'https://graph.facebook.com/me',
+        method: 'get',
+        params: {
+          fields: ['id', 'email', 'first_name', 'last_name', 'picture'].join(
+            ',',
+          ),
+          access_token: access_token,
+        },
+      });
+      return data;
+    } catch (err) {
+      console.log('error in getFacebookUserData() --', err);
+
+      throw new UnprocessableEntityException('Facebook token error');
+    }
   }
 }

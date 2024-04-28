@@ -11,6 +11,9 @@ import { AuthGuard } from 'src/gurads/auth.guard';
 import { UserId } from 'src/decorators/user-id.decorator';
 import { VerifyOtpDto } from './dtos/verify-otp.dto';
 import { RefreshTokenDto } from './dtos/refresh-token.dto';
+import { GoogleReturnDataSerializer } from './serializers/google-return-data.serializer';
+import { FacebookReturnDataSerializer } from './serializers/facebook-return-data.serializer';
+import { SocialSignDto } from './dtos/social-sign.dto';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
@@ -37,6 +40,24 @@ export class AuthController {
   @Post('facebook')
   async signInUpWithFacebook(@Body() googleSignInUp: GoogleSignInUpDto) {
     return this.authService.facebookSignInUp(googleSignInUp.token);
+  }
+
+  @Post('google-data')
+  async googleRedirect(@Body() socialSign: SocialSignDto) {
+    let userData = await this.authService.getGoogleUserData(
+      socialSign.accessToken,
+    );
+
+    return GoogleReturnDataSerializer.serialize(userData);
+  }
+
+  @Post('facebook-data')
+  async facebookRedirect(@Body() socialSign: SocialSignDto) {
+    let userData = await this.authService.getFacebookUserData(
+      socialSign.accessToken,
+    );
+
+    return FacebookReturnDataSerializer.serialize(userData);
   }
 
   @Post('sign-in')
