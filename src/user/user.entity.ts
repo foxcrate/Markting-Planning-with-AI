@@ -21,10 +21,10 @@ export class UserEntity {
   @Column()
   lastName: string;
 
-  @Column()
+  @Column({ nullable: true })
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   @Column({ type: 'boolean', default: false })
@@ -33,7 +33,7 @@ export class UserEntity {
   @Column({ nullable: true })
   forgetPasswordOtp: string;
 
-  @Column({ nullable: true })
+  @Column()
   phoneNumber: string;
 
   @OneToMany(() => ThreadEntity, (thread) => thread.user)

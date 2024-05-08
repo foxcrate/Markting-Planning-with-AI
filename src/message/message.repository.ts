@@ -7,25 +7,25 @@ export class MessageRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
   async create(message: string, threadId: number, role: string) {
-    const query = `
+    let query = `
        INSERT INTO messages
        (content, threadId, senderRole)
        values (?,?,?)
       `;
-    await this.entityManager.query(query, [message, threadId, role]);
+    let { insertId } = await this.entityManager.query(query, [
+      message,
+      threadId,
+      role,
+    ]);
 
-    //   query = `
-    //   SELECT
-    //   id,content,threadId,senderRole
-    //   FROM messages
-    //   WHERE content = ? AND threadId = ? AND senderRole = ?
-    //  `;
-    //   let [createdMessage] = await this.entityManager.query(query, [
-    //     message,
-    //     threadId,
-    //     role,
-    //   ]);
-    //   return createdMessage;
+    query = `
+      SELECT
+      id,content,threadId,senderRole
+      FROM messages
+      WHERE id = ?
+     `;
+    let [createdMessage] = await this.entityManager.query(query, [insertId]);
+    return createdMessage;
   }
 
   async findById(messageId): Promise<MessageReturnDto> {
@@ -42,5 +42,19 @@ export class MessageRepository {
     const [theMessage] = await this.entityManager.query(query, [messageId]);
 
     return theMessage;
+  }
+
+  async getAllThreadMessages(threadId: number): Promise<MessageReturnDto[]> {
+    let query = `
+    SELECT
+      messages.id,
+      messages.content,
+      messages.threadId,
+      messages.senderRole
+    FROM messages
+    WHERE messages.threadId = ?
+  `;
+    const messages = await this.entityManager.query(query, [threadId]);
+    return messages;
   }
 }

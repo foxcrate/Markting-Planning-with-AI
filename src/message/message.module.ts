@@ -9,6 +9,7 @@ import { ThreadModule } from 'src/thread/thread.module';
 @Module({
   controllers: [MessageController],
   providers: [MessageService, MessageRepository],
-  imports: [UserModule, OpenAiModule, ThreadModule],
+  // imports: [UserModule, OpenAiModule, ThreadModule],
+  exports: [MessageRepository],
 })
 export class MessageModule {}

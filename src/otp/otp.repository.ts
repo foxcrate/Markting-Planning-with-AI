@@ -46,6 +46,7 @@ export class OtpRepository {
       FROM otps
       WHERE
       phoneNumber = ?
+      ORDER BY createdAt DESC
     `;
 
     let obj = await this.entityManager.query(query, [mobileNumber]);

@@ -1,0 +1,139 @@
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { OnboardingTemplateDto } from './dtos/onboarding-template.dto';
+import { TemplateRepository } from './template.repository';
+import { OpenAiService } from 'src/open-ai/open-ai.service';
+import { TemplateType } from 'src/enums/template-type.enum';
+import { MessageRepository } from 'src/message/message.repository';
+import { SenderRole } from 'src/enums/sender-role.enum';
+import { ThreadRepository } from 'src/thread/thread.repository';
+
+@Injectable()
+export class TemplateService {
+  constructor(
+    private readonly templateRepository: TemplateRepository,
+    private readonly openAiService: OpenAiService,
+    private readonly messageRepository: MessageRepository,
+    private readonly threadRepository: ThreadRepository,
+  ) {}
+
+  async setOnboardingTemplate(template: OnboardingTemplateDto) {
+    // check if system has onboarding template
+    const existingTemplate = await this.templateRepository.findByType(
+      TemplateType.ONBOARDING,
+    );
+
+    if (existingTemplate) {
+      await this.openAiService.updateTemplateAssistance(
+        existingTemplate.openaiAssistantId,
+        TemplateType.ONBOARDING,
+        template.description,
+        template.parameters,
+      );
+
+      return await this.templateRepository.update(existingTemplate.id, {
+        name: TemplateType.ONBOARDING,
+        type: TemplateType.ONBOARDING,
+        description: template.description,
+        parameters: template.parameters,
+        openaiAssistantId: existingTemplate.openaiAssistantId,
+      });
+    }
+
+    let assistance = await this.openAiService.createTemplateAssistance(
+      TemplateType.ONBOARDING,
+      template.description,
+      template.parameters,
+    );
+
+    return await this.templateRepository.create({
+      name: TemplateType.ONBOARDING,
+      type: TemplateType.ONBOARDING,
+      description: template.description,
+      parameters: template.parameters,
+      openaiAssistantId: assistance.id,
+    });
+  }
+
+  async getOne(templateId: number) {
+    let template = await this.templateRepository.findById(templateId);
+    if (!template) {
+      throw new UnprocessableEntityException('Template not found');
+    }
+    return template;
+  }
+
+  async startTemplateFlow(templateId: number, userId: number) {
+    let template = await this.templateRepository.findById(templateId);
+
+    // check if user already has a user template flow "thread"
+    // get or create if not
+    let thread = await this.threadRepository.findByTemplateIdAndUserId(
+      template.id,
+      userId,
+    );
+    if (!thread) {
+      thread = await this.threadRepository.create(userId, template.id);
+    }
+
+    // run the assistant with thread id
+    let runObject = await this.openAiService.runTemplateAssistant(
+      template.openaiAssistantId,
+      thread.openAiId,
+    );
+
+    // save new message
+    await this.messageRepository.create(
+      runObject.assistantMessage,
+      thread.id,
+      SenderRole.ASSISTANT,
+    );
+
+    return { assistantMessage: runObject.assistantMessage, threadEnd: false };
+  }
+
+  async answerTemplateQuestion(
+    templateId: number,
+    answer: string,
+    userId: number,
+  ) {
+    let template = await this.templateRepository.findById(templateId);
+
+    // check if user already has a user template flow "thread"
+    // get or create if not
+    let thread = await this.threadRepository.findByTemplateIdAndUserId(
+      template.id,
+      userId,
+    );
+    if (!thread) {
+      throw new UnprocessableEntityException('No thread found for this user');
+    }
+
+    // save user message
+    await this.messageRepository.create(answer, thread.id, SenderRole.USER);
+
+    let aiResponseObject =
+      await this.openAiService.sendTemplateMessageReturnResponse(
+        template.openaiAssistantId,
+        thread.openAiId,
+        answer,
+      );
+
+    if (aiResponseObject.threadEnd) {
+      return {
+        assistantMessage: aiResponseObject.assistantMessage,
+        threadEnd: true,
+      };
+    } else {
+      // save assistant message
+      await this.messageRepository.create(
+        aiResponseObject.assistantMessage,
+        thread.id,
+        SenderRole.ASSISTANT,
+      );
+      return {
+        assistantMessage: aiResponseObject.assistantMessage,
+        threadEnd: false,
+      };
+    }
+  }
+}

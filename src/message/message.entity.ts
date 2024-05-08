@@ -22,7 +22,7 @@ export class MessageEntity {
   })
   senderRole: SenderRole | null;
 
-  @Column()
+  @Column('longtext')
   content: string;
 
   @ManyToOne(() => ThreadEntity, (thread) => thread.messages, {

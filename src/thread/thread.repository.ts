@@ -10,21 +10,29 @@ export class ThreadRepository {
     private readonly openAiService: OpenAiService,
   ) {}
 
-  async create(userId: number): Promise<ThreadReturnDto> {
+  async create(
+    userId: number,
+    templateId: number = null,
+  ): Promise<ThreadReturnDto> {
     let openAiThread = await this.openAiService.createUserThread();
 
     let query = `
        INSERT INTO threads
-       (openAiId, userId)
-       values (?,?)
+       (openAiId, userId,templateId)
+       values (?,?,?)
       `;
-    await this.entityManager.query(query, [openAiThread.id, userId]);
+    await this.entityManager.query(query, [
+      openAiThread.id,
+      userId,
+      templateId,
+    ]);
 
     query = `
     SELECT
     id,
     openAiId,
-    userId
+    userId,
+    templateId
     FROM threads
     WHERE openAiId = ?
    `;
@@ -39,12 +47,36 @@ export class ThreadRepository {
     SELECT
       threads.id,
       threads.openAiId,
-      threads.userId
+      threads.userId,
+      threads.templateId
     FROM threads
     WHERE threads.id = ?
   `;
 
     const [theThread] = await this.entityManager.query(query, [threadId]);
+
+    return theThread;
+  }
+
+  async findByTemplateIdAndUserId(
+    templateId,
+    userId,
+  ): Promise<ThreadReturnDto> {
+    let query = `
+    SELECT
+      threads.id,
+      threads.openAiId,
+      threads.userId,
+      threads.templateId
+    FROM threads
+    WHERE threads.templateId = ?
+    AND threads.userId = ?
+  `;
+
+    const [theThread] = await this.entityManager.query(query, [
+      templateId,
+      userId,
+    ]);
 
     return theThread;
   }
