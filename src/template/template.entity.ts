@@ -9,7 +9,6 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { UserTemplateFlowEntity } from './user-template-flow.entity';
 
 @Entity({ name: 'templates' })
 export class TemplateEntity {
@@ -30,22 +29,14 @@ export class TemplateEntity {
   name: string;
 
   @Column('longtext')
-  descriptions: string;
+  description: string;
 
   @Column({ type: 'json' })
-  flow: object;
-  //parameters
+  parameters: object;
 
   @OneToMany(() => ThreadEntity, (thread) => thread.template)
   @JoinColumn()
   threads: ThreadEntity[];
-
-  @OneToMany(
-    () => UserTemplateFlowEntity,
-    (userTemplateFlow) => userTemplateFlow.template,
-  )
-  @JoinColumn()
-  userTemplateFlows: UserTemplateFlowEntity[];
 
   @CreateDateColumn()
   createdAt: Date;

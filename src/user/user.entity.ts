@@ -1,4 +1,3 @@
-import { UserTemplateFlowEntity } from '../template/user-template-flow.entity';
 import { FunnelEntity } from '../funnel/funnel.entity';
 import { ThreadEntity } from '../thread/thread.entity';
 import {
@@ -22,10 +21,10 @@ export class UserEntity {
   @Column()
   lastName: string;
 
-  @Column()
+  @Column({ nullable: true })
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   password: string;
 
   @Column({ type: 'boolean', default: false })
@@ -34,19 +33,12 @@ export class UserEntity {
   @Column({ nullable: true })
   forgetPasswordOtp: string;
 
-  @Column({ nullable: true })
+  @Column()
   phoneNumber: string;
 
   @OneToMany(() => ThreadEntity, (thread) => thread.user)
   @JoinColumn()
   threads: ThreadEntity[];
-
-  @OneToMany(
-    () => UserTemplateFlowEntity,
-    (userTemplateFlow) => userTemplateFlow.user,
-  )
-  @JoinColumn()
-  userTemplateFlows: UserTemplateFlowEntity[];
 
   @OneToMany(() => FunnelEntity, (funnel) => funnel.user)
   @JoinColumn()

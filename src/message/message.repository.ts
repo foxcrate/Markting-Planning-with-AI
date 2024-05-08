@@ -6,27 +6,21 @@ import { MessageReturnDto } from './dtos/message-return.dto';
 export class MessageRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
-  async create(
-    message: string,
-    threadId: number,
-    role: string,
-    templateFlowStepNumber: number = null,
-  ) {
+  async create(message: string, threadId: number, role: string) {
     let query = `
        INSERT INTO messages
-       (content, threadId, senderRole,templateFlowStepNumber)
-       values (?,?,?,?)
+       (content, threadId, senderRole)
+       values (?,?,?)
       `;
     let { insertId } = await this.entityManager.query(query, [
       message,
       threadId,
       role,
-      templateFlowStepNumber,
     ]);
 
     query = `
       SELECT
-      id,content,threadId,senderRole,templateFlowStepNumber
+      id,content,threadId,senderRole
       FROM messages
       WHERE id = ?
      `;
@@ -40,8 +34,7 @@ export class MessageRepository {
       messages.id,
       messages.content,
       messages.threadId,
-      messages.senderRole,
-      messages.templateFlowStepNumber
+      messages.senderRole
     FROM messages
     WHERE messages.id = ?
   `;
@@ -57,8 +50,7 @@ export class MessageRepository {
       messages.id,
       messages.content,
       messages.threadId,
-      messages.senderRole,
-      messages.templateFlowStepNumber
+      messages.senderRole
     FROM messages
     WHERE messages.threadId = ?
   `;

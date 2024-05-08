@@ -1,5 +1,5 @@
 import { TemplateType } from 'src/enums/template-type.enum';
-import { TemplateFlowObjectDto } from './template-flow-object.dto';
+import { ParameterObjectDto } from './parameter-object.dto';
 
 export class TemplateReturnDto {
   id: number;
@@ -8,5 +8,9 @@ export class TemplateReturnDto {
 
   type: TemplateType;
 
-  flow: TemplateFlowObjectDto[];
+  description: string;
+
+  parameters: ParameterObjectDto[];
+
+  openaiAssistantId: string;
 }

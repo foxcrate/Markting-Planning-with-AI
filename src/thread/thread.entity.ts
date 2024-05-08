@@ -20,8 +20,8 @@ export class ThreadEntity {
   @Column()
   openAiId: string;
 
-  @Column({ nullable: true })
-  currentTemplateFlowStep: number;
+  @Column({ default: false })
+  finishTemplate: boolean;
 
   @OneToMany(() => MessageEntity, (message) => message.thread)
   @JoinColumn()
@@ -39,7 +39,6 @@ export class ThreadEntity {
     nullable: true,
   })
   template: TemplateEntity;
-  //should by one to one
 
   @CreateDateColumn()
   createdAt: Date;

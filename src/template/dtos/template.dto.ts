@@ -1,10 +1,14 @@
 import { TemplateType } from 'src/enums/template-type.enum';
-import { TemplateFlowObjectDto } from './template-flow-object.dto';
+import { ParameterObjectDto } from './parameter-object.dto';
 
 export class TemplateDto {
   name: string;
 
   type: TemplateType;
 
-  flow: TemplateFlowObjectDto[];
+  description: string;
+
+  parameters: ParameterObjectDto[];
+
+  openaiAssistantId: string;
 }

@@ -12,14 +12,16 @@ export class TemplateRepository {
   async create(template: TemplateDto): Promise<TemplateReturnDto> {
     const query = `
     INSERT INTO templates
-    (name,type,flow)
-    values (?,?,?)
+    (name,type,description,parameters,openaiAssistantId)
+    values (?,?,?,?,?)
    `;
 
     let { insertId } = await this.entityManager.query(query, [
       template.name,
       template.type,
-      JSON.stringify(template.flow),
+      template.description,
+      JSON.stringify(template.parameters),
+      template.openaiAssistantId,
     ]);
 
     return await this.findById(insertId);
@@ -31,14 +33,16 @@ export class TemplateRepository {
     SET
     name = COALESCE(?,name),
     type = COALESCE(?,type),
-    flow = COALESCE(?,flow)
+    description = COALESCE(?,description),
+    parameters = COALESCE(?,parameters)
     WHERE id= ?
    `;
 
     await this.entityManager.query(query, [
       template.name,
       template.type,
-      JSON.stringify(template.flow),
+      template.description,
+      JSON.stringify(template.parameters),
       id,
     ]);
 
@@ -49,9 +53,11 @@ export class TemplateRepository {
     const query = `
     SELECT
       templates.id,
+      templates.name,
       templates.type,
-      templates.flow,
-      templates.name
+      templates.description,
+      templates.parameters,
+      templates.openaiAssistantId
     FROM templates
     WHERE templates.id = ?
    `;
@@ -63,7 +69,7 @@ export class TemplateRepository {
 
     const template = templates[0];
 
-    template.flow = JSON.parse(template.flow);
+    template.parameters = JSON.parse(template.parameters);
 
     return template;
   }
@@ -72,9 +78,11 @@ export class TemplateRepository {
     const query = `
     SELECT
       templates.id,
+      templates.name,
       templates.type,
-      templates.flow,
-      templates.name
+      templates.description,
+      templates.parameters,
+      templates.openaiAssistantId
     FROM templates
     WHERE templates.name = ?
    `;
@@ -85,7 +93,7 @@ export class TemplateRepository {
     }
     const template = templates[0];
 
-    template.flow = JSON.parse(template.flow);
+    template.parameters = JSON.parse(template.parameters);
 
     return template;
   }
@@ -94,9 +102,11 @@ export class TemplateRepository {
     const query = `
     SELECT
       templates.id,
+      templates.name,
       templates.type,
-      templates.flow,
-      templates.name
+      templates.description,
+      templates.parameters,
+      templates.openaiAssistantId
     FROM templates
     WHERE templates.type = ?
    `;
@@ -107,7 +117,7 @@ export class TemplateRepository {
     }
     const template = templates[0];
 
-    template.flow = JSON.parse(template.flow);
+    template.parameters = JSON.parse(template.parameters);
 
     return template;
   }
@@ -120,7 +130,9 @@ export class TemplateRepository {
       templates.id,
       templates.name,
       templates.type,
-      templates.flow
+      templates.description,
+      templates.parameters,
+      templates.openaiAssistantId
     FROM templates
     WHERE type = ?
    `;
@@ -128,7 +140,7 @@ export class TemplateRepository {
       TemplateType.ONBOARDING,
     ]);
 
-    template.flow = JSON.parse(template.flow);
+    template.parameters = JSON.parse(template.parameters);
     return template;
   }
 }

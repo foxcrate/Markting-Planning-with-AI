@@ -14,31 +14,28 @@ export class TemplateController {
     private readonly templateRepository: TemplateRepository,
   ) {}
 
-  @Post('onboarding-flow')
-  async onboardingFlow(@Body() template: OnboardingTemplateDto) {
+  @Post('onboarding')
+  @UseGuards(AuthGuard)
+  async setOnboardingFlow(@Body() template: OnboardingTemplateDto) {
     return this.templateService.setOnboardingTemplate(template);
   }
 
-  @Get('onboarding-flow/step/:step')
+  @Post('onboarding/start')
   @UseGuards(AuthGuard)
-  async getOnboardingFlowStep(
-    @Param() params: { step: number },
-    @UserId() userId: number,
-  ) {
+  async startOnboarding(@UserId() userId: number) {
     let onboardingTemplate = await this.templateRepository.findByType(
       TemplateType.ONBOARDING,
     );
-    return await this.templateService.getTemplateStepQuestion(
+    return await this.templateService.startTemplateFlow(
       onboardingTemplate.id,
-      Number(params.step),
       userId,
     );
   }
 
-  @Post('onboarding-flow/step/:step')
-  async postOnboardingFlowStep(
+  @Post('onboarding/answer')
+  @UseGuards(AuthGuard)
+  async answer(
     @Body() questionAnswer: OnboardingQuestionAnswer,
-    @Param() params: { step: number },
     @UserId() userId: number,
   ) {
     let onboardingTemplate = await this.templateRepository.findByType(
@@ -46,7 +43,6 @@ export class TemplateController {
     );
     return await this.templateService.answerTemplateQuestion(
       onboardingTemplate.id,
-      Number(params.step),
       questionAnswer.answer,
       userId,
     );

@@ -6,47 +6,38 @@ import { UserDto } from './dtos/user.dto';
 export class UserRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
-  async findUsersByEmailOrGoogleId(email, googleId): Promise<UserDto[]> {
+  async findUserBySocialIds(
+    googleId: string,
+    facebookId: string,
+  ): Promise<UserDto> {
     const query = `
         SELECT * FROM users
-        WHERE (email = ? OR googleId = ?)
+        WHERE (googleId = ? OR facebookId = ?)
       `;
-    return this.entityManager.query(query, [email, googleId]);
+    let users = await this.entityManager.query(query, [googleId, facebookId]);
+    // console.log({ users });
+
+    return users[0];
   }
 
-  async verifyEmail(userId: number) {
-    const query = `
-        UPDATE users
-        SET emailVerified = true
-        WHERE id = ?
-      `;
-    await this.entityManager.query(query, [userId]);
-  }
-
-  async verifyPhoneNumber(userId: number) {
-    const query = `
-        UPDATE users
-        SET phoneVerified = true
-        WHERE id = ?
-      `;
-    await this.entityManager.query(query, [userId]);
-  }
-
-  async saveForgetPasswordOtp(otp: string, userId: number) {
-    const query = `
-        UPDATE users
-        SET forgetPasswordOtp = ?
-        WHERE id = ?
-      `;
-    await this.entityManager.query(query, [otp, userId]);
-  }
-
-  async findUsersByEmailOrFacebookId(email, facebookId): Promise<UserDto[]> {
+  async findUsersByGoogleId(googleId): Promise<UserDto> {
     const query = `
         SELECT * FROM users
-        WHERE (email = ? OR facebookId = ?)
+        WHERE googleId = ?
       `;
-    return this.entityManager.query(query, [email, facebookId]);
+    let users = await this.entityManager.query(query, [googleId]);
+    // console.log({ users });
+
+    return users[0];
+  }
+
+  async findUsersByFacebookId(facebookId): Promise<UserDto[]> {
+    const query = `
+        SELECT * FROM users
+        WHERE facebookId = ?
+      `;
+    let users = this.entityManager.query(query, [facebookId]);
+    return users[0];
   }
 
   async create(user: UserDto): Promise<UserDto> {
@@ -77,18 +68,17 @@ export class UserRepository {
     return new UserDto({
       firstName,
       lastName,
-      email,
       id: createdUser.insertId,
     });
   }
 
-  async findUserByEmail(email): Promise<UserDto> {
+  async verifyPhoneNumber(userId: number) {
     const query = `
-        SELECT * FROM users
-        WHERE email = ? LIMIT 1
+        UPDATE users
+        SET phoneVerified = true
+        WHERE id = ?
       `;
-    const [user] = await this.entityManager.query(query, [email]);
-    return user;
+    await this.entityManager.query(query, [userId]);
   }
 
   async findUserByPhoneNumber(phoneNumber): Promise<UserDto> {
@@ -100,13 +90,32 @@ export class UserRepository {
     return user;
   }
 
-  async changePassword(password: string, userId: number) {
+  async updateSocialMedia(
+    firstName: string,
+    lastName: string,
+    email: string,
+    googleId: string,
+    facebookId: string,
+    userId: number,
+  ) {
     const query = `
         UPDATE users
-        SET password = ?
+        SET
+        firstName = ?,
+        lastName = ?,
+        email = ?,
+        googleId = ?,
+        facebookId = ?
         WHERE id = ?
       `;
-    await this.entityManager.query(query, [password, userId]);
+    await this.entityManager.query(query, [
+      firstName,
+      lastName,
+      email,
+      googleId,
+      facebookId,
+      userId,
+    ]);
   }
 
   async findById(userId): Promise<UserDto> {
@@ -130,3 +139,63 @@ export class UserRepository {
     return theUser;
   }
 }
+
+// async changePassword(password: string, userId: number) {
+//   const query = `
+//       UPDATE users
+//       SET password = ?
+//       WHERE id = ?
+//     `;
+//   await this.entityManager.query(query, [password, userId]);
+// }
+
+// async findUserByEmail(email): Promise<UserDto> {
+//   const query = `
+//       SELECT * FROM users
+//       WHERE email = ? LIMIT 1
+//     `;
+//   const [user] = await this.entityManager.query(query, [email]);
+//   return user;
+// }
+
+// async verifyEmail(userId: number) {
+//   const query = `
+//       UPDATE users
+//       SET emailVerified = true
+//       WHERE id = ?
+//     `;
+//   await this.entityManager.query(query, [userId]);
+// }
+
+// async findUsersByEmailOrGoogleId(email, googleId): Promise<UserDto[]> {
+//   const query = `
+//       SELECT * FROM users
+//       WHERE (email = ? OR googleId = ?)
+//     `;
+//   return this.entityManager.query(query, [email, googleId]);
+// }
+
+// async findUsersByEmail(email): Promise<UserDto[]> {
+//   const query = `
+//       SELECT * FROM users
+//       WHERE email = ?
+//     `;
+//   return this.entityManager.query(query, [email]);
+// }
+
+// async saveForgetPasswordOtp(otp: string, userId: number) {
+//   const query = `
+//       UPDATE users
+//       SET forgetPasswordOtp = ?
+//       WHERE id = ?
+//     `;
+//   await this.entityManager.query(query, [otp, userId]);
+// }
+
+// async findUsersByEmailOrFacebookId(email, facebookId): Promise<UserDto[]> {
+//   const query = `
+//       SELECT * FROM users
+//       WHERE (email = ? OR facebookId = ?)
+//     `;
+//   return this.entityManager.query(query, [email, facebookId]);
+// }

@@ -1,16 +1,19 @@
-import { Validate } from 'class-validator';
-import { TemplateFlowObjectDto } from './template-flow-object.dto';
-import { keyValueFlowValidator } from '../validators/key-value-flow.validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { ParameterObjectDto } from './parameter-object.dto';
+import { Type } from 'class-transformer';
 
 export class OnboardingTemplateDto {
-  // @IsOptional()
-  // @IsString()
-  // name: string;
+  @IsString()
+  description: string;
 
-  // @IsOptional()
-  // @IsEnum(TemplateType)
-  // type: TemplateType;
-
-  @Validate(keyValueFlowValidator)
-  flow: TemplateFlowObjectDto[];
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => ParameterObjectDto)
+  parameters: ParameterObjectDto[];
 }

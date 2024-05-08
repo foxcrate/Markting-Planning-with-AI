@@ -15,8 +15,6 @@ export class TemplateService {
     private readonly messageRepository: MessageRepository,
     private readonly threadRepository: ThreadRepository,
   ) {}
-  // async create() {
-  // }
 
   async setOnboardingTemplate(template: OnboardingTemplateDto) {
     // check if system has onboarding template
@@ -25,16 +23,34 @@ export class TemplateService {
     );
 
     if (existingTemplate) {
+      await this.openAiService.updateTemplateAssistance(
+        existingTemplate.openaiAssistantId,
+        TemplateType.ONBOARDING,
+        template.description,
+        template.parameters,
+      );
+
       return await this.templateRepository.update(existingTemplate.id, {
         name: TemplateType.ONBOARDING,
         type: TemplateType.ONBOARDING,
-        flow: template.flow,
+        description: template.description,
+        parameters: template.parameters,
+        openaiAssistantId: existingTemplate.openaiAssistantId,
       });
     }
+
+    let assistance = await this.openAiService.createTemplateAssistance(
+      TemplateType.ONBOARDING,
+      template.description,
+      template.parameters,
+    );
+
     return await this.templateRepository.create({
       name: TemplateType.ONBOARDING,
       type: TemplateType.ONBOARDING,
-      flow: template.flow,
+      description: template.description,
+      parameters: template.parameters,
+      openaiAssistantId: assistance.id,
     });
   }
 
@@ -46,83 +62,78 @@ export class TemplateService {
     return template;
   }
 
-  // async update() {}
-
-  async getTemplateStepQuestion(
-    templateId: number,
-    stepNumber: number,
-    userId: number,
-  ) {
+  async startTemplateFlow(templateId: number, userId: number) {
     let template = await this.templateRepository.findById(templateId);
 
     // check if user already has a user template flow "thread"
     // get or create if not
-
-    let thread = await this.threadRepository.findByTemplateUserIds(
+    let thread = await this.threadRepository.findByTemplateIdAndUserId(
       template.id,
       userId,
     );
-
-    //create user template flow
-
     if (!thread) {
       thread = await this.threadRepository.create(userId, template.id);
     }
 
-    // update thread template flow step
-    await this.threadRepository.update(thread.id, stepNumber);
-
-    //get template step promp from sql
-    let wantedFlowStep = template.flow[stepNumber];
-
-    //pass it to gpt
-
-    let aiQuestion = await this.openAiService.promptToAiQuestion(
-      wantedFlowStep.prompt,
+    // run the assistant with thread id
+    let runObject = await this.openAiService.runTemplateAssistant(
+      template.openaiAssistantId,
+      thread.openAiId,
     );
 
-    // save ai message
-
+    // save new message
     await this.messageRepository.create(
-      aiQuestion,
+      runObject.assistantMessage,
       thread.id,
       SenderRole.ASSISTANT,
-      stepNumber,
     );
 
-    //return the gpt msg to front
-    return aiQuestion;
+    return { assistantMessage: runObject.assistantMessage, threadEnd: false };
   }
 
   async answerTemplateQuestion(
     templateId: number,
-    stepNumber: number,
-    questionAnswer: string,
+    answer: string,
     userId: number,
   ) {
     let template = await this.templateRepository.findById(templateId);
 
     // check if user already has a user template flow "thread"
     // get or create if not
-    let thread = await this.threadRepository.findByTemplateUserIds(
+    let thread = await this.threadRepository.findByTemplateIdAndUserId(
       template.id,
       userId,
     );
     if (!thread) {
-      thread = await this.threadRepository.create(userId, template.id);
+      throw new UnprocessableEntityException('No thread found for this user');
     }
 
-    // update thread template flow step
-    await this.threadRepository.update(thread.id, stepNumber);
+    // save user message
+    await this.messageRepository.create(answer, thread.id, SenderRole.USER);
 
-    // save new message
-    await this.messageRepository.create(
-      questionAnswer,
-      thread.id,
-      SenderRole.USER,
-      stepNumber,
-    );
+    let aiResponseObject =
+      await this.openAiService.sendTemplateMessageReturnResponse(
+        template.openaiAssistantId,
+        thread.openAiId,
+        answer,
+      );
 
-    // summarization
+    if (aiResponseObject.threadEnd) {
+      return {
+        assistantMessage: aiResponseObject.assistantMessage,
+        threadEnd: true,
+      };
+    } else {
+      // save assistant message
+      await this.messageRepository.create(
+        aiResponseObject.assistantMessage,
+        thread.id,
+        SenderRole.ASSISTANT,
+      );
+      return {
+        assistantMessage: aiResponseObject.assistantMessage,
+        threadEnd: false,
+      };
+    }
   }
 }

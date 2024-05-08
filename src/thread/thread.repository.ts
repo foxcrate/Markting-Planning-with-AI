@@ -32,8 +32,7 @@ export class ThreadRepository {
     id,
     openAiId,
     userId,
-    templateId,
-    currentTemplateFlowStep
+    templateId
     FROM threads
     WHERE openAiId = ?
    `;
@@ -43,27 +42,13 @@ export class ThreadRepository {
     return createdThread;
   }
 
-  async update(id: number, newStep: number): Promise<ThreadReturnDto> {
-    const query = `
-    UPDATE threads
-    SET
-    currentTemplateFlowStep = ?
-    WHERE id= ?
-   `;
-
-    await this.entityManager.query(query, [newStep, id]);
-
-    return await this.findById(id);
-  }
-
   async findById(threadId): Promise<ThreadReturnDto> {
     let query = `
     SELECT
       threads.id,
       threads.openAiId,
       threads.userId,
-      threads.templateId,
-      threads.currentTemplateFlowStep
+      threads.templateId
     FROM threads
     WHERE threads.id = ?
   `;
@@ -73,14 +58,16 @@ export class ThreadRepository {
     return theThread;
   }
 
-  async findByTemplateUserIds(templateId, userId): Promise<ThreadReturnDto> {
+  async findByTemplateIdAndUserId(
+    templateId,
+    userId,
+  ): Promise<ThreadReturnDto> {
     let query = `
     SELECT
       threads.id,
       threads.openAiId,
       threads.userId,
-      threads.templateId,
-      threads.currentTemplateFlowStep
+      threads.templateId
     FROM threads
     WHERE threads.templateId = ?
     AND threads.userId = ?
