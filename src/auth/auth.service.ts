@@ -311,7 +311,13 @@ export class AuthService {
       theUser.id,
     );
 
-    return { message: 'Social account connected' };
+    const { password, ...restProperties } = theUser;
+
+    return {
+      user: restProperties,
+      token: this.createNormalToken(restProperties),
+      refreshToken: this.createRefreshToken(restProperties),
+    };
   }
 
   ////////////////////////
