@@ -91,8 +91,8 @@ export class FunnelRepository {
       WHERE funnels.id = ?
       GROUP BY funnels.id
     `;
-    let [x] = await this.entityManager.query(query, [id]);
-    return x;
+    let [theFunnel] = await this.entityManager.query(query, [id]);
+    return theFunnel;
   }
 
   //find all funnels
@@ -120,8 +120,8 @@ export class FunnelRepository {
       FROM funnels
       WHERE name = ?
     `;
-    let [x] = await this.entityManager.query(query, [name]);
-    return x;
+    let [theFunnel] = await this.entityManager.query(query, [name]);
+    return theFunnel;
   }
 
   //delete funnel

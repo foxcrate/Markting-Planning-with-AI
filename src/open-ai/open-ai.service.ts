@@ -46,7 +46,7 @@ export class OpenAiService implements OnModuleInit {
     const assistant = await this.instance.beta.assistants.create({
       name: name,
       instructions:
-        'Start the conversation by greeting the user and saying who are you.\n' +
+        'Start the conversation by greeting the user.\n' +
         description +
         '\n Collect the data step by step. When you collect this data, call the end_flow function',
       model: 'gpt-3.5-turbo',

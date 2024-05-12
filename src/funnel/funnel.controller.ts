@@ -12,7 +12,6 @@ import { FunnelService } from './funnel.service';
 import { AuthGuard } from 'src/gurads/auth.guard';
 import { UserId } from 'src/decorators/user-id.decorator';
 import { FunnelCreateDto } from './dtos/funnel-create.dto';
-import { StagesCreateDto } from './dtos/stages-create.dto';
 import { FunnelIdDto } from './dtos/funnel-id.dto';
 import { FunnelUpdateDto } from './dtos/funnel-update.dto';
 

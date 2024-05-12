@@ -7,20 +7,19 @@ import {
 } from '@nestjs/common';
 import { UserDto } from '../user/dtos/user.dto';
 import { JwtService } from '@nestjs/jwt';
-import { GoogleAuthService } from 'src/auth/google-auth.service';
 import { UserRepository } from '../user/user.repository';
-import { FacebookAuthService } from './facebook-auth.service';
 import { ConfigService } from '@nestjs/config';
-import { EmailService } from 'src/email/email.service';
 import { OtpService } from 'src/otp/otp.service';
 import { AuthTokenDto } from './dtos/auth-token.dto';
 import { AuthReturnDto } from './dtos/auth-return.dto';
 import axios from 'axios';
 import { SocialSignUp } from './dtos/social-signup.dto';
-import { ConnectSocial } from './dtos/connect-social.dto';
 import { SocialSignIn } from './dtos/social_signin.dto';
 import { MobileSignInDto } from './dtos/mobile-signin.dto';
 import { MobileSignUpDto } from './dtos/mobile-signup.dto';
+import { UserRoles } from 'src/enums/user-roles.enum';
+import { OtpTypes } from 'src/enums/otp-types.enum';
+import { VerifyConnectSocialOtpDto } from './dtos/verify-connect-social-otp.dto';
 
 @Injectable()
 export class AuthService {
@@ -34,14 +33,22 @@ export class AuthService {
   ) {}
 
   private createNormalToken(user: UserDto) {
-    const payload = { sub: user.id, tokenType: 'normal' };
+    const payload = {
+      sub: user.id,
+      authType: UserRoles.CUSTOMER,
+      tokenType: 'normal',
+    };
     return this.jwtService.sign(payload, {
       expiresIn: '1d',
     });
   }
 
   private createRefreshToken(user: UserDto) {
-    const payload = { sub: user.id, tokenType: 'refresh' };
+    const payload = {
+      sub: user.id,
+      authType: UserRoles.CUSTOMER,
+      tokenType: 'refresh',
+    };
     return this.jwtService.sign(payload, {
       expiresIn: '30d',
     });
@@ -64,26 +71,6 @@ export class AuthService {
     }
   }
 
-  async verifyAuthOTP(
-    otp: string,
-    mobileNumber: string,
-  ): Promise<AuthReturnDto> {
-    const existingUser =
-      await this.userRepository.findUserByPhoneNumber(mobileNumber);
-    if (!existingUser) {
-      throw new UnprocessableEntityException(`phone number doesn't exists`);
-    }
-    await this.otpService.verifyOTP(existingUser.phoneNumber, otp);
-    await this.userRepository.verifyPhoneNumber(existingUser.id);
-    const { password, ...restProperties } = existingUser;
-    let user = restProperties;
-    return {
-      user: user,
-      token: this.createNormalToken(user),
-      refreshToken: this.createRefreshToken(user),
-    };
-  }
-
   async refreshToken(refreshToken: string): Promise<AuthReturnDto> {
     let payload: any = this.verifyRefreshToken(refreshToken);
 
@@ -96,11 +83,13 @@ export class AuthService {
 
     let tokenPayload = {
       sub: payload.sub,
+      authType: UserRoles.CUSTOMER,
       tokenType: 'normal',
     };
 
     let refreshTokenPayload = {
       sub: payload.sub,
+      authType: UserRoles.CUSTOMER,
       tokenType: 'refresh',
     };
     const user = await this.userRepository.findById(payload.sub);
@@ -129,7 +118,7 @@ export class AuthService {
     if (!theUser.phoneVerified) {
       throw new BadRequestException('Phone Number not verified');
     }
-    await this.otpService.sendOtp(signIn.phoneNumber);
+    await this.otpService.sendOtp(signIn.phoneNumber, OtpTypes.SIGNIN);
 
     return {
       message: 'Please check your mobile for an otp',
@@ -150,11 +139,61 @@ export class AuthService {
       ...signUp,
     });
 
-    await this.otpService.sendOtp(signUp.phoneNumber);
+    await this.otpService.sendOtp(signUp.phoneNumber, OtpTypes.SIGNUP);
 
     return {
       user: createdUser,
-      message: 'Please check your mobile for otp verification',
+      message: 'Please check your mobile for signup otp verification',
+    };
+  }
+
+  async verifySignupOTP(
+    otp: string,
+    mobileNumber: string,
+  ): Promise<AuthReturnDto> {
+    const existingUser =
+      await this.userRepository.findUserByPhoneNumber(mobileNumber);
+    if (!existingUser) {
+      throw new UnprocessableEntityException(`phone number doesn't exists`);
+    }
+    await this.otpService.verifyOTP(
+      existingUser.phoneNumber,
+      otp,
+      OtpTypes.SIGNUP,
+    );
+
+    await this.userRepository.verifyPhoneNumber(existingUser.id);
+
+    const { password, ...restProperties } = existingUser;
+    let user = restProperties;
+    return {
+      user: user,
+      token: this.createNormalToken(user),
+      refreshToken: this.createRefreshToken(user),
+    };
+  }
+
+  async verifySigninOTP(
+    otp: string,
+    mobileNumber: string,
+  ): Promise<AuthReturnDto> {
+    const existingUser =
+      await this.userRepository.findUserByPhoneNumber(mobileNumber);
+    if (!existingUser) {
+      throw new UnprocessableEntityException(`phone number doesn't exists`);
+    }
+    await this.otpService.verifyOTP(
+      existingUser.phoneNumber,
+      otp,
+      OtpTypes.SIGNIN,
+    );
+
+    const { password, ...restProperties } = existingUser;
+    let user = restProperties;
+    return {
+      user: user,
+      token: this.createNormalToken(user),
+      refreshToken: this.createRefreshToken(user),
     };
   }
 
@@ -198,6 +237,18 @@ export class AuthService {
   }
 
   async socialSignUp(socialSignUp: SocialSignUp) {
+    if (!socialSignUp.facebookId && !socialSignUp.googleId) {
+      throw new UnprocessableEntityException(
+        'Please provide a social id (facebookId or googleId)',
+      );
+    }
+
+    if (socialSignUp.facebookId && socialSignUp.googleId) {
+      throw new UnprocessableEntityException(
+        'Please provide either facebookId or googleId',
+      );
+    }
+
     //validate if user exists
     if (socialSignUp.googleId) {
       if (
@@ -245,7 +296,7 @@ export class AuthService {
       facebookId: socialSignUp.facebookId,
     });
 
-    await this.otpService.sendOtp(socialSignUp.phoneNumber);
+    await this.otpService.sendOtp(socialSignUp.phoneNumber, OtpTypes.SIGNUP);
 
     return {
       user: createdUser,
@@ -284,39 +335,68 @@ export class AuthService {
     };
   }
 
-  async connectSocialWithPhoneNumber(
-    connectSocial: ConnectSocial,
-    userId: number,
-  ) {
-    let theUser = await this.userRepository.findById(userId);
+  async requestConnectPhoneNumberWithSocial(phoneNumber: string) {
+    let theUser = await this.userRepository.findUserByPhoneNumber(phoneNumber);
 
-    if (!connectSocial.facebookId && !connectSocial.googleId) {
+    if (!theUser) {
+      throw new NotFoundException('User not found');
+    }
+    if (!theUser.phoneVerified) {
+      throw new BadRequestException('Phone Number not verified');
+    }
+    await this.otpService.sendOtp(phoneNumber, OtpTypes.CONNECT_SOCIAL);
+
+    return {
+      message: 'Please check your mobile for an otp',
+    };
+  }
+
+  async verifyConnectSocialOTP(
+    verifyConnectSocialOtp: VerifyConnectSocialOtpDto,
+  ): Promise<AuthReturnDto> {
+    if (
+      !verifyConnectSocialOtp.facebookId &&
+      !verifyConnectSocialOtp.googleId
+    ) {
       throw new UnprocessableEntityException(
         'Please provide a social id (facebookId or googleId)',
       );
     }
 
-    if (connectSocial.facebookId && connectSocial.googleId) {
+    if (verifyConnectSocialOtp.facebookId && verifyConnectSocialOtp.googleId) {
       throw new UnprocessableEntityException(
         'Please provide either facebookId or googleId',
       );
     }
 
-    await this.userRepository.updateSocialMedia(
-      connectSocial.firstName,
-      connectSocial.lastName,
-      connectSocial.email,
-      connectSocial.googleId,
-      connectSocial.facebookId,
-      theUser.id,
+    // verifyConnectSocialOtp.
+    const existingUser = await this.userRepository.findUserByPhoneNumber(
+      verifyConnectSocialOtp.mobileNumber,
+    );
+    if (!existingUser) {
+      throw new UnprocessableEntityException(`phone number doesn't exists`);
+    }
+    await this.otpService.verifyOTP(
+      existingUser.phoneNumber,
+      verifyConnectSocialOtp.otp,
+      OtpTypes.CONNECT_SOCIAL,
     );
 
-    const { password, ...restProperties } = theUser;
+    await this.userRepository.updateSocialMedia(
+      verifyConnectSocialOtp.firstName,
+      verifyConnectSocialOtp.lastName,
+      verifyConnectSocialOtp.email,
+      verifyConnectSocialOtp.googleId,
+      verifyConnectSocialOtp.facebookId,
+      existingUser.id,
+    );
 
+    const { password, ...restProperties } = existingUser;
+    let user = restProperties;
     return {
-      user: restProperties,
-      token: this.createNormalToken(restProperties),
-      refreshToken: this.createRefreshToken(restProperties),
+      user: user,
+      token: this.createNormalToken(user),
+      refreshToken: this.createRefreshToken(user),
     };
   }
 
@@ -574,5 +654,40 @@ export class AuthService {
 //     user: user,
 //     token: this.createNormalToken(user),
 //     refreshToken: this.createRefreshToken(user),
+//   };
+// }
+// async requestConnectPhoneNumberWithSocial(
+//   connectSocial: ConnectSocial,
+//   userId: number,
+// ) {
+//   let theUser = await this.userRepository.findById(userId);
+
+// if (!connectSocial.facebookId && !connectSocial.googleId) {
+//   throw new UnprocessableEntityException(
+//     'Please provide a social id (facebookId or googleId)',
+//   );
+// }
+
+// if (connectSocial.facebookId && connectSocial.googleId) {
+//   throw new UnprocessableEntityException(
+//     'Please provide either facebookId or googleId',
+//   );
+// }
+
+//   await this.userRepository.updateSocialMedia(
+//     connectSocial.firstName,
+//     connectSocial.lastName,
+//     connectSocial.email,
+//     connectSocial.googleId,
+//     connectSocial.facebookId,
+//     theUser.id,
+//   );
+
+//   const { password, ...restProperties } = theUser;
+
+//   return {
+//     user: restProperties,
+//     token: this.createNormalToken(restProperties),
+//     refreshToken: this.createRefreshToken(restProperties),
 //   };
 // }
