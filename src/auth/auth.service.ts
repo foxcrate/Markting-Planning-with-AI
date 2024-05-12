@@ -115,9 +115,9 @@ export class AuthService {
     if (!theUser) {
       throw new NotFoundException('User not found');
     }
-    if (!theUser.phoneVerified) {
-      throw new BadRequestException('Phone Number not verified');
-    }
+    // if (!theUser.phoneVerified) {
+    //   throw new BadRequestException('Phone Number not verified');
+    // }
     await this.otpService.sendOtp(signIn.phoneNumber, OtpTypes.SIGNIN);
 
     return {
@@ -187,6 +187,8 @@ export class AuthService {
       otp,
       OtpTypes.SIGNIN,
     );
+
+    await this.userRepository.verifyPhoneNumber(existingUser.id);
 
     const { password, ...restProperties } = existingUser;
     let user = restProperties;
