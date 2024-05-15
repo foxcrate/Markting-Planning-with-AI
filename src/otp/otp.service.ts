@@ -7,7 +7,7 @@ export class OtpService {
 
   async sendOtp(phoneNumber: string) {
     // const createdOtp = this.createOtp();
-    const createdOtp = '12345';
+    const createdOtp = '123456';
     await this.otpRepository.saveOTP(phoneNumber, createdOtp);
     //send otp
     return 'OTP sent successfully';
