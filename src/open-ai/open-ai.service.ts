@@ -9,12 +9,14 @@ import { ThreadCreateParams } from 'openai/resources/beta/threads/threads';
 import { SenderRole } from 'src/enums/sender-role.enum';
 import { MessageRepository } from 'src/message/message.repository';
 import { ParameterObjectDto } from 'src/template/dtos/parameter-object.dto';
+import { WorkspaceService } from 'src/workspace/workspace.service';
 
 @Injectable()
 export class OpenAiService implements OnModuleInit {
   constructor(
     private config: ConfigService,
     private messageRepository: MessageRepository,
+    private workspaceService: WorkspaceService,
   ) {}
   public instance: OpenAI;
   public getInstance(): OpenAI {
@@ -45,10 +47,7 @@ export class OpenAiService implements OnModuleInit {
 
     const assistant = await this.instance.beta.assistants.create({
       name: name,
-      instructions:
-        'Start the conversation by greeting the user and saying who are you.\n' +
-        description +
-        '\n Collect the data step by step. When you collect this data, call the end_flow function',
+      instructions: description,
       model: 'gpt-3.5-turbo',
       tools: [
         {
@@ -75,34 +74,45 @@ export class OpenAiService implements OnModuleInit {
     description: string,
     functionParameters: ParameterObjectDto[],
   ) {
-    let functionsParametersObject =
-      this.createFunctionParametersObject(functionParameters);
+    let templateAssistantObject = {};
+    if (functionParameters) {
+      let functionsParametersObject =
+        this.createFunctionParametersObject(functionParameters);
 
-    let parametersArray = this.createParametersArray(functionParameters);
+      let parametersArray = this.createParametersArray(functionParameters);
 
-    const assistant = await this.instance.beta.assistants.update(assistantId, {
-      name: name,
-      instructions:
-        'Start the conversation by greeting the user and saying who are you.\n' +
-        description +
-        '\n Collect the data step by step. When you collect this data, call the end_flow function',
-      model: 'gpt-3.5-turbo',
-      tools: [
-        {
-          type: 'function',
-          function: {
-            name: 'end_flow',
-            description:
-              'function will be called when the assistant collect the desired parameters',
-            parameters: {
-              type: 'object',
-              properties: functionsParametersObject,
-              required: parametersArray,
+      templateAssistantObject = {
+        name: name,
+        instructions: description,
+        model: 'gpt-3.5-turbo',
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'end_flow',
+              description:
+                'function will be called when the assistant collect the desired parameters',
+              parameters: {
+                type: 'object',
+                properties: functionsParametersObject,
+                required: parametersArray,
+              },
             },
           },
-        },
-      ],
-    });
+        ],
+      };
+    } else {
+      templateAssistantObject = {
+        name: name,
+        instructions: description,
+        model: 'gpt-3.5-turbo',
+      };
+    }
+
+    const assistant = await this.instance.beta.assistants.update(
+      assistantId,
+      templateAssistantObject,
+    );
     return assistant;
   }
 
@@ -150,6 +160,7 @@ export class OpenAiService implements OnModuleInit {
     assistantOpenaiId: string,
     threadOpenaiId: string,
     message: string,
+    userId: number,
   ): Promise<{
     assistantMessage: string;
     threadOpenaiId: string;
@@ -188,30 +199,27 @@ export class OpenAiService implements OnModuleInit {
       run.required_action.submit_tool_outputs.tool_calls[0].function.name ===
         'end_flow'
     ) {
-      // console.log('-------- run info -----------');
-
-      // console.log(
-      //   JSON.parse(
-      //     run.required_action.submit_tool_outputs.tool_calls[0].function
-      //       .arguments,
-      //   ),
-      // );
-
-      // console.log('-------------------');
-
       let functionReturnJsonObject = JSON.parse(
         run.required_action.submit_tool_outputs.tool_calls[0].function
           .arguments,
       );
 
+      if (!(await this.workspaceService.userHasWorkspace(userId))) {
+        await this.workspaceService.create(functionReturnJsonObject, userId);
+        await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
+        return {
+          assistantMessage: functionReturnJsonObject,
+          threadOpenaiId: run.thread_id,
+          assistantOpenaiId: run.assistant_id,
+          threadEnd: true,
+        };
+      }
+
       await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
 
-      return {
-        assistantMessage: functionReturnJsonObject,
-        threadOpenaiId: run.thread_id,
-        assistantOpenaiId: run.assistant_id,
-        threadEnd: true,
-      };
+      throw new UnprocessableEntityException(
+        'User has already created a workspace',
+      );
     } else {
       console.log(run);
       throw new UnprocessableEntityException(

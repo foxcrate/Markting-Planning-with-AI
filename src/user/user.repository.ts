@@ -52,7 +52,7 @@ export class UserRepository {
     } = user;
 
     const query = `
-      INSERT INTO users (firstName, lastName, email, phoneNumber, password${googleId ? ', googleId' : ''}${facebookId ? ', facebook_id' : ''}) VALUES (?, ?, ?, ?, ?${googleId ? ', ?' : ''}${facebookId ? ', ?' : ''})
+      INSERT INTO users (firstName, lastName, email, phoneNumber, password${googleId ? ', googleId' : ''}${facebookId ? ', facebookId' : ''}) VALUES (?, ?, ?, ?, ?${googleId ? ', ?' : ''}${facebookId ? ', ?' : ''})
     `;
     const params = [firstName, lastName, email, phoneNumber, password];
     if (googleId) {

@@ -20,7 +20,7 @@ export class TemplateRepository {
       template.name,
       template.type,
       template.description,
-      JSON.stringify(template.parameters),
+      template.parameters ? JSON.stringify(template.parameters) : null,
       template.openaiAssistantId,
     ]);
 
@@ -42,7 +42,7 @@ export class TemplateRepository {
       template.name,
       template.type,
       template.description,
-      JSON.stringify(template.parameters),
+      template.parameters ? JSON.stringify(template.parameters) : null,
       id,
     ]);
 

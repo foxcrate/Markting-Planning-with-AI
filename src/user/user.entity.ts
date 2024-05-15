@@ -1,3 +1,4 @@
+import { WorkspaceEntity } from '../workspace/workspace.entity';
 import { FunnelEntity } from '../funnel/funnel.entity';
 import { ThreadEntity } from '../thread/thread.entity';
 import {
@@ -43,6 +44,10 @@ export class UserEntity {
   @OneToMany(() => FunnelEntity, (funnel) => funnel.user)
   @JoinColumn()
   funnels: FunnelEntity[];
+
+  @OneToMany(() => WorkspaceEntity, (workspace) => workspace.user)
+  @JoinColumn()
+  workspaces: WorkspaceEntity[];
 
   @Column({ nullable: true })
   googleId: string;

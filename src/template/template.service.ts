@@ -6,6 +6,7 @@ import { TemplateType } from 'src/enums/template-type.enum';
 import { MessageRepository } from 'src/message/message.repository';
 import { SenderRole } from 'src/enums/sender-role.enum';
 import { ThreadRepository } from 'src/thread/thread.repository';
+import { FunnelTemplateDto } from './dtos/funnel-template.dto';
 
 @Injectable()
 export class TemplateService {
@@ -22,18 +23,23 @@ export class TemplateService {
       TemplateType.ONBOARDING,
     );
 
+    let description =
+      'Start the conversation by greeting the user and saying who are you.\n' +
+      template.description +
+      '\n Collect the data step by step. When you collect this data, call the end_flow function';
+
     if (existingTemplate) {
       await this.openAiService.updateTemplateAssistance(
         existingTemplate.openaiAssistantId,
         TemplateType.ONBOARDING,
-        template.description,
+        description,
         template.parameters,
       );
 
       return await this.templateRepository.update(existingTemplate.id, {
         name: TemplateType.ONBOARDING,
         type: TemplateType.ONBOARDING,
-        description: template.description,
+        description: description,
         parameters: template.parameters,
         openaiAssistantId: existingTemplate.openaiAssistantId,
       });
@@ -41,15 +47,53 @@ export class TemplateService {
 
     let assistance = await this.openAiService.createTemplateAssistance(
       TemplateType.ONBOARDING,
-      template.description,
+      description,
       template.parameters,
     );
 
     return await this.templateRepository.create({
       name: TemplateType.ONBOARDING,
       type: TemplateType.ONBOARDING,
-      description: template.description,
+      description: description,
       parameters: template.parameters,
+      openaiAssistantId: assistance.id,
+    });
+  }
+
+  async setFunnelTemplate(template: FunnelTemplateDto) {
+    // check if system has funnel template
+    const existingTemplate = await this.templateRepository.findByType(
+      TemplateType.FUNNEL,
+    );
+
+    if (existingTemplate) {
+      await this.openAiService.updateTemplateAssistance(
+        existingTemplate.openaiAssistantId,
+        TemplateType.FUNNEL,
+        template.description,
+        null,
+      );
+
+      return await this.templateRepository.update(existingTemplate.id, {
+        name: TemplateType.FUNNEL,
+        type: TemplateType.FUNNEL,
+        description: template.description,
+        parameters: null,
+        openaiAssistantId: existingTemplate.openaiAssistantId,
+      });
+    }
+
+    let assistance = await this.openAiService.createTemplateAssistance(
+      TemplateType.FUNNEL,
+      template.description,
+      null,
+    );
+
+    return await this.templateRepository.create({
+      name: TemplateType.FUNNEL,
+      type: TemplateType.FUNNEL,
+      description: template.description,
+      parameters: null,
       openaiAssistantId: assistance.id,
     });
   }
@@ -116,6 +160,7 @@ export class TemplateService {
         template.openaiAssistantId,
         thread.openAiId,
         answer,
+        thread.userId,
       );
 
     if (aiResponseObject.threadEnd) {

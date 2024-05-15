@@ -7,6 +7,7 @@ import { FunnelEntity } from './src/funnel/funnel.entity';
 import { StageEntity } from './src/funnel/stage.entity';
 import { OtpEntity } from './src/otp/otp.entity';
 import { TemplateEntity } from './src/template/template.entity';
+import { WorkspaceEntity } from './src/workspace/workspace.entity';
 require('dotenv').config();
 
 export const typeOrmDbConfig: TypeOrmModuleOptions = {
@@ -25,6 +26,7 @@ export const typeOrmDbConfig: TypeOrmModuleOptions = {
     StageEntity,
     OtpEntity,
     TemplateEntity,
+    WorkspaceEntity,
   ],
   migrations: [__dirname + '/migrations/**/*'],
   migrationsTableName: 'migrations',

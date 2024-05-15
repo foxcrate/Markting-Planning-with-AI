@@ -14,7 +14,9 @@ import { ThreadModule } from './thread/thread.module';
 import { FunnelModule } from './funnel/funnel.module';
 import { OtpModule } from './otp/otp.module';
 import { TemplateModule } from './template/template.module';
-
+import { WorkspaceService } from './workspace/workspace.service';
+import { WorkspaceController } from './workspace/workspace.controller';
+import { WorkspaceModule } from './workspace/workspace.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -39,8 +41,9 @@ import { TemplateModule } from './template/template.module';
     FunnelModule,
     OtpModule,
     TemplateModule,
+    WorkspaceModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [AppController, WorkspaceController],
+  providers: [AppService, WorkspaceService],
 })
 export class AppModule {}
