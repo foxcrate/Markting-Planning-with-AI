@@ -39,7 +39,7 @@ export class AuthService {
       tokenType: 'normal',
     };
     return this.jwtService.sign(payload, {
-      expiresIn: '1d',
+      expiresIn: '7d',
     });
   }
 
@@ -50,7 +50,7 @@ export class AuthService {
       tokenType: 'refresh',
     };
     return this.jwtService.sign(payload, {
-      expiresIn: '30d',
+      expiresIn: '90d',
     });
   }
 
@@ -71,7 +71,9 @@ export class AuthService {
     }
   }
 
-  async refreshToken(refreshToken: string): Promise<AuthReturnDto> {
+  async refreshToken(
+    refreshToken: string,
+  ): Promise<{ user: UserDto; token: string }> {
     let payload: any = this.verifyRefreshToken(refreshToken);
 
     if (payload.sub == null) {
@@ -87,20 +89,12 @@ export class AuthService {
       tokenType: 'normal',
     };
 
-    let refreshTokenPayload = {
-      sub: payload.sub,
-      authType: UserRoles.CUSTOMER,
-      tokenType: 'refresh',
-    };
     const user = await this.userRepository.findById(payload.sub);
 
     return {
       user: user,
       token: this.jwtService.sign(tokenPayload, {
-        expiresIn: '1d',
-      }),
-      refreshToken: this.jwtService.sign(refreshTokenPayload, {
-        expiresIn: '30d',
+        expiresIn: '7d',
       }),
     };
   }
