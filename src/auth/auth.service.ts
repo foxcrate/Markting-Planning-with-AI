@@ -100,6 +100,7 @@ export class AuthService {
       sub: payload.sub,
       tokenType: 'normal',
     };
+
     const user = await this.userRepository.findById(payload.sub);
 
     return {
