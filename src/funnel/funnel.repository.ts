@@ -124,6 +124,51 @@ export class FunnelRepository {
     return x;
   }
 
+  async findUserAssistantFunnel(userId: number): Promise<FunnelReturnDto> {
+    const query = `
+      SELECT name,description,userId
+      FROM funnels
+      WHERE userId = ?
+      AND createdByAssistant = true
+    `;
+    let [x] = await this.entityManager.query(query, [userId]);
+    return x;
+  }
+
+  async createAssistantFunnel(
+    funnelStagesObject: StageCreateDto[],
+    userId: number,
+  ) {
+    const query = `
+    INSERT INTO funnels (name, description, createdByAssistant, userId) VALUES (?, ?, ?, ?)
+  `;
+    let { insertId } = await this.entityManager.query(query, [
+      'assistant funnel',
+      'funnel created by assistant based on user workspace information',
+      true,
+      userId,
+    ]);
+
+    if (funnelStagesObject.length > 0) {
+      await this.addStages(insertId, funnelStagesObject);
+    }
+
+    return await this.findById(insertId);
+  }
+
+  async updateAssistantFunnel(
+    funnelStagesObject: StageCreateDto[],
+    userId: number,
+  ) {
+    let theAssistantFunnel = await this.findUserAssistantFunnel(userId);
+
+    if (funnelStagesObject.length > 0) {
+      await this.deletePastStages(theAssistantFunnel.id);
+      await this.addStages(theAssistantFunnel.id, funnelStagesObject);
+    }
+    return await this.findById(theAssistantFunnel.id);
+  }
+
   //delete funnel
   async delete(id: number) {
     const query = `

@@ -22,6 +22,9 @@ export class FunnelEntity {
   @Column()
   description: string;
 
+  @Column({ default: false })
+  createdByAssistant: boolean;
+
   @ManyToOne(() => UserEntity, (user) => user.funnels, {
     cascade: true,
     onDelete: 'CASCADE',

@@ -38,17 +38,18 @@ export class TemplateController {
       TemplateType.ONBOARDING,
     );
     if (!onboardingTemplate) {
-      throw new UnprocessableEntityException('There is no onboarding templatw');
+      throw new UnprocessableEntityException('There is no onboarding template');
     }
     return await this.templateService.startTemplateFlow(
       onboardingTemplate.id,
       userId,
+      null,
     );
   }
 
   @Post('onboarding/answer')
   @UseGuards(AuthGuard)
-  async answer(
+  async onboardingAnswer(
     @Body() questionAnswer: OnboardingQuestionAnswer,
     @UserId() userId: number,
   ) {
@@ -59,6 +60,7 @@ export class TemplateController {
       onboardingTemplate.id,
       questionAnswer.answer,
       userId,
+      null,
     );
   }
 
@@ -70,19 +72,36 @@ export class TemplateController {
     return this.templateService.setFunnelTemplate(template);
   }
 
-  @Post('funnel/chat')
+  @Post('funnel/start')
   @UseGuards(AuthGuard)
-  async funnelChat(
+  async startFunnel(@UserId() userId: number) {
+    let funnelTemplate = await this.templateRepository.findByType(
+      TemplateType.FUNNEL,
+    );
+    if (!funnelTemplate) {
+      throw new UnprocessableEntityException('There is no funnel template');
+    }
+    return await this.templateService.startTemplateFlow(
+      funnelTemplate.id,
+      userId,
+      null,
+    );
+  }
+
+  @Post('funnel/answer')
+  @UseGuards(AuthGuard)
+  async funnelAnswer(
     @Body() questionAnswer: OnboardingQuestionAnswer,
     @UserId() userId: number,
   ) {
-    let onboardingTemplate = await this.templateRepository.findByType(
-      TemplateType.ONBOARDING,
+    let funnelTemplate = await this.templateRepository.findByType(
+      TemplateType.FUNNEL,
     );
     return await this.templateService.answerTemplateQuestion(
-      onboardingTemplate.id,
+      funnelTemplate.id,
       questionAnswer.answer,
       userId,
+      null,
     );
   }
 }

@@ -51,6 +51,7 @@ export class WorkspaceRepository {
       workspaces.userId
     FROM workspaces
     WHERE workspaces.userId = ?
+    ORDER BY workspaces.createdAt ASC
   `;
 
     const theWorkspaces = await this.entityManager.query(query, [userId]);

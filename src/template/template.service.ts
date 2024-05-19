@@ -7,6 +7,7 @@ import { MessageRepository } from 'src/message/message.repository';
 import { SenderRole } from 'src/enums/sender-role.enum';
 import { ThreadRepository } from 'src/thread/thread.repository';
 import { FunnelTemplateDto } from './dtos/funnel-template.dto';
+import { WorkspaceRepository } from 'src/workspace/workspace.repository';
 
 @Injectable()
 export class TemplateService {
@@ -15,6 +16,7 @@ export class TemplateService {
     private readonly openAiService: OpenAiService,
     private readonly messageRepository: MessageRepository,
     private readonly threadRepository: ThreadRepository,
+    private readonly workspaceRepository: WorkspaceRepository,
   ) {}
 
   async setOnboardingTemplate(template: OnboardingTemplateDto) {
@@ -106,7 +108,11 @@ export class TemplateService {
     return template;
   }
 
-  async startTemplateFlow(templateId: number, userId: number) {
+  async startTemplateFlow(
+    templateId: number,
+    userId: number,
+    workspaceId: number,
+  ) {
     let template = await this.templateRepository.findById(templateId);
 
     // check if user already has a user template flow "thread"
@@ -119,10 +125,20 @@ export class TemplateService {
       thread = await this.threadRepository.create(userId, template.id);
     }
 
+    //get the template run instruction if exists
+    let runInstruction = await this.getTemplateRunInstruction(
+      template.id,
+      userId,
+      workspaceId,
+    );
+
+    console.log({ runInstruction });
+
     // run the assistant with thread id
     let runObject = await this.openAiService.runTemplateAssistant(
       template.openaiAssistantId,
       thread.openAiId,
+      runInstruction,
     );
 
     // save new message
@@ -139,6 +155,7 @@ export class TemplateService {
     templateId: number,
     answer: string,
     userId: number,
+    workspaceId,
   ) {
     let template = await this.templateRepository.findById(templateId);
 
@@ -180,5 +197,54 @@ export class TemplateService {
         threadEnd: false,
       };
     }
+  }
+
+  private async getTemplateRunInstruction(
+    templateId: number,
+    userId: number,
+    workspaceId: number,
+  ) {
+    let theTemplate = await this.templateRepository.findById(templateId);
+    let templateNeededData = theTemplate.type;
+
+    switch (templateNeededData) {
+      case TemplateType.ONBOARDING:
+        return '';
+      case TemplateType.FUNNEL:
+        return await this.getFunnelRunInstruction(userId, workspaceId);
+      case TemplateType.TACTIC:
+        return '';
+      default:
+        return '';
+    }
+  }
+
+  private async getFunnelRunInstruction(userId: number, workspaceId: number) {
+    //get workspace data
+    let workspaceData;
+    if (workspaceId) {
+      let workspace = await this.workspaceRepository.findById(workspaceId);
+      //if no workspace
+      if (!workspace) {
+        throw new UnprocessableEntityException('Workspace not found');
+      }
+      workspaceData = this.serializaWorkspaceData(workspace);
+    } else if (workspaceId == null) {
+      let userWorkspaces =
+        await this.workspaceRepository.findUserWorkspaces(userId);
+      workspaceData = this.serializaWorkspaceData(userWorkspaces[0]);
+    }
+    return workspaceData;
+  }
+
+  private serializaWorkspaceData(workspace) {
+    let workspaceData = {
+      project_name: workspace.name,
+      project_goal: workspace.goal,
+      project_budget: workspace.budget,
+      project_targetGroup: workspace.targetGroup,
+      project_marketingLevel: workspace.marketingLevel,
+    };
+    return workspaceData;
   }
 }

@@ -3,20 +3,17 @@ import {
   OnModuleInit,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
-import { ThreadCreateParams } from 'openai/resources/beta/threads/threads';
-import { SenderRole } from 'src/enums/sender-role.enum';
-import { MessageRepository } from 'src/message/message.repository';
+import { AssistantCreateParams } from 'openai/resources/beta/assistants/assistants';
+import { FunnelService } from 'src/funnel/funnel.service';
 import { ParameterObjectDto } from 'src/template/dtos/parameter-object.dto';
 import { WorkspaceService } from 'src/workspace/workspace.service';
 
 @Injectable()
 export class OpenAiService implements OnModuleInit {
   constructor(
-    private config: ConfigService,
-    private messageRepository: MessageRepository,
     private workspaceService: WorkspaceService,
+    private funnelService: FunnelService,
   ) {}
   public instance: OpenAI;
   public getInstance(): OpenAI {
@@ -40,31 +37,45 @@ export class OpenAiService implements OnModuleInit {
     description: string,
     functionParameters: ParameterObjectDto[],
   ): Promise<OpenAI.Beta.Assistants.Assistant> {
-    let functionsParametersObject: any =
-      this.createFunctionParametersObject(functionParameters);
+    let templateAssistantObject: AssistantCreateParams;
+    if (functionParameters) {
+      let functionsParametersObject =
+        this.createFunctionParametersObject(functionParameters);
 
-    let parametersArray = this.createParametersArray(functionParameters);
+      let parametersArray = this.createParametersArray(functionParameters);
 
-    const assistant = await this.instance.beta.assistants.create({
-      name: name,
-      instructions: description,
-      model: 'gpt-3.5-turbo',
-      tools: [
-        {
-          type: 'function',
-          function: {
-            name: 'end_flow',
-            description:
-              'function will be called when the assistant collect the desired parameters',
-            parameters: {
-              type: 'object',
-              properties: functionsParametersObject,
-              required: parametersArray,
+      templateAssistantObject = {
+        name: name,
+        instructions: description,
+        model: 'gpt-3.5-turbo',
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'end_flow',
+              description:
+                'function will be called when the assistant collect the desired parameters',
+              parameters: {
+                type: 'object',
+                properties: functionsParametersObject,
+                required: parametersArray,
+              },
             },
           },
-        },
-      ],
-    });
+        ],
+      };
+    } else {
+      templateAssistantObject = {
+        name: name,
+        instructions: description,
+        model: 'gpt-3.5-turbo',
+      };
+    }
+
+    const assistant = await this.instance.beta.assistants.create(
+      templateAssistantObject,
+    );
+
     return assistant;
   }
 
@@ -74,7 +85,7 @@ export class OpenAiService implements OnModuleInit {
     description: string,
     functionParameters: ParameterObjectDto[],
   ) {
-    let templateAssistantObject = {};
+    let templateAssistantObject: AssistantCreateParams;
     if (functionParameters) {
       let functionsParametersObject =
         this.createFunctionParametersObject(functionParameters);
@@ -119,6 +130,7 @@ export class OpenAiService implements OnModuleInit {
   async runTemplateAssistant(
     openaiAssistantId: string,
     threadOpenaiId: string,
+    runInstructions: string,
   ): Promise<{
     assistantMessage: string;
     threadOpenaiId: string;
@@ -127,6 +139,7 @@ export class OpenAiService implements OnModuleInit {
   }> {
     let run = await this.instance.beta.threads.runs.create(threadOpenaiId, {
       assistant_id: openaiAssistantId,
+      additional_instructions: JSON.stringify(runInstructions),
     });
 
     while (['queued', 'in_progress', 'cancelling'].includes(run.status)) {
@@ -194,32 +207,22 @@ export class OpenAiService implements OnModuleInit {
         assistantOpenaiId: run.assistant_id,
         threadEnd: false,
       };
-    } else if (
-      run.status === 'requires_action' &&
-      run.required_action.submit_tool_outputs.tool_calls[0].function.name ===
-        'end_flow'
-    ) {
-      let functionReturnJsonObject = JSON.parse(
-        run.required_action.submit_tool_outputs.tool_calls[0].function
-          .arguments,
-      );
-
-      if (!(await this.workspaceService.userHasWorkspace(userId))) {
-        await this.workspaceService.create(functionReturnJsonObject, userId);
-        await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
-        return {
-          assistantMessage: functionReturnJsonObject,
-          threadOpenaiId: run.thread_id,
-          assistantOpenaiId: run.assistant_id,
-          threadEnd: true,
-        };
+    } else if (run.status === 'requires_action') {
+      switch (
+        run.required_action.submit_tool_outputs.tool_calls[0].function.name
+      ) {
+        case 'end_flow':
+          return await this.endFlowFunctionCallHandler(run, userId);
+        case 'add_funnel_stages_to_my_workspace':
+          return await this.createFunnelFunctionCallHandler(run, userId);
+        default:
+          return {
+            assistantMessage: 'done',
+            threadOpenaiId: run.thread_id,
+            assistantOpenaiId: run.assistant_id,
+            threadEnd: true,
+          };
       }
-
-      await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
-
-      throw new UnprocessableEntityException(
-        'User has already created a workspace',
-      );
     } else {
       console.log(run);
       throw new UnprocessableEntityException(
@@ -270,7 +273,9 @@ export class OpenAiService implements OnModuleInit {
     return thread;
   }
 
-  createFunctionParametersObject(functionParameters: ParameterObjectDto[]) {
+  private createFunctionParametersObject(
+    functionParameters: ParameterObjectDto[],
+  ) {
     const objectStructure = functionParameters.reduce(
       (object, functionParameter) => {
         object[functionParameter.name] = {
@@ -285,9 +290,62 @@ export class OpenAiService implements OnModuleInit {
     return objectStructure;
   }
 
-  createParametersArray(functionParameters: ParameterObjectDto[]) {
+  private createParametersArray(functionParameters: ParameterObjectDto[]) {
     return functionParameters.map((functionParameter) => {
       return functionParameter.name;
     });
+  }
+
+  private async endFlowFunctionCallHandler(run, userId) {
+    console.log('------- endFlowFunctionCallHandler ------');
+    let functionReturnJsonObject = JSON.parse(
+      run.required_action.submit_tool_outputs.tool_calls[0].function.arguments,
+    );
+    if (!(await this.workspaceService.userHasWorkspace(userId))) {
+      await this.workspaceService.create(functionReturnJsonObject, userId);
+      await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
+      return {
+        assistantMessage: functionReturnJsonObject,
+        threadOpenaiId: run.thread_id,
+        assistantOpenaiId: run.assistant_id,
+        threadEnd: true,
+      };
+    }
+
+    await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
+
+    throw new UnprocessableEntityException(
+      'User has already created a workspace',
+    );
+  }
+
+  private async createFunnelFunctionCallHandler(run, userId) {
+    console.log('------- createFunnelFunctionCallHandler ------');
+    let functionReturnJsonObject = JSON.parse(
+      run.required_action.submit_tool_outputs.tool_calls[0].function.arguments,
+    );
+    console.log(run);
+
+    console.log(functionReturnJsonObject);
+
+    if (await this.funnelService.userHasAssistantFunnel(userId)) {
+      await this.funnelService.updateAssistantFunnel(
+        functionReturnJsonObject,
+        userId,
+      );
+    } else {
+      await this.funnelService.createAssistantFunnel(
+        functionReturnJsonObject,
+        userId,
+      );
+    }
+
+    await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
+    return {
+      assistantMessage: functionReturnJsonObject,
+      threadOpenaiId: run.thread_id,
+      assistantOpenaiId: run.assistant_id,
+      threadEnd: true,
+    };
   }
 }
