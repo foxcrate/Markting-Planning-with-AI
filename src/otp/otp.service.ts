@@ -8,7 +8,7 @@ export class OtpService {
 
   async sendOtp(phoneNumber: string, type: OtpTypes) {
     // const createdOtp = this.createOtp();
-    const createdOtp = '12345';
+    const createdOtp = '123456';
     await this.otpRepository.saveOTP(phoneNumber, createdOtp, type);
     //send otp
     return 'OTP sent successfully';
@@ -24,7 +24,7 @@ export class OtpService {
   }
 
   private createOtp() {
-    let otp = Math.floor(Math.random() * 1000000);
+    let otp = Math.floor(Math.random() * 10000000);
     return String(otp);
   }
 }
