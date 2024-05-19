@@ -1,17 +1,16 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from 'src/gurads/auth.guard';
-import { UserId } from 'src/decorators/user-id.decorator';
 import { VerifyOtpDto } from './dtos/verify-otp.dto';
 import { RefreshTokenDto } from './dtos/refresh-token.dto';
 import { GoogleReturnDataSerializer } from './serializers/google-return-data.serializer';
 import { FacebookReturnDataSerializer } from './serializers/facebook-return-data.serializer';
 import { SocialSignDto } from './dtos/social-sign.dto';
 import { SocialSignUp } from './dtos/social-signup.dto';
-import { ConnectSocial } from './dtos/connect-social.dto';
 import { SocialSignIn } from './dtos/social_signin.dto';
 import { MobileSignUpDto } from './dtos/mobile-signup.dto';
 import { MobileSignInDto } from './dtos/mobile-signin.dto';
+import { VerifyConnectSocialOtpDto } from './dtos/verify-connect-social-otp.dto';
+import { PhoneNumberDto } from './dtos/phone-number.dto';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
@@ -54,21 +53,25 @@ export class AuthController {
     return await this.authService.socialSignUp(socialSignUp);
   }
 
-  @Post('connect-phone-social')
-  @UseGuards(AuthGuard)
-  async connectPhoneSocial(
-    @Body() connectSocial: ConnectSocial,
-    @UserId() userId: number,
-  ) {
-    return await this.authService.connectSocialWithPhoneNumber(
-      connectSocial,
-      userId,
-    );
-  }
-
   @Post('social-sign-in')
   async socialSignIn(@Body() socialSignIn: SocialSignIn) {
     return await this.authService.socialSignIn(socialSignIn);
+  }
+
+  @Post('request/connect-phone-social')
+  async connectPhoneSocial(@Body() { phoneNumber }: PhoneNumberDto) {
+    return await this.authService.requestConnectPhoneNumberWithSocial(
+      phoneNumber,
+    );
+  }
+
+  @Post('verify/connect-social-otp')
+  async verifyConnectSocialOtp1(
+    @Body() verifyConnectSocialOtp: VerifyConnectSocialOtpDto,
+  ) {
+    return await this.authService.verifyConnectSocialOTP(
+      verifyConnectSocialOtp,
+    );
   }
 
   ///////////////////////////////
@@ -78,9 +81,17 @@ export class AuthController {
     return await this.authService.refreshToken(refreshToken);
   }
 
-  @Post('verify-auth-otp')
+  @Post('verify/signup-otp')
+  async verifySignupOtp1(@Body() verifyOtpData: VerifyOtpDto) {
+    return await this.authService.verifySignupOTP(
+      verifyOtpData.otp,
+      verifyOtpData.mobileNumber,
+    );
+  }
+
+  @Post('verify/signin-otp')
   async verifySigninOtp1(@Body() verifyOtpData: VerifyOtpDto) {
-    return await this.authService.verifyAuthOTP(
+    return await this.authService.verifySigninOTP(
       verifyOtpData.otp,
       verifyOtpData.mobileNumber,
     );

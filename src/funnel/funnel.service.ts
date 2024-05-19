@@ -1,4 +1,8 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { FunnelRepository } from './funnel.repository';
 import { FunnelCreateDto } from './dtos/funnel-create.dto';
 import { FunnelUpdateDto } from './dtos/funnel-update.dto';
@@ -70,9 +74,7 @@ export class FunnelService {
       throw new UnprocessableEntityException('Funnel not found');
     }
     if (funnel.userId !== userId) {
-      throw new UnprocessableEntityException(
-        'You are not the owner of this funnel',
-      );
+      throw new ForbiddenException('You are not the owner of this funnel');
     }
   }
 }

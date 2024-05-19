@@ -1,18 +1,25 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { OtpTypes } from 'src/enums/otp-types.enum';
 import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class OtpRepository {
   constructor(private readonly entityManager: EntityManager) {}
 
-  async saveOTP(mobileNumber: string, otp: string) {
+  async saveOTP(mobileNumber: string, otp: string, type: OtpTypes) {
     let query = `
       SELECT *
       FROM otps
-      WHERE phoneNumber = ?
+      WHERE
+      phoneNumber = ?
+      AND
+      otpType = ?
     `;
 
-    let foundedNumber = await this.entityManager.query(query, [mobileNumber]);
+    let foundedNumber = await this.entityManager.query(query, [
+      mobileNumber,
+      type,
+    ]);
 
     if (foundedNumber[0]) {
       query = `
@@ -21,35 +28,45 @@ export class OtpRepository {
       otp = ?
       WHERE
       phoneNumber = ?
+      AND
+      otpType = ?
     `;
-      await this.entityManager.query(query, [otp, mobileNumber]);
+      await this.entityManager.query(query, [otp, mobileNumber, type]);
     } else {
       query = `
       INSERT INTO otps
       (
         phoneNumber,
-        otp
+        otp,
+        otpType
       )
       VALUES
       (
         ?,
+        ?,
         ?
       )`;
-      await this.entityManager.query(query, [mobileNumber, otp]);
+      await this.entityManager.query(query, [mobileNumber, otp, type]);
     }
   }
 
-  async checkSavedOTP(mobileNumber: string, otp: string): Promise<any> {
+  async checkSavedOTP(
+    mobileNumber: string,
+    otp: string,
+    type: OtpTypes,
+  ): Promise<any> {
     let query = `
       SELECT
       *
       FROM otps
       WHERE
       phoneNumber = ?
+      AND
+      otpType = ?
       ORDER BY createdAt DESC
     `;
 
-    let obj = await this.entityManager.query(query, [mobileNumber]);
+    let obj = await this.entityManager.query(query, [mobileNumber, type]);
     if (!obj[0] || obj[0].otp != otp) {
       // await this.deletePastOTP(mobileNumber);
       throw new NotFoundException('Invalid OTP');
@@ -58,13 +75,15 @@ export class OtpRepository {
     return true;
   }
 
-  async deletePastOTP(mobileNumber: string): Promise<any> {
+  async deletePastOTP(mobileNumber: string, type: OtpTypes): Promise<any> {
     let query = `
       DELETE
       FROM otps
       WHERE
       phoneNumber = ?
+      AND
+      otpType = ?
     `;
-    await this.entityManager.query(query, [mobileNumber]);
+    await this.entityManager.query(query, [mobileNumber, type]);
   }
 }

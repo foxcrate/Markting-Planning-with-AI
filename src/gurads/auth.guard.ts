@@ -33,6 +33,7 @@ export class AuthGuard implements CanActivate {
     }
 
     request['id'] = payload.sub;
+    request['authType'] = payload.authType;
 
     // console.log(await this.userAvailable(request['id']));
 
