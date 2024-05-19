@@ -6,6 +6,7 @@ import {
 import { FunnelRepository } from './funnel.repository';
 import { FunnelCreateDto } from './dtos/funnel-create.dto';
 import { FunnelUpdateDto } from './dtos/funnel-update.dto';
+import { StageCreateDto } from './dtos/stage-create.dto';
 
 @Injectable()
 export class FunnelService {
@@ -36,6 +37,33 @@ export class FunnelService {
     let deletedFunnel = await this.funnelRepository.findById(funnelId);
     await this.funnelRepository.delete(funnelId);
     return deletedFunnel;
+  }
+
+  async userHasAssistantFunnel(userId: number): Promise<boolean> {
+    let theAssistantFunnel =
+      await this.funnelRepository.findUserAssistantFunnel(userId);
+
+    return theAssistantFunnel ? true : false;
+  }
+
+  async createAssistantFunnel(
+    funnelStagesObject: StageCreateDto[],
+    userId: number,
+  ) {
+    await this.funnelRepository.createAssistantFunnel(
+      funnelStagesObject,
+      userId,
+    );
+  }
+
+  async updateAssistantFunnel(
+    funnelStagesObject: StageCreateDto[],
+    userId: number,
+  ) {
+    await this.funnelRepository.updateAssistantFunnel(
+      funnelStagesObject,
+      userId,
+    );
   }
 
   //authenticate funnel owner

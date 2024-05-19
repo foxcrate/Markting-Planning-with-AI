@@ -31,7 +31,7 @@ export class TemplateEntity {
   @Column('longtext')
   description: string;
 
-  @Column({ type: 'json' })
+  @Column({ type: 'json', nullable: true, default: null })
   parameters: object;
 
   @OneToMany(() => ThreadEntity, (thread) => thread.template)

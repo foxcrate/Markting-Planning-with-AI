@@ -6,5 +6,6 @@ import { FunnelRepository } from './funnel.repository';
 @Module({
   controllers: [FunnelController],
   providers: [FunnelService, FunnelRepository],
+  exports: [FunnelService],
 })
 export class FunnelModule {}

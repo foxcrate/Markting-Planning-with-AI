@@ -6,10 +6,11 @@ import { OpenAiModule } from 'src/open-ai/open-ai.module';
 import { keyValueFlowValidator } from './validators/key-value-flow.validator';
 import { MessageModule } from 'src/message/message.module';
 import { ThreadModule } from 'src/thread/thread.module';
+import { WorkspaceModule } from 'src/workspace/workspace.module';
 
 @Module({
   controllers: [TemplateController],
   providers: [TemplateService, TemplateRepository, keyValueFlowValidator],
-  imports: [OpenAiModule, MessageModule, ThreadModule],
+  imports: [OpenAiModule, MessageModule, ThreadModule, WorkspaceModule],
 })
 export class TemplateModule {}
