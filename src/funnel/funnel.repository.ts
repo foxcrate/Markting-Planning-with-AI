@@ -32,6 +32,8 @@ export class FunnelRepository {
   }
 
   async addStages(funnelId: number, stages: StageCreateDto[]) {
+    console.log({funnelId});
+    
     let stagesArray = [];
     for (let i = 0; i < stages.length; i++) {
       stagesArray.push([funnelId, stages[i].name, stages[i].description]);

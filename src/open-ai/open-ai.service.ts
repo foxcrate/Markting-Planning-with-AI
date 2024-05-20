@@ -174,6 +174,7 @@ export class OpenAiService implements OnModuleInit {
     threadOpenaiId: string,
     message: string,
     userId: number,
+    runInstructions:string
   ): Promise<{
     assistantMessage: string;
     threadOpenaiId: string;
@@ -186,6 +187,7 @@ export class OpenAiService implements OnModuleInit {
     });
     let run = await this.instance.beta.threads.runs.create(threadOpenaiId, {
       assistant_id: assistantOpenaiId,
+      additional_instructions: JSON.stringify(runInstructions),
     });
 
     while (['queued', 'in_progress', 'cancelling'].includes(run.status)) {
@@ -324,18 +326,21 @@ export class OpenAiService implements OnModuleInit {
     let functionReturnJsonObject = JSON.parse(
       run.required_action.submit_tool_outputs.tool_calls[0].function.arguments,
     );
-    console.log(run);
+    // console.log(run);
 
     console.log(functionReturnJsonObject);
 
     if (await this.funnelService.userHasAssistantFunnel(userId)) {
+      console.log('-- user already has assistant funnel --');
+      
       await this.funnelService.updateAssistantFunnel(
-        functionReturnJsonObject,
+        functionReturnJsonObject.stages,
         userId,
       );
     } else {
+      console.log(`-- user hasn't assistant funnel --`);
       await this.funnelService.createAssistantFunnel(
-        functionReturnJsonObject,
+        functionReturnJsonObject.stages,
         userId,
       );
     }

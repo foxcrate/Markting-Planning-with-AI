@@ -172,12 +172,20 @@ export class TemplateService {
     // save user message
     await this.messageRepository.create(answer, thread.id, SenderRole.USER);
 
+      //get the template run instruction if exists
+      let runInstruction = await this.getTemplateRunInstruction(
+        template.id,
+        userId,
+        workspaceId,
+      );
+
     let aiResponseObject =
       await this.openAiService.sendTemplateMessageReturnResponse(
         template.openaiAssistantId,
         thread.openAiId,
         answer,
         thread.userId,
+        runInstruction
       );
 
     if (aiResponseObject.threadEnd) {
