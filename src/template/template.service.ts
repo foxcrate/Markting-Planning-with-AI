@@ -117,12 +117,17 @@ export class TemplateService {
 
     // check if user already has a user template flow "thread"
     // get or create if not
-    let thread = await this.threadRepository.findByTemplateIdAndUserId(
+    let thread = await this.threadRepository.findActiveByTemplateIdAndUserId(
       template.id,
       userId,
     );
     if (!thread) {
-      thread = await this.threadRepository.create(userId, template.id);
+      let openAiThread = await this.openAiService.createUserThread();
+      thread = await this.threadRepository.create(
+        userId,
+        template.id,
+        openAiThread.id,
+      );
     }
 
     //get the template run instruction if exists
@@ -131,8 +136,6 @@ export class TemplateService {
       userId,
       workspaceId,
     );
-
-    console.log({ runInstruction });
 
     // run the assistant with thread id
     let runObject = await this.openAiService.runTemplateAssistant(
@@ -161,7 +164,7 @@ export class TemplateService {
 
     // check if user already has a user template flow "thread"
     // get or create if not
-    let thread = await this.threadRepository.findByTemplateIdAndUserId(
+    let thread = await this.threadRepository.findActiveByTemplateIdAndUserId(
       template.id,
       userId,
     );
@@ -172,12 +175,12 @@ export class TemplateService {
     // save user message
     await this.messageRepository.create(answer, thread.id, SenderRole.USER);
 
-      //get the template run instruction if exists
-      let runInstruction = await this.getTemplateRunInstruction(
-        template.id,
-        userId,
-        workspaceId,
-      );
+    //get the template run instruction if exists
+    let runInstruction = await this.getTemplateRunInstruction(
+      template.id,
+      userId,
+      workspaceId,
+    );
 
     let aiResponseObject =
       await this.openAiService.sendTemplateMessageReturnResponse(
@@ -185,7 +188,7 @@ export class TemplateService {
         thread.openAiId,
         answer,
         thread.userId,
-        runInstruction
+        runInstruction,
       );
 
     if (aiResponseObject.threadEnd) {

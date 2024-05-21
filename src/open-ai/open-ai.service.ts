@@ -7,6 +7,7 @@ import OpenAI from 'openai';
 import { AssistantCreateParams } from 'openai/resources/beta/assistants/assistants';
 import { FunnelService } from 'src/funnel/funnel.service';
 import { ParameterObjectDto } from 'src/template/dtos/parameter-object.dto';
+import { ThreadService } from 'src/thread/thread.service';
 import { WorkspaceService } from 'src/workspace/workspace.service';
 
 @Injectable()
@@ -14,11 +15,11 @@ export class OpenAiService implements OnModuleInit {
   constructor(
     private workspaceService: WorkspaceService,
     private funnelService: FunnelService,
+    private threadService: ThreadService,
   ) {}
   public instance: OpenAI;
   public getInstance(): OpenAI {
     if (!this.instance) {
-      console.log('alo');
       this.instance = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
       });
@@ -137,6 +138,10 @@ export class OpenAiService implements OnModuleInit {
     assistantOpenaiId: string;
     threadEnd: boolean;
   }> {
+    console.log({
+      runInstructions,
+    });
+
     let run = await this.instance.beta.threads.runs.create(threadOpenaiId, {
       assistant_id: openaiAssistantId,
       additional_instructions: JSON.stringify(runInstructions),
@@ -174,7 +179,7 @@ export class OpenAiService implements OnModuleInit {
     threadOpenaiId: string,
     message: string,
     userId: number,
-    runInstructions:string
+    runInstructions: string,
   ): Promise<{
     assistantMessage: string;
     threadOpenaiId: string;
@@ -210,21 +215,32 @@ export class OpenAiService implements OnModuleInit {
         threadEnd: false,
       };
     } else if (run.status === 'requires_action') {
+      console.log(run);
+      console.log('---------');
+
+      console.log(
+        run.required_action.submit_tool_outputs.tool_calls[0].function.name,
+      );
+
+      let assistantMessage = '';
       switch (
         run.required_action.submit_tool_outputs.tool_calls[0].function.name
       ) {
         case 'end_flow':
-          return await this.endFlowFunctionCallHandler(run, userId);
+          assistantMessage = await this.endFlowFunctionCallHandler(run, userId);
         case 'add_funnel_stages_to_my_workspace':
-          return await this.createFunnelFunctionCallHandler(run, userId);
-        default:
-          return {
-            assistantMessage: 'done',
-            threadOpenaiId: run.thread_id,
-            assistantOpenaiId: run.assistant_id,
-            threadEnd: true,
-          };
+          assistantMessage = await this.createFunnelFunctionCallHandler(
+            run,
+            userId,
+          );
       }
+      await this.threadService.finishTemplateThread(threadOpenaiId);
+      return {
+        assistantMessage: assistantMessage,
+        threadOpenaiId: run.thread_id,
+        assistantOpenaiId: run.assistant_id,
+        threadEnd: true,
+      };
     } else {
       console.log(run);
       throw new UnprocessableEntityException(
@@ -306,12 +322,7 @@ export class OpenAiService implements OnModuleInit {
     if (!(await this.workspaceService.userHasWorkspace(userId))) {
       await this.workspaceService.create(functionReturnJsonObject, userId);
       await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
-      return {
-        assistantMessage: functionReturnJsonObject,
-        threadOpenaiId: run.thread_id,
-        assistantOpenaiId: run.assistant_id,
-        threadEnd: true,
-      };
+      return functionReturnJsonObject;
     }
 
     await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
@@ -326,19 +337,18 @@ export class OpenAiService implements OnModuleInit {
     let functionReturnJsonObject = JSON.parse(
       run.required_action.submit_tool_outputs.tool_calls[0].function.arguments,
     );
-    // console.log(run);
 
-    console.log(functionReturnJsonObject);
+    if (!Array.isArray(functionReturnJsonObject.stages)) {
+      console.log(functionReturnJsonObject);
+      throw new UnprocessableEntityException('Funnel stages is not an array');
+    }
 
     if (await this.funnelService.userHasAssistantFunnel(userId)) {
-      console.log('-- user already has assistant funnel --');
-      
       await this.funnelService.updateAssistantFunnel(
         functionReturnJsonObject.stages,
         userId,
       );
     } else {
-      console.log(`-- user hasn't assistant funnel --`);
       await this.funnelService.createAssistantFunnel(
         functionReturnJsonObject.stages,
         userId,
@@ -346,11 +356,6 @@ export class OpenAiService implements OnModuleInit {
     }
 
     await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
-    return {
-      assistantMessage: functionReturnJsonObject,
-      threadOpenaiId: run.thread_id,
-      assistantOpenaiId: run.assistant_id,
-      threadEnd: true,
-    };
+    return functionReturnJsonObject;
   }
 }

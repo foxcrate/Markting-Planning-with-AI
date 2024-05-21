@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { VerifyOtpDto } from './dtos/verify-otp.dto';
 import { RefreshTokenDto } from './dtos/refresh-token.dto';
@@ -11,6 +11,10 @@ import { MobileSignUpDto } from './dtos/mobile-signup.dto';
 import { MobileSignInDto } from './dtos/mobile-signin.dto';
 import { VerifyConnectSocialOtpDto } from './dtos/verify-connect-social-otp.dto';
 import { PhoneNumberDto } from './dtos/phone-number.dto';
+import { SendEmailDto } from './dtos/send-email-otp.dto';
+import { AuthGuard } from 'src/gurads/auth.guard';
+import { VerifyEmailOtpDto } from './dtos/verify-email-otp.dto';
+import { UserId } from 'src/decorators/user-id.decorator';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
@@ -94,6 +98,27 @@ export class AuthController {
     return await this.authService.verifySigninOTP(
       verifyOtpData.otp,
       verifyOtpData.mobileNumber,
+    );
+  }
+
+  ////////////////////////
+
+  @Post('email-otp')
+  @UseGuards(AuthGuard)
+  async sendEmailOtp(@Body() sendEmailDto: SendEmailDto) {
+    return await this.authService.sendEmailOtp(sendEmailDto.email);
+  }
+
+  @Post('verify/email-otp')
+  @UseGuards(AuthGuard)
+  async verifyEmailOtp(
+    @Body() verifyEmailOtpDto: VerifyEmailOtpDto,
+    @UserId() userId: number,
+  ) {
+    return await this.authService.verifyEmailOTP(
+      verifyEmailOtpDto.email,
+      verifyEmailOtpDto.otp,
+      userId,
     );
   }
 }

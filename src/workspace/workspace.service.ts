@@ -1,6 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { WorkspaceReturnDto } from './dtos/workspace-return.dto';
 import { WorkspaceRepository } from './workspace.repository';
+import { WorkspaceUpdateDto } from './dtos/workspace-update.dto';
 
 @Injectable()
 export class WorkspaceService {
@@ -15,6 +20,22 @@ export class WorkspaceService {
     });
   }
 
+  async update(
+    id: number,
+    workspaceData: WorkspaceUpdateDto,
+    userId: number,
+  ): Promise<WorkspaceReturnDto> {
+    if (id == 0) {
+      return await this.workspaceRepository.updateFirstWorkspace(
+        workspaceData,
+        userId,
+      );
+    } else {
+      await this.isOwner(id, userId);
+      return await this.workspaceRepository.update(workspaceData, id);
+    }
+  }
+
   async userHasWorkspace(userId): Promise<boolean> {
     let userWorkspaces =
       await this.workspaceRepository.findUserWorkspaces(userId);
@@ -22,6 +43,16 @@ export class WorkspaceService {
       return true;
     } else {
       return false;
+    }
+  }
+
+  async isOwner(workspaceId: number, userId: number) {
+    const workspace = await this.workspaceRepository.findById(workspaceId);
+    if (!workspace) {
+      throw new UnprocessableEntityException('Workspace not found');
+    }
+    if (workspace.userId !== userId) {
+      throw new ForbiddenException('You are not the owner of this workspace');
     }
   }
 

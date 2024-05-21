@@ -112,7 +112,7 @@ export class AuthService {
     // if (!theUser.phoneVerified) {
     //   throw new BadRequestException('Phone Number not verified');
     // }
-    await this.otpService.sendOtp(signIn.phoneNumber, OtpTypes.SIGNIN);
+    await this.otpService.sendMobileOtp(signIn.phoneNumber, OtpTypes.SIGNIN);
 
     return {
       message: 'Please check your mobile for an otp',
@@ -133,7 +133,7 @@ export class AuthService {
       ...signUp,
     });
 
-    await this.otpService.sendOtp(signUp.phoneNumber, OtpTypes.SIGNUP);
+    await this.otpService.sendMobileOtp(signUp.phoneNumber, OtpTypes.SIGNUP);
 
     return {
       user: createdUser,
@@ -292,7 +292,10 @@ export class AuthService {
       facebookId: socialSignUp.facebookId,
     });
 
-    await this.otpService.sendOtp(socialSignUp.phoneNumber, OtpTypes.SIGNUP);
+    await this.otpService.sendMobileOtp(
+      socialSignUp.phoneNumber,
+      OtpTypes.SIGNUP,
+    );
 
     return {
       user: createdUser,
@@ -340,7 +343,7 @@ export class AuthService {
     if (!theUser.phoneVerified) {
       throw new BadRequestException('Phone Number not verified');
     }
-    await this.otpService.sendOtp(phoneNumber, OtpTypes.CONNECT_SOCIAL);
+    await this.otpService.sendMobileOtp(phoneNumber, OtpTypes.CONNECT_SOCIAL);
 
     return {
       message: 'Please check your mobile for an otp',
@@ -397,6 +400,23 @@ export class AuthService {
   }
 
   ////////////////////////
+
+  async sendEmailOtp(email: string): Promise<any> {
+    await this.otpService.sendEmailOtp(email, OtpTypes.EMAIL);
+    return 'Email sent successfully';
+  }
+
+  async verifyEmailOTP(
+    email: string,
+    otp: string,
+    userId: number,
+  ): Promise<any> {
+    await this.otpService.verifyOTP(email, otp, OtpTypes.EMAIL);
+    // add the email to user data
+
+    await this.userRepository.updateEmail(email, userId);
+    return await this.userRepository.findById(userId);
+  }
 }
 
 // async googleSignInUp(token: string): Promise<AuthReturnDto> {
@@ -528,7 +548,7 @@ export class AuthService {
 //     password: hashedPassword,
 //   });
 
-//   await this.otpService.sendOtp(signUp.phoneNumber);
+//   await this.otpService.sendMobileOtp(signUp.phoneNumber);
 
 //   return {
 //     user: createdUser,

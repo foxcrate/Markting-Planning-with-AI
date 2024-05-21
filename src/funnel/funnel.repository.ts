@@ -32,17 +32,18 @@ export class FunnelRepository {
   }
 
   async addStages(funnelId: number, stages: StageCreateDto[]) {
-    console.log({funnelId});
-    
     let stagesArray = [];
     for (let i = 0; i < stages.length; i++) {
-      stagesArray.push([funnelId, stages[i].name, stages[i].description]);
+      stagesArray.push([
+        funnelId,
+        stages[i].name,
+        stages[i].order,
+        stages[i].description,
+      ]);
     }
-    // console.log({ stagesArray });
 
-    const query = `
-      INSERT INTO stages (funnelId, name,description) VALUES ?
-    `;
+    const query =
+      'INSERT INTO stages (funnelId,name,`order`,description) VALUES ?';
 
     await this.entityManager.query(query, [stagesArray]);
   }
@@ -85,7 +86,8 @@ export class FunnelRepository {
       ELSE
       JSON_ARRAYAGG(JSON_OBJECT(
         'id',stages.id,
-        'name', stages.name
+        'name', stages.name,
+        'order', stages.order
         ))
       END AS stages
       FROM funnels
@@ -105,7 +107,8 @@ export class FunnelRepository {
       ELSE
       JSON_ARRAYAGG(JSON_OBJECT(
         'id',stages.id,
-        'name', stages.name
+        'name', stages.name,
+        'order', stages.order
         ))
       END AS stages
       FROM funnels
@@ -128,7 +131,7 @@ export class FunnelRepository {
 
   async findUserAssistantFunnel(userId: number): Promise<FunnelReturnDto> {
     const query = `
-      SELECT name,description,userId
+      SELECT id,name,description,userId
       FROM funnels
       WHERE userId = ?
       AND createdByAssistant = true
@@ -151,7 +154,7 @@ export class FunnelRepository {
       userId,
     ]);
 
-    if (funnelStagesObject.length > 0) {
+    if (funnelStagesObject && funnelStagesObject.length > 0) {
       await this.addStages(insertId, funnelStagesObject);
     }
 

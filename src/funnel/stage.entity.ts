@@ -20,6 +20,9 @@ export class StageEntity {
   @Column()
   description: string;
 
+  @Column()
+  order: number;
+
   @ManyToOne(() => FunnelEntity, (funnel) => funnel.stages, {
     cascade: true,
     onDelete: 'CASCADE',

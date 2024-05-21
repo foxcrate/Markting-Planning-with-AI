@@ -1,31 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { OpenAiService } from 'src/open-ai/open-ai.service';
 import { EntityManager } from 'typeorm';
 import { ThreadReturnDto } from './dtos/thread-return.dto';
 
 @Injectable()
 export class ThreadRepository {
-  constructor(
-    private readonly entityManager: EntityManager,
-    private readonly openAiService: OpenAiService,
-  ) {}
+  constructor(private readonly entityManager: EntityManager) {}
 
   async create(
     userId: number,
     templateId: number = null,
+    openAiThreadId: string,
   ): Promise<ThreadReturnDto> {
-    let openAiThread = await this.openAiService.createUserThread();
-
     let query = `
        INSERT INTO threads
        (openAiId, userId,templateId)
        values (?,?,?)
       `;
-    await this.entityManager.query(query, [
-      openAiThread.id,
-      userId,
-      templateId,
-    ]);
+    await this.entityManager.query(query, [openAiThreadId, userId, templateId]);
 
     query = `
     SELECT
@@ -37,7 +28,7 @@ export class ThreadRepository {
     WHERE openAiId = ?
    `;
     let [createdThread] = await this.entityManager.query(query, [
-      openAiThread.id,
+      openAiThreadId,
     ]);
     return createdThread;
   }
@@ -58,7 +49,7 @@ export class ThreadRepository {
     return theThread;
   }
 
-  async findByTemplateIdAndUserId(
+  async findActiveByTemplateIdAndUserId(
     templateId,
     userId,
   ): Promise<ThreadReturnDto> {
@@ -71,6 +62,7 @@ export class ThreadRepository {
     FROM threads
     WHERE threads.templateId = ?
     AND threads.userId = ?
+    AND threads.finishTemplate = false
   `;
 
     const [theThread] = await this.entityManager.query(query, [
@@ -79,5 +71,15 @@ export class ThreadRepository {
     ]);
 
     return theThread;
+  }
+
+  async finishTemplateThread(threadOpenaiId: string) {
+    let query = `
+    UPDATE threads
+    SET
+    finishTemplate = true
+    WHERE openAiId = ?
+    `;
+    await this.entityManager.query(query, [threadOpenaiId]);
   }
 }

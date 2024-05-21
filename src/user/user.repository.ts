@@ -81,6 +81,15 @@ export class UserRepository {
     await this.entityManager.query(query, [userId]);
   }
 
+  async updateEmail(email: string, userId: number) {
+    const query = `
+        UPDATE users
+        SET email = ?
+        WHERE id = ?
+      `;
+    await this.entityManager.query(query, [email, userId]);
+  }
+
   async findUserByPhoneNumber(phoneNumber): Promise<UserDto> {
     const query = `
         SELECT * FROM users
@@ -160,10 +169,10 @@ export class UserRepository {
 
 // async verifyEmail(userId: number) {
 //   const query = `
-//       UPDATE users
-//       SET emailVerified = true
-//       WHERE id = ?
-//     `;
+//     UPDATE users
+//     SET emailVerified = true
+//     WHERE id = ?
+//   `;
 //   await this.entityManager.query(query, [userId]);
 // }
 
@@ -198,4 +207,5 @@ export class UserRepository {
 //       WHERE (email = ? OR facebookId = ?)
 //     `;
 //   return this.entityManager.query(query, [email, facebookId]);
+
 // }

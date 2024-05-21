@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class StageCreateDto {
   @IsNotEmpty()
@@ -7,4 +7,8 @@ export class StageCreateDto {
 
   @IsString()
   description: string;
+
+  @IsNotEmpty()
+  @IsNumber()
+  order: number;
 }

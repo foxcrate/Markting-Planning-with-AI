@@ -1,14 +1,20 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { OpenAiController } from './open-ai.controller';
 import { OpenAiService } from './open-ai.service';
 import { MessageModule } from 'src/message/message.module';
 import { WorkspaceModule } from 'src/workspace/workspace.module';
 import { FunnelModule } from 'src/funnel/funnel.module';
+import { ThreadModule } from 'src/thread/thread.module';
 
 @Module({
   controllers: [OpenAiController],
   providers: [OpenAiService],
   exports: [OpenAiService],
-  imports: [MessageModule, WorkspaceModule, FunnelModule],
+  imports: [
+    MessageModule,
+    WorkspaceModule,
+    FunnelModule,
+    forwardRef(() => ThreadModule),
+  ],
 })
 export class OpenAiModule {}
