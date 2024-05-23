@@ -5,14 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  JoinColumn,
-  OneToMany,
 } from 'typeorm';
-import { FunnelEntity } from './funnel.entity';
-import { TacticsStagesEntity } from './tactics-stages.entity';
+import { TacticEntity } from './tactic.entity';
 
-@Entity({ name: 'stages' })
-export class StageEntity {
+@Entity({ name: 'tactic_step' })
+export class TacticStepEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -25,15 +22,11 @@ export class StageEntity {
   @Column()
   order: number;
 
-  @ManyToOne(() => FunnelEntity, (funnel) => funnel.stages, {
+  @ManyToOne(() => TacticEntity, (tactic) => tactic.tacticSteps, {
     cascade: true,
     onDelete: 'CASCADE',
   })
-  funnel: FunnelEntity;
-
-  @OneToMany(() => TacticsStagesEntity, (tacticsStages) => tacticsStages.stage)
-  @JoinColumn()
-  tacticsStages: TacticsStagesEntity[];
+  tactic: TacticEntity;
 
   @CreateDateColumn()
   createdAt: Date;

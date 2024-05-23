@@ -10,6 +10,7 @@ import {
   UpdateDateColumn,
   OneToMany,
 } from 'typeorm';
+import { TacticEntity } from '../tactic/tactic.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {
@@ -48,6 +49,10 @@ export class UserEntity {
   @OneToMany(() => WorkspaceEntity, (workspace) => workspace.user)
   @JoinColumn()
   workspaces: WorkspaceEntity[];
+
+  @OneToMany(() => TacticEntity, (tactic) => tactic.user)
+  @JoinColumn()
+  tactics: TacticEntity[];
 
   @Column({ nullable: true })
   googleId: string;

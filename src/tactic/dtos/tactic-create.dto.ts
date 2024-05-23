@@ -6,10 +6,10 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { StageCreateDto } from './stage-create.dto';
+import { TacticStepCreateDto } from './tactic-step-create.dto';
 import { Type } from 'class-transformer';
 
-export class FunnelCreateDto {
+export class TacticCreateDto {
   @IsNotEmpty()
   @IsString()
   name: string;
@@ -18,14 +18,16 @@ export class FunnelCreateDto {
   @IsString()
   description: string;
 
-  // @IsArray()
-  // @IsOptional()
-  // stages: StageCreateDto[];
+  @IsNotEmpty()
+  globalStageId: number;
+
+  @IsOptional()
+  stageId: string;
 
   @IsArray()
   @IsOptional()
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
-  @Type(() => StageCreateDto)
-  stages: StageCreateDto[];
+  @Type(() => TacticStepCreateDto)
+  steps: TacticStepCreateDto[];
 }

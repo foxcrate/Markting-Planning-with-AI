@@ -8,6 +8,10 @@ import { StageEntity } from './src/funnel/stage.entity';
 import { OtpEntity } from './src/otp/otp.entity';
 import { TemplateEntity } from './src/template/template.entity';
 import { WorkspaceEntity } from './src/workspace/workspace.entity';
+import { GlobalStageEntity } from './src/global-stage/global-stage.entity';
+import { TacticEntity } from './src/tactic/tactic.entity';
+import { TacticStepEntity } from './src/tactic/tactic-step.entity';
+import { TacticsStagesEntity } from './src/funnel/tactics-stages.entity';
 require('dotenv').config();
 
 export const typeOrmDbConfig: TypeOrmModuleOptions = {
@@ -27,6 +31,10 @@ export const typeOrmDbConfig: TypeOrmModuleOptions = {
     OtpEntity,
     TemplateEntity,
     WorkspaceEntity,
+    GlobalStageEntity,
+    TacticEntity,
+    TacticStepEntity,
+    TacticsStagesEntity,
   ],
   migrations: [__dirname + '/migrations/**/*'],
   migrationsTableName: 'migrations',

@@ -19,7 +19,7 @@ export class FunnelEntity {
   @Column({ unique: true })
   name: string;
 
-  @Column()
+  @Column({ type: 'longtext' })
   description: string;
 
   @Column({ default: false })
