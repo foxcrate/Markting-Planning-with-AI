@@ -33,7 +33,7 @@ export class TemplateController {
 
   @Post('onboarding/start')
   @UseGuards(AuthGuard)
-  async startOnboarding(@UserId() userId: number) {
+  async startOnboardingTemplate(@UserId() userId: number) {
     let onboardingTemplate = await this.templateRepository.findByType(
       TemplateType.ONBOARDING,
     );
@@ -43,6 +43,8 @@ export class TemplateController {
     return await this.templateService.startTemplateFlow(
       onboardingTemplate.id,
       userId,
+      null,
+      null,
       null,
     );
   }
@@ -74,7 +76,7 @@ export class TemplateController {
 
   @Post('funnel/start')
   @UseGuards(AuthGuard)
-  async startFunnel(@UserId() userId: number) {
+  async startFunnelTemplate(@UserId() userId: number) {
     let funnelTemplate = await this.templateRepository.findByType(
       TemplateType.FUNNEL,
     );
@@ -84,6 +86,8 @@ export class TemplateController {
     return await this.templateService.startTemplateFlow(
       funnelTemplate.id,
       userId,
+      null,
+      null,
       null,
     );
   }
@@ -99,6 +103,49 @@ export class TemplateController {
     );
     return await this.templateService.answerTemplateQuestion(
       funnelTemplate.id,
+      questionAnswer.answer,
+      userId,
+      null,
+    );
+  }
+
+  ///////////////////////// Tactics //////////////////////////////
+
+  @Post('tactic')
+  @UseGuards(AuthGuard)
+  async setTacticFlow(@Body() template: FunnelTemplateDto) {
+    return this.templateService.setTacticTemplate(template);
+  }
+
+  @Post('tactic/start')
+  @UseGuards(AuthGuard)
+  async startTacticTemplate(@UserId() userId: number) {
+    let tacticTemplate = await this.templateRepository.findByType(
+      TemplateType.TACTIC,
+    );
+    if (!tacticTemplate) {
+      throw new UnprocessableEntityException('There is no tactic template');
+    }
+    return await this.templateService.startTemplateFlow(
+      tacticTemplate.id,
+      userId,
+      null,
+      null,
+      null,
+    );
+  }
+
+  @Post('tactic/answer')
+  @UseGuards(AuthGuard)
+  async tacticAnswer(
+    @Body() questionAnswer: OnboardingQuestionAnswer,
+    @UserId() userId: number,
+  ) {
+    let tacticTemplate = await this.templateRepository.findByType(
+      TemplateType.TACTIC,
+    );
+    return await this.templateService.answerTemplateQuestion(
+      tacticTemplate.id,
       questionAnswer.answer,
       userId,
       null,

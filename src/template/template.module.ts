@@ -7,10 +7,17 @@ import { keyValueFlowValidator } from './validators/key-value-flow.validator';
 import { MessageModule } from 'src/message/message.module';
 import { ThreadModule } from 'src/thread/thread.module';
 import { WorkspaceModule } from 'src/workspace/workspace.module';
+import { FunnelModule } from 'src/funnel/funnel.module';
 
 @Module({
   controllers: [TemplateController],
   providers: [TemplateService, TemplateRepository, keyValueFlowValidator],
-  imports: [OpenAiModule, MessageModule, ThreadModule, WorkspaceModule],
+  imports: [
+    OpenAiModule,
+    MessageModule,
+    ThreadModule,
+    WorkspaceModule,
+    FunnelModule,
+  ],
 })
 export class TemplateModule {}

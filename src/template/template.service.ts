@@ -8,6 +8,7 @@ import { SenderRole } from 'src/enums/sender-role.enum';
 import { ThreadRepository } from 'src/thread/thread.repository';
 import { FunnelTemplateDto } from './dtos/funnel-template.dto';
 import { WorkspaceRepository } from 'src/workspace/workspace.repository';
+import { FunnelService } from 'src/funnel/funnel.service';
 
 @Injectable()
 export class TemplateService {
@@ -17,6 +18,7 @@ export class TemplateService {
     private readonly messageRepository: MessageRepository,
     private readonly threadRepository: ThreadRepository,
     private readonly workspaceRepository: WorkspaceRepository,
+    private readonly funnelService: FunnelService,
   ) {}
 
   async setOnboardingTemplate(template: OnboardingTemplateDto) {
@@ -100,6 +102,44 @@ export class TemplateService {
     });
   }
 
+  async setTacticTemplate(template: FunnelTemplateDto) {
+    // check if system has funnel template
+    const existingTemplate = await this.templateRepository.findByType(
+      TemplateType.TACTIC,
+    );
+
+    if (existingTemplate) {
+      await this.openAiService.updateTemplateAssistance(
+        existingTemplate.openaiAssistantId,
+        TemplateType.TACTIC,
+        template.description,
+        null,
+      );
+
+      return await this.templateRepository.update(existingTemplate.id, {
+        name: TemplateType.TACTIC,
+        type: TemplateType.TACTIC,
+        description: template.description,
+        parameters: null,
+        openaiAssistantId: existingTemplate.openaiAssistantId,
+      });
+    }
+
+    let assistance = await this.openAiService.createTemplateAssistance(
+      TemplateType.TACTIC,
+      template.description,
+      null,
+    );
+
+    return await this.templateRepository.create({
+      name: TemplateType.TACTIC,
+      type: TemplateType.TACTIC,
+      description: template.description,
+      parameters: null,
+      openaiAssistantId: assistance.id,
+    });
+  }
+
   async getOne(templateId: number) {
     let template = await this.templateRepository.findById(templateId);
     if (!template) {
@@ -112,6 +152,8 @@ export class TemplateService {
     templateId: number,
     userId: number,
     workspaceId: number,
+    funnelId: number,
+    stageId: number,
   ) {
     let template = await this.templateRepository.findById(templateId);
 
@@ -135,6 +177,8 @@ export class TemplateService {
       template.id,
       userId,
       workspaceId,
+      funnelId,
+      stageId,
     );
 
     // run the assistant with thread id
@@ -180,6 +224,8 @@ export class TemplateService {
       template.id,
       userId,
       workspaceId,
+      null,
+      null,
     );
 
     let aiResponseObject =
@@ -214,23 +260,32 @@ export class TemplateService {
     templateId: number,
     userId: number,
     workspaceId: number,
+    funnelId: number,
+    stageId: number,
   ) {
     let theTemplate = await this.templateRepository.findById(templateId);
-    let templateNeededData = theTemplate.type;
 
-    switch (templateNeededData) {
+    switch (theTemplate.type) {
       case TemplateType.ONBOARDING:
         return '';
       case TemplateType.FUNNEL:
-        return await this.getFunnelRunInstruction(userId, workspaceId);
+        return await this.getFunnelTemplateRunInstruction(userId, workspaceId);
       case TemplateType.TACTIC:
-        return '';
+        return await this.getTacticTemplateRunInstruction(
+          userId,
+          workspaceId,
+          funnelId,
+          stageId,
+        );
       default:
         return '';
     }
   }
 
-  private async getFunnelRunInstruction(userId: number, workspaceId: number) {
+  private async getFunnelTemplateRunInstruction(
+    userId: number,
+    workspaceId: number,
+  ) {
     //get workspace data
     let workspaceData;
     if (workspaceId) {
@@ -239,16 +294,66 @@ export class TemplateService {
       if (!workspace) {
         throw new UnprocessableEntityException('Workspace not found');
       }
-      workspaceData = this.serializaWorkspaceData(workspace);
+      workspaceData = this.serializeWorkspaceData(workspace);
     } else if (workspaceId == null) {
       let userWorkspaces =
         await this.workspaceRepository.findUserWorkspaces(userId);
-      workspaceData = this.serializaWorkspaceData(userWorkspaces[0]);
+      workspaceData = this.serializeWorkspaceData(userWorkspaces[0]);
     }
     return workspaceData;
   }
 
-  private serializaWorkspaceData(workspace) {
+  private async getTacticTemplateRunInstruction(
+    userId: number,
+    workspaceId: number,
+    funnelId: number,
+    stageId: number,
+  ): Promise<{ project_data: any; funnel_data: any; stage_Data: any }> {
+    if (!funnelId || !stageId) {
+      throw new UnprocessableEntityException(
+        'Please provide funnel and stage id',
+      );
+    }
+    let runInstruction: any;
+    //////////////////////////////get workspace data
+    let workspaceData;
+    if (workspaceId) {
+      let workspace = await this.workspaceRepository.findById(workspaceId);
+      //if no workspace
+      if (!workspace) {
+        throw new UnprocessableEntityException('Workspace not found');
+      }
+      workspaceData = this.serializeWorkspaceData(workspace);
+    } else if (workspaceId == null) {
+      let userWorkspaces =
+        await this.workspaceRepository.findUserWorkspaces(userId);
+      workspaceData = this.serializeWorkspaceData(userWorkspaces[0]);
+    }
+    runInstruction.project_data = workspaceData;
+
+    ////////////////////////////////get funnel data
+    let funnelData;
+    let funnel = await this.funnelService.getOne(funnelId, userId);
+    //if no funnel
+    if (!funnel) {
+      throw new UnprocessableEntityException('Funnel not found');
+    }
+    funnelData = this.serializeFunnelData(funnel);
+    runInstruction.funnel_data = funnelData;
+
+    ////////////////////////////////get stage data
+    let stageData;
+    let stage = await this.funnelService.getOneStage(stageId, userId);
+    //if no stage
+    if (!stage) {
+      throw new UnprocessableEntityException('Stage not found');
+    }
+    stageData = this.serializeStageData(stage);
+    runInstruction.stage_data = stageData;
+    return runInstruction;
+  }
+
+  private serializeWorkspaceData(workspace) {
     let workspaceData = {
       project_name: workspace.name,
       project_goal: workspace.goal,
@@ -257,5 +362,21 @@ export class TemplateService {
       project_marketingLevel: workspace.marketingLevel,
     };
     return workspaceData;
+  }
+
+  private serializeFunnelData(funnel) {
+    let funnelData = {
+      funnel_name: funnel.name,
+      funnel_description: funnel.description,
+    };
+    return funnelData;
+  }
+
+  private serializeStageData(stage) {
+    let stageData = {
+      stage_name: stage.name,
+      stage_description: stage.description,
+    };
+    return stageData;
   }
 }
