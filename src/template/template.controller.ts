@@ -63,6 +63,8 @@ export class TemplateController {
       questionAnswer.answer,
       userId,
       null,
+      null,
+      null
     );
   }
 
@@ -106,6 +108,8 @@ export class TemplateController {
       questionAnswer.answer,
       userId,
       null,
+      null,
+      null
     );
   }
 
@@ -149,6 +153,8 @@ export class TemplateController {
       questionAnswer.answer,
       userId,
       null,
+      null,
+      null
     );
   }
 }

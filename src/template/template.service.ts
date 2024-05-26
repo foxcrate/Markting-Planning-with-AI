@@ -202,7 +202,9 @@ export class TemplateService {
     templateId: number,
     answer: string,
     userId: number,
-    workspaceId,
+    workspaceId:number,
+    funnelId:number,
+    stageId:number,
   ) {
     let template = await this.templateRepository.findById(templateId);
 
@@ -224,8 +226,8 @@ export class TemplateService {
       template.id,
       userId,
       workspaceId,
-      null,
-      null,
+      funnelId,
+      stageId,
     );
 
     let aiResponseObject =
@@ -235,6 +237,9 @@ export class TemplateService {
         answer,
         thread.userId,
         runInstruction,
+        null,
+        null,
+        null
       );
 
     if (aiResponseObject.threadEnd) {

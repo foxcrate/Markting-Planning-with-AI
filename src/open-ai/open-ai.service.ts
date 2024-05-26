@@ -180,6 +180,9 @@ export class OpenAiService implements OnModuleInit {
     message: string,
     userId: number,
     runInstructions: string,
+    workspaceId:number,
+    funnelId:number,
+    stageId:number,
   ): Promise<{
     assistantMessage: string;
     threadOpenaiId: string;
@@ -232,6 +235,14 @@ export class OpenAiService implements OnModuleInit {
           assistantMessage = await this.createFunnelFunctionCallHandler(
             run,
             userId,
+          );
+        case 'add_tactics_to_stage':
+          assistantMessage = await this.createStageTacticsFunctionCallHandler(
+            run,
+            userId,
+            null,
+            funnelId,
+            stageId
           );
       }
       await this.threadService.finishTemplateThread(threadOpenaiId);
@@ -357,5 +368,20 @@ export class OpenAiService implements OnModuleInit {
 
     await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
     return functionReturnJsonObject;
+  }
+
+  private async createStageTacticsFunctionCallHandler(run:any,userId:number, workspaceId:number,
+    funnelId:number,
+    stageId:number,){
+    console.log('------- createStageTacticsFunctionCallHandler ------');
+    let functionReturnJsonObject = JSON.parse(
+      run.required_action.submit_tool_outputs.tool_calls[0].function.arguments,
+    );
+
+    console.log({functionReturnJsonObject});
+    
+    await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
+    return functionReturnJsonObject;
+
   }
 }
