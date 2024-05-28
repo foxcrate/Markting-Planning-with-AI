@@ -202,9 +202,9 @@ export class TemplateService {
     templateId: number,
     answer: string,
     userId: number,
-    workspaceId:number,
-    funnelId:number,
-    stageId:number,
+    workspaceId: number,
+    funnelId: number,
+    stageId: number,
   ) {
     let template = await this.templateRepository.findById(templateId);
 
@@ -238,8 +238,8 @@ export class TemplateService {
         thread.userId,
         runInstruction,
         null,
-        null,
-        null
+        funnelId,
+        stageId,
       );
 
     if (aiResponseObject.threadEnd) {
@@ -313,7 +313,7 @@ export class TemplateService {
     workspaceId: number,
     funnelId: number,
     stageId: number,
-  ): Promise<{ project_data: any; funnel_data: any; stage_Data: any }> {
+  ): Promise<{ project_data: any; funnel_data: any; stage_data: any }> {
     if (!funnelId || !stageId) {
       throw new UnprocessableEntityException(
         'Please provide funnel and stage id',
@@ -334,7 +334,7 @@ export class TemplateService {
         await this.workspaceRepository.findUserWorkspaces(userId);
       workspaceData = this.serializeWorkspaceData(userWorkspaces[0]);
     }
-    runInstruction.project_data = workspaceData;
+    let project_data = workspaceData;
 
     ////////////////////////////////get funnel data
     let funnelData;
@@ -344,7 +344,7 @@ export class TemplateService {
       throw new UnprocessableEntityException('Funnel not found');
     }
     funnelData = this.serializeFunnelData(funnel);
-    runInstruction.funnel_data = funnelData;
+    let funnel_data = funnelData;
 
     ////////////////////////////////get stage data
     let stageData;
@@ -354,8 +354,13 @@ export class TemplateService {
       throw new UnprocessableEntityException('Stage not found');
     }
     stageData = this.serializeStageData(stage);
-    runInstruction.stage_data = stageData;
-    return runInstruction;
+    let stage_data = stageData;
+
+    return {
+      project_data: project_data,
+      funnel_data: funnel_data,
+      stage_data: stage_data,
+    };
   }
 
   private serializeWorkspaceData(workspace) {

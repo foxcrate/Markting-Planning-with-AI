@@ -80,6 +80,16 @@ export class FunnelRepository {
     return await this.findById(funnelId);
   }
 
+  async isStageOwner(stageId: number, userId: number) {
+    let stage = await this.findStageById(stageId);
+    let funnel = await this.findById(stage.funnelId);
+
+    if (funnel.userId !== userId) {
+      return false;
+    }
+    return true;
+  }
+
   async findById(id: number): Promise<FunnelReturnDto> {
     const query = `
       SELECT funnels.id,funnels.name,funnels.description,funnels.userId,
@@ -102,7 +112,7 @@ export class FunnelRepository {
 
   async findStageById(stageId: number): Promise<StageReturnDto> {
     const query = `
-      SELECT stages.id,stages.name,stages.description,stages.funnelId,
+      SELECT stages.id,stages.name,stages.description,stages.funnelId
       FROM stages
       WHERE stages.id = ?
     `;

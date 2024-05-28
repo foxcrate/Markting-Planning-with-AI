@@ -6,6 +6,9 @@ export class TacticReturnDto {
   id: number;
   name: string;
   description: number;
+  benchmarkName: string;
+  benchmarkNumber: string;
+  private: boolean;
   userId: number;
   steps: TacticStepEntity[];
   globalStage: GlobalStageReturnDto;

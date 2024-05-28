@@ -14,11 +14,16 @@ export class TacticRepository {
     userId: number,
   ): Promise<TacticReturnDto> {
     const query = `
-    INSERT INTO tactics (name, description, globalStageId,userId) VALUES (?, ?, ?,?)
+    INSERT INTO tactics (name, description, benchmarkName, benchmarkNumber, private,globalStageId,userId) VALUES (?,?,?,?, ?,?,?)
   `;
     const params = [
       tacticCreateBody.name,
       tacticCreateBody.description,
+      tacticCreateBody.benchmarkName ? tacticCreateBody.benchmarkName : null,
+      tacticCreateBody.benchmarkNumber
+        ? tacticCreateBody.benchmarkNumber
+        : null,
+      tacticCreateBody.private ? tacticCreateBody.private : false,
       tacticCreateBody.globalStageId,
       userId,
     ];
@@ -79,6 +84,24 @@ export class TacticRepository {
     }
   }
 
+  //create tactics
+  async createTactics(tactics: any[], stageId: number) {
+    try {
+      for (let i = 0; i < tactics.length; i++) {
+        tactics[i].stageId = stageId;
+        tactics[i].globalStageId = null;
+        tactics[i].benchmarkName = null;
+        tactics[i].benchmarkNumber = null;
+        await this.create(tactics[i], null);
+      }
+    } catch (e) {
+      console.log(e);
+      throw e;
+    }
+
+    return true;
+  }
+
   async removeFromStage(tacticId: number, stageId: number) {
     const query =
       'DELETE FROM tactics_stages WHERE tacticId = ? AND stageId = ?';
@@ -97,12 +120,18 @@ export class TacticRepository {
       SET
       name = IFNULL(?,tactics.name),
       description = IFNULL(?,tactics.description),
+      benchmarkName = IFNULL(?,tactics.benchmarkName),
+      benchmarkNumber = IFNULL(?,tactics.benchmarkNumber),
+      private = IFNULL(?,tactics.private),
       globalStageId = IFNULL(?,tactics.globalStageId)
       WHERE id = ?
     `;
     await this.entityManager.query(query, [
       updateBody.name,
       updateBody.description,
+      updateBody.benchmarkName,
+      updateBody.benchmarkNumber,
+      updateBody.private,
       updateBody.globalStageId,
       tacticId,
     ]);
@@ -135,6 +164,9 @@ export class TacticRepository {
       SELECT tactics.id,
       tactics.name,
       tactics.description,
+      tactics.benchmarkName,
+      tactics.benchmarkNumber,
+      tactics.private,
       tactics.userId,
       CASE WHEN COUNT(global_stages.id) = 0 THEN null
       ELSE
@@ -187,6 +219,9 @@ export class TacticRepository {
     SELECT tactics.id,
     tactics.name,
     tactics.description,
+    tactics.benchmarkName,
+    tactics.benchmarkNumber,
+    tactics.private,
     tactics.userId,
     CASE WHEN COUNT(global_stages.id) = 0 THEN null
     ELSE
@@ -218,6 +253,7 @@ export class TacticRepository {
     FROM tactics
     LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
     LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
+    WHERE tactics.private = false
     GROUP BY tactics.id
   `;
     return await this.entityManager.query(query, []);

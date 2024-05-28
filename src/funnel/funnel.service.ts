@@ -27,8 +27,8 @@ export class FunnelService {
     return await this.funnelRepository.findById(funnelId);
   }
 
-  async getOneStage(funnelId: number, stageId: number) {
-    await this.isStageOwner(funnelId, stageId);
+  async getOneStage(stageId: number, userId: number) {
+    await this.isStageOwner(stageId, userId);
     return await this.funnelRepository.findStageById(stageId);
   }
 
@@ -83,13 +83,15 @@ export class FunnelService {
     }
   }
 
-  async isStageOwner(funnelId: number, stageId: number) {
+  async isStageOwner(stageId: number, userId: number) {
     const stage = await this.funnelRepository.findStageById(stageId);
     if (!stage) {
       throw new UnprocessableEntityException('Stage not found');
     }
-    if (stage.funnelId !== funnelId) {
+    await this.funnelRepository.isStageOwner(stageId, userId);
+    if (!(await this.funnelRepository.isStageOwner(stageId, userId))) {
       throw new ForbiddenException('You are not the owner of this funnel');
     }
+    return true;
   }
 }

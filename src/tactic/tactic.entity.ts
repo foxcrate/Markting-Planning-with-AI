@@ -21,8 +21,17 @@ export class TacticEntity {
   @Column()
   name: string;
 
+  @Column({ nullable: true })
+  benchmarkName: string;
+
+  @Column({ nullable: true })
+  benchmarkNumber: string;
+
   @Column({ type: 'longtext' })
   description: string;
+
+  @Column({ type: 'boolean', default: false })
+  private: boolean;
 
   @ManyToOne(() => GlobalStageEntity, (globalStage) => globalStage.tactics, {
     cascade: true,

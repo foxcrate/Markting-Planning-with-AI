@@ -1,6 +1,7 @@
 import {
   ArrayNotEmpty,
   IsArray,
+  IsBoolean,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -17,6 +18,18 @@ export class TacticCreateDto {
   @IsNotEmpty()
   @IsString()
   description: string;
+
+  @IsOptional()
+  @IsString()
+  benchmarkName: string;
+
+  @IsOptional()
+  @IsString()
+  benchmarkNumber: string;
+
+  @IsBoolean()
+  @IsOptional()
+  private: boolean;
 
   @IsNotEmpty()
   globalStageId: number;

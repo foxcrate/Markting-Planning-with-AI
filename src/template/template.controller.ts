@@ -15,6 +15,8 @@ import { AuthGuard } from 'src/gurads/auth.guard';
 import { TemplateRepository } from './template.repository';
 import { OnboardingQuestionAnswer } from './dtos/onboarding-question-answer.dto';
 import { FunnelTemplateDto } from './dtos/funnel-template.dto';
+import { StartTacticTemplateDto } from './dtos/start-tactic-template.dto';
+import { TacticQuestionAnswer } from 'src/tactic/dtos/tactic-question-answer.dto';
 
 @Controller({ path: 'template', version: '1' })
 export class TemplateController {
@@ -64,7 +66,7 @@ export class TemplateController {
       userId,
       null,
       null,
-      null
+      null,
     );
   }
 
@@ -109,7 +111,7 @@ export class TemplateController {
       userId,
       null,
       null,
-      null
+      null,
     );
   }
 
@@ -123,7 +125,10 @@ export class TemplateController {
 
   @Post('tactic/start')
   @UseGuards(AuthGuard)
-  async startTacticTemplate(@UserId() userId: number) {
+  async startTacticTemplate(
+    @Body() startTacticTemplateBody: StartTacticTemplateDto,
+    @UserId() userId: number,
+  ) {
     let tacticTemplate = await this.templateRepository.findByType(
       TemplateType.TACTIC,
     );
@@ -134,15 +139,15 @@ export class TemplateController {
       tacticTemplate.id,
       userId,
       null,
-      null,
-      null,
+      startTacticTemplateBody.funnelId,
+      startTacticTemplateBody.stageId,
     );
   }
 
   @Post('tactic/answer')
   @UseGuards(AuthGuard)
   async tacticAnswer(
-    @Body() questionAnswer: OnboardingQuestionAnswer,
+    @Body() questionAnswer: TacticQuestionAnswer,
     @UserId() userId: number,
   ) {
     let tacticTemplate = await this.templateRepository.findByType(
@@ -153,8 +158,8 @@ export class TemplateController {
       questionAnswer.answer,
       userId,
       null,
-      null,
-      null
+      questionAnswer.funnelId,
+      questionAnswer.stageId,
     );
   }
 }
