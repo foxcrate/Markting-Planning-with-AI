@@ -6,6 +6,8 @@ import {
 } from '@nestjs/platform-fastify';
 import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { FastifyMultipartAttachFieldsToBodyOptions } from '@fastify/multipart';
+import { FastifyStaticOptions } from '@fastify/static';
+import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -20,7 +22,10 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ValidationPipe());
-
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  await app.register(require('@fastify/static'), {
+    root: join(process.cwd(), 'public'),
+  } as FastifyStaticOptions);
   // ts-ignore
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   await app.register(require('@fastify/multipart'), {
