@@ -17,6 +17,7 @@ import { TemplateModule } from './template/template.module';
 import { WorkspaceModule } from './workspace/workspace.module';
 import { GlobalStageModule } from './global-stage/global-stage.module';
 import { TacticModule } from './tactic/tactic.module';
+import { FileModule } from './file/file.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -32,6 +33,7 @@ import { TacticModule } from './tactic/tactic.module';
       global: true,
     }),
     TypeOrmModule.forRoot(typeOrmDbConfig),
+    FileModule,
     UserModule,
     AuthModule,
     EmailModule,
