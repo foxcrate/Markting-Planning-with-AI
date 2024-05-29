@@ -14,8 +14,6 @@ lerna-debug.log*
 
 # OS
 .DS_Store
-Dockerfile
-docker.sh
 
 # Tests
 /coverage
@@ -40,7 +38,6 @@ docker.sh
 .env*.local
 
 # dotenv environment variable files
-.env
 .env.development.local
 .env.test.local
 .env.production.local
