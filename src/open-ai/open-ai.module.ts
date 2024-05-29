@@ -5,6 +5,7 @@ import { MessageModule } from 'src/message/message.module';
 import { WorkspaceModule } from 'src/workspace/workspace.module';
 import { FunnelModule } from 'src/funnel/funnel.module';
 import { ThreadModule } from 'src/thread/thread.module';
+import { TacticModule } from 'src/tactic/tactic.module';
 
 @Module({
   controllers: [OpenAiController],
@@ -14,6 +15,7 @@ import { ThreadModule } from 'src/thread/thread.module';
     MessageModule,
     WorkspaceModule,
     FunnelModule,
+    TacticModule,
     forwardRef(() => ThreadModule),
   ],
 })

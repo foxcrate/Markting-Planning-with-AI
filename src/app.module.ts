@@ -15,6 +15,8 @@ import { FunnelModule } from './funnel/funnel.module';
 import { OtpModule } from './otp/otp.module';
 import { TemplateModule } from './template/template.module';
 import { WorkspaceModule } from './workspace/workspace.module';
+import { GlobalStageModule } from './global-stage/global-stage.module';
+import { TacticModule } from './tactic/tactic.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -40,6 +42,8 @@ import { WorkspaceModule } from './workspace/workspace.module';
     OtpModule,
     TemplateModule,
     WorkspaceModule,
+    GlobalStageModule,
+    TacticModule,
   ],
   controllers: [AppController],
   providers: [AppService],

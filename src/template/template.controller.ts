@@ -15,6 +15,8 @@ import { AuthGuard } from 'src/gurads/auth.guard';
 import { TemplateRepository } from './template.repository';
 import { OnboardingQuestionAnswer } from './dtos/onboarding-question-answer.dto';
 import { FunnelTemplateDto } from './dtos/funnel-template.dto';
+import { StartTacticTemplateDto } from './dtos/start-tactic-template.dto';
+import { TacticQuestionAnswer } from 'src/tactic/dtos/tactic-question-answer.dto';
 
 @Controller({ path: 'template', version: '1' })
 export class TemplateController {
@@ -33,7 +35,7 @@ export class TemplateController {
 
   @Post('onboarding/start')
   @UseGuards(AuthGuard)
-  async startOnboarding(@UserId() userId: number) {
+  async startOnboardingTemplate(@UserId() userId: number) {
     let onboardingTemplate = await this.templateRepository.findByType(
       TemplateType.ONBOARDING,
     );
@@ -43,6 +45,8 @@ export class TemplateController {
     return await this.templateService.startTemplateFlow(
       onboardingTemplate.id,
       userId,
+      null,
+      null,
       null,
     );
   }
@@ -61,6 +65,8 @@ export class TemplateController {
       questionAnswer.answer,
       userId,
       null,
+      null,
+      null,
     );
   }
 
@@ -74,7 +80,7 @@ export class TemplateController {
 
   @Post('funnel/start')
   @UseGuards(AuthGuard)
-  async startFunnel(@UserId() userId: number) {
+  async startFunnelTemplate(@UserId() userId: number) {
     let funnelTemplate = await this.templateRepository.findByType(
       TemplateType.FUNNEL,
     );
@@ -84,6 +90,8 @@ export class TemplateController {
     return await this.templateService.startTemplateFlow(
       funnelTemplate.id,
       userId,
+      null,
+      null,
       null,
     );
   }
@@ -102,6 +110,56 @@ export class TemplateController {
       questionAnswer.answer,
       userId,
       null,
+      null,
+      null,
+    );
+  }
+
+  ///////////////////////// Tactics //////////////////////////////
+
+  @Post('tactic')
+  @UseGuards(AuthGuard)
+  async setTacticFlow(@Body() template: FunnelTemplateDto) {
+    return this.templateService.setTacticTemplate(template);
+  }
+
+  @Post('tactic/start')
+  @UseGuards(AuthGuard)
+  async startTacticTemplate(
+    @Body() startTacticTemplateBody: StartTacticTemplateDto,
+    @UserId() userId: number,
+  ) {
+    let tacticTemplate = await this.templateRepository.findByType(
+      TemplateType.TACTIC,
+    );
+    if (!tacticTemplate) {
+      throw new UnprocessableEntityException('There is no tactic template');
+    }
+    return await this.templateService.startTemplateFlow(
+      tacticTemplate.id,
+      userId,
+      null,
+      startTacticTemplateBody.funnelId,
+      startTacticTemplateBody.stageId,
+    );
+  }
+
+  @Post('tactic/answer')
+  @UseGuards(AuthGuard)
+  async tacticAnswer(
+    @Body() questionAnswer: TacticQuestionAnswer,
+    @UserId() userId: number,
+  ) {
+    let tacticTemplate = await this.templateRepository.findByType(
+      TemplateType.TACTIC,
+    );
+    return await this.templateService.answerTemplateQuestion(
+      tacticTemplate.id,
+      questionAnswer.answer,
+      userId,
+      null,
+      questionAnswer.funnelId,
+      questionAnswer.stageId,
     );
   }
 }

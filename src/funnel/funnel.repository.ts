@@ -4,6 +4,7 @@ import { FunnelCreateDto } from './dtos/funnel-create.dto';
 import { FunnelReturnDto } from './dtos/funnel-return.dto';
 import { StageCreateDto } from './dtos/stage-create.dto';
 import { FunnelUpdateDto } from './dtos/funnel-update.dto';
+import { StageReturnDto } from './dtos/stage-return.dto';
 
 @Injectable()
 export class FunnelRepository {
@@ -79,6 +80,16 @@ export class FunnelRepository {
     return await this.findById(funnelId);
   }
 
+  async isStageOwner(stageId: number, userId: number) {
+    let stage = await this.findStageById(stageId);
+    let funnel = await this.findById(stage.funnelId);
+
+    if (funnel.userId !== userId) {
+      return false;
+    }
+    return true;
+  }
+
   async findById(id: number): Promise<FunnelReturnDto> {
     const query = `
       SELECT funnels.id,funnels.name,funnels.description,funnels.userId,
@@ -97,6 +108,16 @@ export class FunnelRepository {
     `;
     let [theFunnel] = await this.entityManager.query(query, [id]);
     return theFunnel;
+  }
+
+  async findStageById(stageId: number): Promise<StageReturnDto> {
+    const query = `
+      SELECT stages.id,stages.name,stages.description,stages.funnelId
+      FROM stages
+      WHERE stages.id = ?
+    `;
+    let [theStage] = await this.entityManager.query(query, [stageId]);
+    return theStage;
   }
 
   //find all funnels
