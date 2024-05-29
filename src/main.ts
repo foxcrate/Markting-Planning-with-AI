@@ -22,11 +22,12 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ValidationPipe());
+
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   await app.register(require('@fastify/static'), {
     root: join(process.cwd(), 'public'),
   } as FastifyStaticOptions);
-  // ts-ignore
+
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   await app.register(require('@fastify/multipart'), {
     limits: {
