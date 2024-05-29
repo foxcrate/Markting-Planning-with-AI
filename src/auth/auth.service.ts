@@ -20,6 +20,7 @@ import { MobileSignUpDto } from './dtos/mobile-signup.dto';
 import { UserRoles } from 'src/enums/user-roles.enum';
 import { OtpTypes } from 'src/enums/otp-types.enum';
 import { VerifyConnectSocialOtpDto } from './dtos/verify-connect-social-otp.dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class AuthService {
@@ -29,6 +30,7 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private readonly otpService: OtpService,
     private readonly jwtService: JwtService,
+    private readonly userService: UserService,
     private config: ConfigService,
   ) {}
 
@@ -159,7 +161,11 @@ export class AuthService {
     await this.userRepository.verifyPhoneNumber(existingUser.id);
 
     const { password, ...restProperties } = existingUser;
-    let user = restProperties;
+    // let user = restProperties;
+    let user = {
+      ...restProperties,
+      userOnboarded: await this.userService.userOnboarded(restProperties.id),
+    };
     return {
       user: user,
       token: this.createNormalToken(user),
@@ -185,7 +191,10 @@ export class AuthService {
     await this.userRepository.verifyPhoneNumber(existingUser.id);
 
     const { password, ...restProperties } = existingUser;
-    let user = restProperties;
+    let user = {
+      ...restProperties,
+      userOnboarded: await this.userService.userOnboarded(restProperties.id),
+    };
     return {
       user: user,
       token: this.createNormalToken(user),
@@ -297,8 +306,13 @@ export class AuthService {
       OtpTypes.SIGNUP,
     );
 
+    let newUser = {
+      ...createdUser,
+      userOnboarded: await this.userService.userOnboarded(createdUser.id),
+    };
+
     return {
-      user: createdUser,
+      user: newUser,
       message: 'Please check your mobile for otp verification',
     };
   }
@@ -327,8 +341,13 @@ export class AuthService {
 
     const { password, ...restProperties } = theUser;
 
+    let newUser = {
+      ...restProperties,
+      userOnboarded: await this.userService.userOnboarded(restProperties.id),
+    };
+
     return {
-      user: restProperties,
+      user: newUser,
       token: this.createNormalToken(restProperties),
       refreshToken: this.createRefreshToken(restProperties),
     };
