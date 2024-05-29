@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import { UserDto } from './dtos/user.dto';
+import { UpdateProfileDto } from './dtos/update-profile-dto';
 
 @Injectable()
 export class UserRepository {
@@ -72,6 +73,26 @@ export class UserRepository {
     });
   }
 
+  async update(UpdateProfileBody: UpdateProfileDto, userId: number) {
+    // updateBody.stages[0].
+    const query = `
+        UPDATE users
+        SET
+        firstName = IFNULL(?,users.firstName),
+        lastName = IFNULL(?,users.lastName),
+        profilePicture = IFNULL(?,users.profilePicture)
+        WHERE id = ?
+      `;
+    await this.entityManager.query(query, [
+      UpdateProfileBody.firstName,
+      UpdateProfileBody.lastName,
+      UpdateProfileBody.profilePicture,
+      userId,
+    ]);
+
+    return await this.findById(userId);
+  }
+
   async verifyPhoneNumber(userId: number) {
     const query = `
         UPDATE users
@@ -134,6 +155,7 @@ export class UserRepository {
       users.firstName,
       users.lastName,
       users.email,
+      users.profilePicture,
       users.phoneVerified,
       users.phoneNumber,
       users.googleId,

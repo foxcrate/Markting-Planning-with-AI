@@ -27,6 +27,9 @@ export class UserEntity {
   email: string;
 
   @Column({ nullable: true })
+  profilePicture: string;
+
+  @Column({ nullable: true })
   password: string;
 
   @Column({ type: 'boolean', default: false })
