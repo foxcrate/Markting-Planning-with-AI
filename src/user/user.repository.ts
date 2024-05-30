@@ -111,12 +111,30 @@ export class UserRepository {
     await this.entityManager.query(query, [email, userId]);
   }
 
+  async updatePhoneNumber(phoneNumber: string, userId: number) {
+    const query = `
+        UPDATE users
+        SET phoneNumber = ?
+        WHERE id = ?
+      `;
+    await this.entityManager.query(query, [phoneNumber, userId]);
+  }
+
   async findUserByPhoneNumber(phoneNumber): Promise<UserDto> {
     const query = `
         SELECT * FROM users
         WHERE phoneNumber = ? LIMIT 1
       `;
     const [user] = await this.entityManager.query(query, [phoneNumber]);
+    return user;
+  }
+
+  async findUserByEmail(email): Promise<UserDto> {
+    const query = `
+        SELECT * FROM users
+        WHERE email = ? LIMIT 1
+      `;
+    const [user] = await this.entityManager.query(query, [email]);
     return user;
   }
 

@@ -22,7 +22,7 @@ import { FileModule } from './file/file.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.local', '.env'],
+      envFilePath: ['local.env','.env'],
     }),
     JwtModule.registerAsync({
       useFactory: async (configService: ConfigService) => ({
