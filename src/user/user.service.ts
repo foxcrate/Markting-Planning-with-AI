@@ -21,24 +21,27 @@ export class UserService {
     return await this.workspaceService.userHasWorkspace(userId);
   }
 
-  async changePhoneNumber(phoneNumber:string): Promise<any> {
+  async changePhoneNumber(phoneNumber: string): Promise<any> {
     const existingUser =
-    await this.userRepository.findUserByPhoneNumber(phoneNumber);
-  if (existingUser) {
-    throw new UnprocessableEntityException(`phone number already exists`);
-  }
+      await this.userRepository.findUserByPhoneNumber(phoneNumber);
+    if (existingUser) {
+      throw new UnprocessableEntityException(`phone number already exists`);
+    }
 
-    await this.otpService.sendMobileOtp(phoneNumber, OtpTypes.CHANGE_PHONE_NUMBER);
+    await this.otpService.sendMobileOtp(
+      phoneNumber,
+      OtpTypes.CHANGE_PHONE_NUMBER,
+    );
 
     return {
-      message: 'Please check your mobile for an otp',
+      message: 'Please check your new mobile for an otp',
     };
   }
 
   async verifyChangePhoneNumberOTP(
     newPhoneNumber: string,
     otp: string,
-    userId:number
+    userId: number,
   ): Promise<any> {
     await this.otpService.verifyOTP(
       newPhoneNumber,
@@ -46,38 +49,37 @@ export class UserService {
       OtpTypes.CHANGE_PHONE_NUMBER,
     );
 
-    await this.userRepository.updatePhoneNumber(newPhoneNumber,userId);
+    await this.userRepository.updatePhoneNumber(newPhoneNumber, userId);
 
-    return 'Phone Number updated successfully'
+    return {
+      message: 'Phone Number updated successfully',
+    };
   }
 
-  async changeEmail(email:string): Promise<any> {
-    const existingUser =
-    await this.userRepository.findUserByEmail(email);
-  if (existingUser) {
-    throw new UnprocessableEntityException(`email already exists`);
-  }
+  async changeEmail(email: string): Promise<any> {
+    const existingUser = await this.userRepository.findUserByEmail(email);
+    if (existingUser) {
+      throw new UnprocessableEntityException(`email already exists`);
+    }
 
     await this.otpService.sendEmailOtp(email, OtpTypes.CHANGE_EMAIL);
 
     return {
-      message: 'Please check your email for an otp',
+      message: 'Please check your new email for an otp',
     };
   }
 
   async verifyChangeEmailOTP(
     newEmail: string,
     otp: string,
-    userId:number
+    userId: number,
   ): Promise<any> {
-    await this.otpService.verifyOTP(
-      newEmail,
-      otp,
-      OtpTypes.CHANGE_EMAIL,
-    );
+    await this.otpService.verifyOTP(newEmail, otp, OtpTypes.CHANGE_EMAIL);
 
-    await this.userRepository.updateEmail(newEmail,userId);
+    await this.userRepository.updateEmail(newEmail, userId);
 
-    return 'Email updated successfully'
+    return {
+      message: 'Email updated successfully',
+    };
   }
 }
