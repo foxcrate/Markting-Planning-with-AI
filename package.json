@@ -42,7 +42,7 @@
     "fastify": "^4.27.0",
     "google-auth-library": "^9.7.0",
     "jsonwebtoken": "^9.0.2",
-    "mariadb": "^3.2.3",
+    "mariadb": "^3.3.0",
     "mime-types": "^2.1.35",
     "nodemailer": "^6.9.12",
     "openai": "^4.29.2",
