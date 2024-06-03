@@ -421,7 +421,7 @@ export class AuthService {
   ////////////////////////
 
   async sendEmailOtp(email: string): Promise<any> {
-    await this.otpService.sendEmailOtp(email, OtpTypes.EMAIL);
+    await this.otpService.sendEmailOtp(email, OtpTypes.ADD_EMAIL);
     return 'Email sent successfully';
   }
 
@@ -430,7 +430,7 @@ export class AuthService {
     otp: string,
     userId: number,
   ): Promise<any> {
-    await this.otpService.verifyOTP(email, otp, OtpTypes.EMAIL);
+    await this.otpService.verifyOTP(email, otp, OtpTypes.ADD_EMAIL);
     // add the email to user data
 
     await this.userRepository.updateEmail(email, userId);
