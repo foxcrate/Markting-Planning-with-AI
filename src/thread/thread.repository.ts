@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import { Inject, Injectable } from '@nestjs/common';
 import { ThreadReturnDto } from './dtos/thread-return.dto';
+import { Pool } from 'mariadb';
+import { DB_PROVIDER } from 'src/db/constants';
 
 @Injectable()
 export class ThreadRepository {
-  constructor(private readonly entityManager: EntityManager) {}
+  constructor(@Inject(DB_PROVIDER) private db: Pool) {}
 
   async create(
     userId: number,
@@ -16,7 +17,7 @@ export class ThreadRepository {
        (openAiId, userId,templateId)
        values (?,?,?)
       `;
-    await this.entityManager.query(query, [openAiThreadId, userId, templateId]);
+    await this.db.query(query, [openAiThreadId, userId, templateId]);
 
     query = `
     SELECT
@@ -27,9 +28,7 @@ export class ThreadRepository {
     FROM threads
     WHERE openAiId = ?
    `;
-    let [createdThread] = await this.entityManager.query(query, [
-      openAiThreadId,
-    ]);
+    let [createdThread] = await this.db.query(query, [openAiThreadId]);
     return createdThread;
   }
 
@@ -44,7 +43,7 @@ export class ThreadRepository {
     WHERE threads.id = ?
   `;
 
-    const [theThread] = await this.entityManager.query(query, [threadId]);
+    const [theThread] = await this.db.query(query, [threadId]);
 
     return theThread;
   }
@@ -65,10 +64,7 @@ export class ThreadRepository {
     AND threads.finishTemplate = false
   `;
 
-    const [theThread] = await this.entityManager.query(query, [
-      templateId,
-      userId,
-    ]);
+    const [theThread] = await this.db.query(query, [templateId, userId]);
 
     return theThread;
   }
@@ -80,6 +76,6 @@ export class ThreadRepository {
     finishTemplate = true
     WHERE openAiId = ?
     `;
-    await this.entityManager.query(query, [threadOpenaiId]);
+    await this.db.query(query, [threadOpenaiId]);
   }
 }

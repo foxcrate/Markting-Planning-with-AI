@@ -1,12 +1,17 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import {
+  Inject,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { WorkspaceReturnDto } from './dtos/workspace-return.dto';
 import { WorkspaceDto } from './dtos/workspace.dto';
 import { WorkspaceUpdateDto } from './dtos/workspace-update.dto';
+import { Pool } from 'mariadb';
+import { DB_PROVIDER } from 'src/db/constants';
 
 @Injectable()
 export class WorkspaceRepository {
-  constructor(private readonly entityManager: EntityManager) {}
+  constructor(@Inject(DB_PROVIDER) private db: Pool) {}
 
   async create(workspace: WorkspaceDto): Promise<WorkspaceReturnDto> {
     const { name, goal, budget, targetGroup, marketingLevel, userId } =
@@ -17,7 +22,7 @@ export class WorkspaceRepository {
     `;
     const params = [name, goal, budget, targetGroup, marketingLevel, userId];
 
-    const createdWorkspace = await this.entityManager.query(query, params);
+    const createdWorkspace = await this.db.query(query, params);
     return await this.findById(createdWorkspace.insertId);
   }
 
@@ -51,7 +56,7 @@ export class WorkspaceRepository {
       workspace.marketingLevel,
       userWorkspaces[0].id,
     ];
-    await this.entityManager.query(query, params);
+    await this.db.query(query, params);
 
     return this.findById(userWorkspaces[0].id);
   }
@@ -79,7 +84,7 @@ export class WorkspaceRepository {
       workspace.marketingLevel,
       workspaceId,
     ];
-    await this.entityManager.query(query, params);
+    await this.db.query(query, params);
     return await this.findById(workspaceId);
   }
 
@@ -99,7 +104,7 @@ export class WorkspaceRepository {
       confirmed = true
       WHERE id = ?
     `;
-    await this.entityManager.query(query, [userWorkspaces[0].id]);
+    await this.db.query(query, [userWorkspaces[0].id]);
     return await this.findById(userWorkspaces[0].id);
   }
 
@@ -110,7 +115,7 @@ export class WorkspaceRepository {
       confirmed = true
       WHERE id = ?
     `;
-    await this.entityManager.query(query, [id]);
+    await this.db.query(query, [id]);
     return await this.findById(id);
   }
 
@@ -128,7 +133,7 @@ export class WorkspaceRepository {
     WHERE workspaces.id = ?
   `;
 
-    const [theWorkspace] = await this.entityManager.query(query, [id]);
+    const [theWorkspace] = await this.db.query(query, [id]);
 
     return theWorkspace;
   }
@@ -148,7 +153,7 @@ export class WorkspaceRepository {
     ORDER BY workspaces.createdAt ASC
   `;
 
-    const theWorkspaces = await this.entityManager.query(query, [userId]);
+    const theWorkspaces = await this.db.query(query, [userId]);
 
     return theWorkspaces;
   }
@@ -169,7 +174,7 @@ export class WorkspaceRepository {
     ORDER BY workspaces.createdAt ASC
   `;
 
-    const theWorkspaces = await this.entityManager.query(query, [userId]);
+    const theWorkspaces = await this.db.query(query, [userId]);
 
     return theWorkspaces;
   }
@@ -190,7 +195,7 @@ export class WorkspaceRepository {
     ORDER BY workspaces.createdAt ASC
   `;
 
-    const theWorkspaces = await this.entityManager.query(query, [userId]);
+    const theWorkspaces = await this.db.query(query, [userId]);
 
     return theWorkspaces;
   }

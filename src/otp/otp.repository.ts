@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Pool } from 'mariadb';
+import { DB_PROVIDER } from 'src/db/constants';
 import { OtpTypes } from 'src/enums/otp-types.enum';
-import { EntityManager } from 'typeorm';
 
 @Injectable()
 export class OtpRepository {
-  constructor(private readonly entityManager: EntityManager) {}
+  constructor(@Inject(DB_PROVIDER) private db: Pool) {}
 
   async saveOTP(mobileNumber: string, otp: string, type: OtpTypes) {
     let query = `
@@ -16,10 +17,7 @@ export class OtpRepository {
       otpType = ?
     `;
 
-    let foundedNumber = await this.entityManager.query(query, [
-      mobileNumber,
-      type,
-    ]);
+    let foundedNumber = await this.db.query(query, [mobileNumber, type]);
 
     if (foundedNumber[0]) {
       query = `
@@ -31,7 +29,7 @@ export class OtpRepository {
       AND
       otpType = ?
     `;
-      await this.entityManager.query(query, [otp, mobileNumber, type]);
+      await this.db.query(query, [otp, mobileNumber, type]);
     } else {
       query = `
       INSERT INTO otps
@@ -46,7 +44,7 @@ export class OtpRepository {
         ?,
         ?
       )`;
-      await this.entityManager.query(query, [mobileNumber, otp, type]);
+      await this.db.query(query, [mobileNumber, otp, type]);
     }
   }
 
@@ -66,7 +64,7 @@ export class OtpRepository {
       ORDER BY createdAt DESC
     `;
 
-    let obj = await this.entityManager.query(query, [mobileNumber, type]);
+    let obj = await this.db.query(query, [mobileNumber, type]);
     if (!obj[0] || obj[0].otp != otp) {
       // await this.deletePastOTP(mobileNumber);
       throw new NotFoundException('Invalid OTP');
@@ -84,6 +82,6 @@ export class OtpRepository {
       AND
       otpType = ?
     `;
-    await this.entityManager.query(query, [mobileNumber, type]);
+    await this.db.query(query, [mobileNumber, type]);
   }
 }

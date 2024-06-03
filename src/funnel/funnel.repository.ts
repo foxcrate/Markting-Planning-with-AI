@@ -1,14 +1,20 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import {
+  Inject,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { FunnelCreateDto } from './dtos/funnel-create.dto';
 import { FunnelReturnDto } from './dtos/funnel-return.dto';
 import { StageCreateDto } from './dtos/stage-create.dto';
 import { FunnelUpdateDto } from './dtos/funnel-update.dto';
 import { StageReturnDto } from './dtos/stage-return.dto';
+import { DB_PROVIDER } from 'src/db/constants';
+import { Pool } from 'mariadb';
 
 @Injectable()
 export class FunnelRepository {
-  constructor(private readonly entityManager: EntityManager) {}
+  // constructor(private readonly entityManager: EntityManager) {}
+  constructor(@Inject(DB_PROVIDER) private db: Pool) {}
 
   async create(funnelCreateBody: FunnelCreateDto, userId: number) {
     const { name, description } = funnelCreateBody;
@@ -19,11 +25,7 @@ export class FunnelRepository {
     const query = `
       INSERT INTO funnels (name, description, userId) VALUES (?, ?, ?)
     `;
-    let { insertId } = await this.entityManager.query(query, [
-      name,
-      description,
-      userId,
-    ]);
+    let { insertId } = await this.db.query(query, [name, description, userId]);
 
     if (funnelCreateBody.stages && funnelCreateBody.stages.length > 0) {
       await this.addStages(insertId, funnelCreateBody.stages);
@@ -46,7 +48,7 @@ export class FunnelRepository {
     const query =
       'INSERT INTO stages (funnelId,name,`order`,description) VALUES ?';
 
-    await this.entityManager.query(query, [stagesArray]);
+    await this.db.query(query, [stagesArray]);
   }
 
   async deletePastStages(funnelId: number) {
@@ -54,7 +56,7 @@ export class FunnelRepository {
       DELETE FROM stages
       WHERE funnelId = ?
     `;
-    await this.entityManager.query(query, [funnelId]);
+    await this.db.query(query, [funnelId]);
   }
 
   //update funnel
@@ -67,7 +69,7 @@ export class FunnelRepository {
       description = IFNULL(?,funnels.description)
       WHERE id = ?
     `;
-    await this.entityManager.query(query, [
+    await this.db.query(query, [
       updateBody.name,
       updateBody.description,
       funnelId,
@@ -106,7 +108,7 @@ export class FunnelRepository {
       WHERE funnels.id = ?
       GROUP BY funnels.id
     `;
-    let [theFunnel] = await this.entityManager.query(query, [id]);
+    let [theFunnel] = await this.db.query(query, [id]);
     return theFunnel;
   }
 
@@ -116,7 +118,7 @@ export class FunnelRepository {
       FROM stages
       WHERE stages.id = ?
     `;
-    let [theStage] = await this.entityManager.query(query, [stageId]);
+    let [theStage] = await this.db.query(query, [stageId]);
     return theStage;
   }
 
@@ -137,7 +139,7 @@ export class FunnelRepository {
       WHERE funnels.userId = ?
       GROUP BY funnels.id
     `;
-    return await this.entityManager.query(query, [userId]);
+    return await this.db.query(query, [userId]);
   }
 
   async findByName(name: string): Promise<FunnelReturnDto> {
@@ -146,7 +148,7 @@ export class FunnelRepository {
       FROM funnels
       WHERE name = ?
     `;
-    let [theFunnel] = await this.entityManager.query(query, [name]);
+    let [theFunnel] = await this.db.query(query, [name]);
     return theFunnel;
   }
 
@@ -157,7 +159,7 @@ export class FunnelRepository {
       WHERE userId = ?
       AND createdByAssistant = true
     `;
-    let [x] = await this.entityManager.query(query, [userId]);
+    let [x] = await this.db.query(query, [userId]);
     return x;
   }
 
@@ -168,7 +170,7 @@ export class FunnelRepository {
     const query = `
     INSERT INTO funnels (name, description, createdByAssistant, userId) VALUES (?, ?, ?, ?)
   `;
-    let { insertId } = await this.entityManager.query(query, [
+    let { insertId } = await this.db.query(query, [
       'assistant funnel',
       'funnel created by assistant based on user workspace information',
       true,
@@ -201,6 +203,6 @@ export class FunnelRepository {
       DELETE FROM funnels
       WHERE id = ?
     `;
-    await this.entityManager.query(query, [id]);
+    await this.db.query(query, [id]);
   }
 }

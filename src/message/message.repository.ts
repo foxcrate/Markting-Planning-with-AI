@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import { Inject, Injectable } from '@nestjs/common';
 import { MessageReturnDto } from './dtos/message-return.dto';
+import { Pool } from 'mariadb';
+import { DB_PROVIDER } from 'src/db/constants';
 
 @Injectable()
 export class MessageRepository {
-  constructor(private readonly entityManager: EntityManager) {}
+  constructor(@Inject(DB_PROVIDER) private db: Pool) {}
 
   async create(message: string, threadId: number, role: string) {
     let query = `
@@ -12,11 +13,7 @@ export class MessageRepository {
        (content, threadId, senderRole)
        values (?,?,?)
       `;
-    let { insertId } = await this.entityManager.query(query, [
-      message,
-      threadId,
-      role,
-    ]);
+    let { insertId } = await this.db.query(query, [message, threadId, role]);
 
     query = `
       SELECT
@@ -24,7 +21,7 @@ export class MessageRepository {
       FROM messages
       WHERE id = ?
      `;
-    let [createdMessage] = await this.entityManager.query(query, [insertId]);
+    let [createdMessage] = await this.db.query(query, [insertId]);
     return createdMessage;
   }
 
@@ -39,7 +36,7 @@ export class MessageRepository {
     WHERE messages.id = ?
   `;
 
-    const [theMessage] = await this.entityManager.query(query, [messageId]);
+    const [theMessage] = await this.db.query(query, [messageId]);
 
     return theMessage;
   }
@@ -54,7 +51,7 @@ export class MessageRepository {
     FROM messages
     WHERE messages.threadId = ?
   `;
-    const messages = await this.entityManager.query(query, [threadId]);
+    const messages = await this.db.query(query, [threadId]);
     return messages;
   }
 }

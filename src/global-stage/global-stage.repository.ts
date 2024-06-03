@@ -1,12 +1,17 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import {
+  Inject,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { GlobalStageCreateDto } from './dtos/global-stage-create.dto';
 import { GlobalStageUpdateDto } from './dtos/global-stage-update.dto';
 import { GlobalStageReturnDto } from './dtos/global-stage-return.dto';
+import { Pool } from 'mariadb';
+import { DB_PROVIDER } from 'src/db/constants';
 
 @Injectable()
 export class GlobalStageRepository {
-  constructor(private readonly entityManager: EntityManager) {}
+  constructor(@Inject(DB_PROVIDER) private db: Pool) {}
 
   async create(
     globalStageCreateBody: GlobalStageCreateDto,
@@ -21,10 +26,7 @@ export class GlobalStageRepository {
     const query = `
       INSERT INTO global_stages (name, description) VALUES (?, ?)
     `;
-    let { insertId } = await this.entityManager.query(query, [
-      name,
-      description,
-    ]);
+    let { insertId } = await this.db.query(query, [name, description]);
 
     return await this.findById(insertId);
   }
@@ -42,7 +44,7 @@ export class GlobalStageRepository {
       description = IFNULL(?,global_stages.description)
       WHERE id = ?
     `;
-    await this.entityManager.query(query, [
+    await this.db.query(query, [
       updateBody.name,
       updateBody.description,
       globalStageId,
@@ -57,7 +59,7 @@ export class GlobalStageRepository {
       FROM global_stages
       WHERE global_stages.id = ?
     `;
-    let [theGlobalStage] = await this.entityManager.query(query, [id]);
+    let [theGlobalStage] = await this.db.query(query, [id]);
     return theGlobalStage;
   }
 
@@ -67,7 +69,7 @@ export class GlobalStageRepository {
       SELECT global_stages.id, global_stages.name, global_stages.description
       FROM global_stages
     `;
-    return await this.entityManager.query(query, []);
+    return await this.db.query(query, []);
   }
 
   async findByName(name: string): Promise<GlobalStageReturnDto> {
@@ -76,7 +78,7 @@ export class GlobalStageRepository {
       FROM global_stages
       WHERE name = ?
     `;
-    let [theGlobalStage] = await this.entityManager.query(query, [name]);
+    let [theGlobalStage] = await this.db.query(query, [name]);
     return theGlobalStage;
   }
 
@@ -86,6 +88,6 @@ export class GlobalStageRepository {
       DELETE FROM global_stages
       WHERE id = ?
     `;
-    await this.entityManager.query(query, [id]);
+    await this.db.query(query, [id]);
   }
 }

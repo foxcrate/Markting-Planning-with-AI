@@ -15,10 +15,10 @@ import { appendFile } from 'node:fs/promises';
         const config: PoolConfig = {
           port: configService.get('DB_PORT'),
           host: configService.get('DB_HOST'),
-          user: configService.get('DB_USER'),
+          user: configService.get('DB_USERNAME'),
           password: configService.get('DB_PASSWORD'),
           database: configService.get('DB_NAME'),
-          connectionLimit: 10,
+          connectionLimit: 15,
           connectTimeout: 15000,
           timezone: 'Z',
           collation: 'utf8mb4_unicode_ci',
