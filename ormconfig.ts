@@ -12,7 +12,7 @@ import { GlobalStageEntity } from './src/global-stage/global-stage.entity';
 import { TacticEntity } from './src/tactic/tactic.entity';
 import { TacticStepEntity } from './src/tactic/tactic-step.entity';
 import { TacticsStagesEntity } from './src/funnel/tactics-stages.entity';
-require('dotenv').config();
+require('dotenv').config({ path: `${process.env.NODE_ENV?process.env.NODE_ENV:''}.env` });
 
 export const typeOrmDbConfig: TypeOrmModuleOptions = {
   type: 'mariadb',
