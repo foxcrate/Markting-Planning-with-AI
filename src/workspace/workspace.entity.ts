@@ -28,6 +28,9 @@ export class WorkspaceEntity {
   @Column({ nullable: true })
   marketingLevel: string;
 
+  @Column({ default: false })
+  confirmed: boolean;
+
   @ManyToOne(() => UserEntity, (user) => user.workspaces, {
     cascade: true,
     onDelete: 'CASCADE',

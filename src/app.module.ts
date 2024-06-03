@@ -18,11 +18,12 @@ import { WorkspaceModule } from './workspace/workspace.module';
 import { GlobalStageModule } from './global-stage/global-stage.module';
 import { TacticModule } from './tactic/tactic.module';
 import { FileModule } from './file/file.module';
+import { MariadbModule } from './db/mariadb.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['local.env','.env'],
+      envFilePath: ['local.env', '.env'],
     }),
     JwtModule.registerAsync({
       useFactory: async (configService: ConfigService) => ({
@@ -33,6 +34,7 @@ import { FileModule } from './file/file.module';
       global: true,
     }),
     TypeOrmModule.forRoot(typeOrmDbConfig),
+    MariadbModule,
     FileModule,
     UserModule,
     AuthModule,

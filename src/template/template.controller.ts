@@ -17,12 +17,14 @@ import { OnboardingQuestionAnswer } from './dtos/onboarding-question-answer.dto'
 import { FunnelTemplateDto } from './dtos/funnel-template.dto';
 import { StartTacticTemplateDto } from './dtos/start-tactic-template.dto';
 import { TacticQuestionAnswer } from 'src/tactic/dtos/tactic-question-answer.dto';
+import { WorkspaceService } from 'src/workspace/workspace.service';
 
 @Controller({ path: 'template', version: '1' })
 export class TemplateController {
   constructor(
     private readonly templateService: TemplateService,
     private readonly templateRepository: TemplateRepository,
+    private readonly workspaceService: WorkspaceService,
   ) {}
 
   ///////////////////////// Onboarding //////////////////////////////
@@ -42,6 +44,23 @@ export class TemplateController {
     if (!onboardingTemplate) {
       throw new UnprocessableEntityException('There is no onboarding template');
     }
+
+    // check if user has a workspace
+    if (await this.workspaceService.userHasConfirmedWorkspace(userId)) {
+      throw new UnprocessableEntityException('User has a workspace');
+    }
+
+    // check user unconfirmed workspace
+    let userUnconfirmedWorkspaces =
+      await this.workspaceService.userUnConfirmedWorkspace(userId);
+
+    if (userUnconfirmedWorkspaces.length > 0) {
+      return {
+        assistantMessage: userUnconfirmedWorkspaces[0],
+        threadEnd: true,
+      };
+    }
+
     return await this.templateService.startTemplateFlow(
       onboardingTemplate.id,
       userId,

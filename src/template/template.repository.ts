@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import { Inject, Injectable } from '@nestjs/common';
 import { OnboardingTemplateDto } from './dtos/onboarding-template.dto';
 import { TemplateReturnDto } from './dtos/template-return.dto';
 import { TemplateType } from 'src/enums/template-type.enum';
 import { TemplateDto } from './dtos/template.dto';
+import { Pool } from 'mariadb';
+import { DB_PROVIDER } from 'src/db/constants';
 
 @Injectable()
 export class TemplateRepository {
-  constructor(private readonly entityManager: EntityManager) {}
+  constructor(@Inject(DB_PROVIDER) private db: Pool) {}
 
   async create(template: TemplateDto): Promise<TemplateReturnDto> {
     const query = `
@@ -16,7 +17,7 @@ export class TemplateRepository {
     values (?,?,?,?,?)
    `;
 
-    let { insertId } = await this.entityManager.query(query, [
+    let { insertId } = await this.db.query(query, [
       template.name,
       template.type,
       template.description,
@@ -38,7 +39,7 @@ export class TemplateRepository {
     WHERE id= ?
    `;
 
-    await this.entityManager.query(query, [
+    await this.db.query(query, [
       template.name,
       template.type,
       template.description,
@@ -61,7 +62,7 @@ export class TemplateRepository {
     FROM templates
     WHERE templates.id = ?
    `;
-    const templates = await this.entityManager.query(query, [templateId]);
+    const templates = await this.db.query(query, [templateId]);
 
     if (templates.length === 0) {
       return null;
@@ -86,7 +87,7 @@ export class TemplateRepository {
     FROM templates
     WHERE templates.name = ?
    `;
-    const templates = await this.entityManager.query(query, [name]);
+    const templates = await this.db.query(query, [name]);
 
     if (templates.length === 0) {
       return null;
@@ -110,7 +111,7 @@ export class TemplateRepository {
     FROM templates
     WHERE templates.type = ?
    `;
-    const templates = await this.entityManager.query(query, [type]);
+    const templates = await this.db.query(query, [type]);
 
     if (templates.length === 0) {
       return null;
@@ -136,9 +137,7 @@ export class TemplateRepository {
     FROM templates
     WHERE type = ?
    `;
-    const [template] = await this.entityManager.query(query, [
-      TemplateType.ONBOARDING,
-    ]);
+    const [template] = await this.db.query(query, [TemplateType.ONBOARDING]);
 
     template.parameters = JSON.parse(template.parameters);
     return template;
