@@ -18,7 +18,7 @@ export class UserService {
   }
 
   async userOnboarded(userId: number): Promise<boolean> {
-    return await this.workspaceService.userHasWorkspace(userId);
+    return await this.workspaceService.userHasConfirmedWorkspace(userId);
   }
 
   async changePhoneNumber(phoneNumber: string): Promise<any> {

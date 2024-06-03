@@ -26,7 +26,7 @@ export class WorkspaceRepository {
     userId: number,
   ): Promise<WorkspaceReturnDto> {
     // get user first workspace
-    let userWorkspaces = await this.findUserWorkspaces(userId);
+    let userWorkspaces = await this.findAllUserWorkspaces(userId);
     // console.log({ userWorkspaces });
 
     if (userWorkspaces.length == 0) {
@@ -67,7 +67,8 @@ export class WorkspaceRepository {
       goal = IFNULL(?,workspaces.goal),
       budget = IFNULL(?,workspaces.budget),
       targetGroup = IFNULL(?,workspaces.targetGroup),
-      marketingLevel = IFNULL(?,workspaces.marketingLevel)
+      marketingLevel = IFNULL(?,workspaces.marketingLevel),
+      confirmed = true
       WHERE id = ?
     `;
     const params = [
@@ -80,6 +81,37 @@ export class WorkspaceRepository {
     ];
     await this.entityManager.query(query, params);
     return await this.findById(workspaceId);
+  }
+
+  async confirmFirstWorkspace(userId: number) {
+    // get user first workspace
+    let userWorkspaces = await this.findUserUnConfirmedWorkspaces(userId);
+    // console.log({ userWorkspaces });
+
+    if (userWorkspaces.length == 0) {
+      throw new UnprocessableEntityException(
+        'User has no unconfirmed workspaces',
+      );
+    }
+    const query = `
+      UPDATE workspaces
+      SET
+      confirmed = true
+      WHERE id = ?
+    `;
+    await this.entityManager.query(query, [userWorkspaces[0].id]);
+    return await this.findById(userWorkspaces[0].id);
+  }
+
+  async confirm(id: number) {
+    const query = `
+      UPDATE workspaces
+      SET
+      confirmed = true
+      WHERE id = ?
+    `;
+    await this.entityManager.query(query, [id]);
+    return await this.findById(id);
   }
 
   async findById(id): Promise<WorkspaceReturnDto> {
@@ -101,7 +133,7 @@ export class WorkspaceRepository {
     return theWorkspace;
   }
 
-  async findUserWorkspaces(userId): Promise<WorkspaceReturnDto[]> {
+  async findAllUserWorkspaces(userId): Promise<WorkspaceReturnDto[]> {
     let query = `
     SELECT
       workspaces.id,
@@ -113,6 +145,48 @@ export class WorkspaceRepository {
       workspaces.userId
     FROM workspaces
     WHERE workspaces.userId = ?
+    ORDER BY workspaces.createdAt ASC
+  `;
+
+    const theWorkspaces = await this.entityManager.query(query, [userId]);
+
+    return theWorkspaces;
+  }
+
+  async findUserConfirmedWorkspaces(userId): Promise<WorkspaceReturnDto[]> {
+    let query = `
+    SELECT
+      workspaces.id,
+      workspaces.name,
+      workspaces.goal,
+      workspaces.budget,
+      workspaces.targetGroup,
+      workspaces.marketingLevel,
+      workspaces.userId
+    FROM workspaces
+    WHERE workspaces.userId = ?
+    AND workspaces.confirmed = true
+    ORDER BY workspaces.createdAt ASC
+  `;
+
+    const theWorkspaces = await this.entityManager.query(query, [userId]);
+
+    return theWorkspaces;
+  }
+
+  async findUserUnConfirmedWorkspaces(userId): Promise<WorkspaceReturnDto[]> {
+    let query = `
+    SELECT
+      workspaces.id,
+      workspaces.name,
+      workspaces.goal,
+      workspaces.budget,
+      workspaces.targetGroup,
+      workspaces.marketingLevel,
+      workspaces.userId
+    FROM workspaces
+    WHERE workspaces.userId = ?
+    AND workspaces.confirmed = false
     ORDER BY workspaces.createdAt ASC
   `;
 

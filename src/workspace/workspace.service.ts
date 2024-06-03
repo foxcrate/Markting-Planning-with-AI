@@ -36,14 +36,28 @@ export class WorkspaceService {
     }
   }
 
-  async userHasWorkspace(userId): Promise<boolean> {
+  async confirm(id: number, userId: number) {
+    if (id == 0) {
+      // return await this.workspaceRepository.confirm(id);
+      return await this.workspaceRepository.confirmFirstWorkspace(userId);
+    } else {
+      await this.isOwner(id, userId);
+      return await this.workspaceRepository.confirm(id);
+    }
+  }
+
+  async userHasConfirmedWorkspace(userId): Promise<boolean> {
     let userWorkspaces =
-      await this.workspaceRepository.findUserWorkspaces(userId);
+      await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
     if (userWorkspaces.length > 0) {
       return true;
     } else {
       return false;
     }
+  }
+
+  async userUnConfirmedWorkspace(userId): Promise<WorkspaceReturnDto[]> {
+    return await this.workspaceRepository.findUserUnConfirmedWorkspaces(userId);
   }
 
   async isOwner(workspaceId: number, userId: number) {

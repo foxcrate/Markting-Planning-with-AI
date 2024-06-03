@@ -302,7 +302,7 @@ export class TemplateService {
       workspaceData = this.serializeWorkspaceData(workspace);
     } else if (workspaceId == null) {
       let userWorkspaces =
-        await this.workspaceRepository.findUserWorkspaces(userId);
+        await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
       workspaceData = this.serializeWorkspaceData(userWorkspaces[0]);
     }
     return workspaceData;
@@ -331,7 +331,7 @@ export class TemplateService {
       workspaceData = this.serializeWorkspaceData(workspace);
     } else if (workspaceId == null) {
       let userWorkspaces =
-        await this.workspaceRepository.findUserWorkspaces(userId);
+        await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
       workspaceData = this.serializeWorkspaceData(userWorkspaces[0]);
     }
     let project_data = workspaceData;

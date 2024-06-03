@@ -136,8 +136,6 @@ export class OpenAiService implements OnModuleInit {
     runInstructions: string,
   ): Promise<{
     assistantMessage: string;
-    threadOpenaiId: string;
-    assistantOpenaiId: string;
     threadEnd: boolean;
   }> {
     // console.log({
@@ -164,8 +162,6 @@ export class OpenAiService implements OnModuleInit {
 
       return {
         assistantMessage: messages.data[0].content[0].text.value,
-        threadOpenaiId: run.thread_id,
-        assistantOpenaiId: run.assistant_id,
         threadEnd: false,
       };
     } else {
@@ -187,8 +183,6 @@ export class OpenAiService implements OnModuleInit {
     stageId: number,
   ): Promise<{
     assistantMessage: string;
-    threadOpenaiId: string;
-    assistantOpenaiId: string;
     threadEnd: boolean;
   }> {
     // console.log({ runInstructions });
@@ -217,8 +211,6 @@ export class OpenAiService implements OnModuleInit {
 
       return {
         assistantMessage: messages.data[0].content[0].text.value,
-        threadOpenaiId: run.thread_id,
-        assistantOpenaiId: run.assistant_id,
         threadEnd: false,
       };
     } else if (run.status === 'requires_action') {
@@ -239,8 +231,6 @@ export class OpenAiService implements OnModuleInit {
           await this.threadService.finishTemplateThread(threadOpenaiId);
           return {
             assistantMessage: assistantMessage,
-            threadOpenaiId: run.thread_id,
-            assistantOpenaiId: run.assistant_id,
             threadEnd: true,
           };
         case 'add_funnel_stages_to_my_workspace':
@@ -252,8 +242,6 @@ export class OpenAiService implements OnModuleInit {
           await this.threadService.finishTemplateThread(threadOpenaiId);
           return {
             assistantMessage: assistantMessage,
-            threadOpenaiId: run.thread_id,
-            assistantOpenaiId: run.assistant_id,
             threadEnd: true,
           };
         case 'add_tactics_to_workspace':
@@ -268,8 +256,6 @@ export class OpenAiService implements OnModuleInit {
           await this.threadService.finishTemplateThread(threadOpenaiId);
           return {
             assistantMessage: assistantMessage,
-            threadOpenaiId: run.thread_id,
-            assistantOpenaiId: run.assistant_id,
             threadEnd: true,
           };
       }
@@ -351,7 +337,7 @@ export class OpenAiService implements OnModuleInit {
     let functionReturnJsonObject = JSON.parse(
       run.required_action.submit_tool_outputs.tool_calls[0].function.arguments,
     );
-    if (!(await this.workspaceService.userHasWorkspace(userId))) {
+    if (!(await this.workspaceService.userHasConfirmedWorkspace(userId))) {
       await this.workspaceService.create(functionReturnJsonObject, userId);
       await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
       return functionReturnJsonObject;
