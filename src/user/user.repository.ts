@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
+import { Inject, Injectable } from '@nestjs/common';
 import { UserDto } from './dtos/user.dto';
 import { UpdateProfileDto } from './dtos/update-profile-dto';
+import { DB_PROVIDER } from 'src/db/constants';
+import { Pool } from 'mariadb';
 
 @Injectable()
 export class UserRepository {
-  constructor(private readonly entityManager: EntityManager) {}
+  constructor(@Inject(DB_PROVIDER) private db: Pool) {}
 
   async findUserBySocialIds(
     googleId: string,
@@ -15,7 +16,7 @@ export class UserRepository {
         SELECT * FROM users
         WHERE (googleId = ? OR facebookId = ?)
       `;
-    let users = await this.entityManager.query(query, [googleId, facebookId]);
+    let users = await this.db.query(query, [googleId, facebookId]);
     // console.log({ users });
 
     return users[0];
@@ -26,7 +27,7 @@ export class UserRepository {
         SELECT * FROM users
         WHERE googleId = ?
       `;
-    let users = await this.entityManager.query(query, [googleId]);
+    let users = await this.db.query(query, [googleId]);
     // console.log({ users });
 
     return users[0];
@@ -37,7 +38,7 @@ export class UserRepository {
         SELECT * FROM users
         WHERE facebookId = ?
       `;
-    let users = this.entityManager.query(query, [facebookId]);
+    let users = this.db.query(query, [facebookId]);
     return users[0];
   }
 
@@ -65,7 +66,7 @@ export class UserRepository {
 
     // console.log(query);
 
-    const createdUser = await this.entityManager.query(query, params);
+    const createdUser = await this.db.query(query, params);
     return new UserDto({
       firstName,
       lastName,
@@ -83,7 +84,7 @@ export class UserRepository {
         profilePicture = IFNULL(?,users.profilePicture)
         WHERE id = ?
       `;
-    await this.entityManager.query(query, [
+    await this.db.query(query, [
       UpdateProfileBody.firstName,
       UpdateProfileBody.lastName,
       UpdateProfileBody.profilePicture,
@@ -99,7 +100,7 @@ export class UserRepository {
         SET phoneVerified = true
         WHERE id = ?
       `;
-    await this.entityManager.query(query, [userId]);
+    await this.db.query(query, [userId]);
   }
 
   async updateEmail(email: string, userId: number) {
@@ -108,7 +109,7 @@ export class UserRepository {
         SET email = ?
         WHERE id = ?
       `;
-    await this.entityManager.query(query, [email, userId]);
+    await this.db.query(query, [email, userId]);
   }
 
   async updatePhoneNumber(phoneNumber: string, userId: number) {
@@ -117,7 +118,7 @@ export class UserRepository {
         SET phoneNumber = ?
         WHERE id = ?
       `;
-    await this.entityManager.query(query, [phoneNumber, userId]);
+    await this.db.query(query, [phoneNumber, userId]);
   }
 
   async findUserByPhoneNumber(phoneNumber): Promise<UserDto> {
@@ -125,7 +126,7 @@ export class UserRepository {
         SELECT * FROM users
         WHERE phoneNumber = ? LIMIT 1
       `;
-    const [user] = await this.entityManager.query(query, [phoneNumber]);
+    const [user] = await this.db.query(query, [phoneNumber]);
     return user;
   }
 
@@ -134,7 +135,7 @@ export class UserRepository {
         SELECT * FROM users
         WHERE email = ? LIMIT 1
       `;
-    const [user] = await this.entityManager.query(query, [email]);
+    const [user] = await this.db.query(query, [email]);
     return user;
   }
 
@@ -156,7 +157,7 @@ export class UserRepository {
         facebookId = ?
         WHERE id = ?
       `;
-    await this.entityManager.query(query, [
+    await this.db.query(query, [
       firstName,
       lastName,
       email,
@@ -183,7 +184,7 @@ export class UserRepository {
     WHERE users.id = ?
   `;
 
-    const [theUser] = await this.entityManager.query(query, [userId]);
+    const [theUser] = await this.db.query(query, [userId]);
 
     return theUser;
   }
@@ -195,7 +196,7 @@ export class UserRepository {
 //       SET password = ?
 //       WHERE id = ?
 //     `;
-//   await this.entityManager.query(query, [password, userId]);
+//   await this.db.query(query, [password, userId]);
 // }
 
 // async findUserByEmail(email): Promise<UserDto> {
@@ -203,7 +204,7 @@ export class UserRepository {
 //       SELECT * FROM users
 //       WHERE email = ? LIMIT 1
 //     `;
-//   const [user] = await this.entityManager.query(query, [email]);
+//   const [user] = await this.db.query(query, [email]);
 //   return user;
 // }
 
@@ -213,7 +214,7 @@ export class UserRepository {
 //     SET emailVerified = true
 //     WHERE id = ?
 //   `;
-//   await this.entityManager.query(query, [userId]);
+//   await this.db.query(query, [userId]);
 // }
 
 // async findUsersByEmailOrGoogleId(email, googleId): Promise<UserDto[]> {
@@ -221,7 +222,7 @@ export class UserRepository {
 //       SELECT * FROM users
 //       WHERE (email = ? OR googleId = ?)
 //     `;
-//   return this.entityManager.query(query, [email, googleId]);
+//   return this.db.query(query, [email, googleId]);
 // }
 
 // async findUsersByEmail(email): Promise<UserDto[]> {
@@ -229,7 +230,7 @@ export class UserRepository {
 //       SELECT * FROM users
 //       WHERE email = ?
 //     `;
-//   return this.entityManager.query(query, [email]);
+//   return this.db.query(query, [email]);
 // }
 
 // async saveForgetPasswordOtp(otp: string, userId: number) {
@@ -238,7 +239,7 @@ export class UserRepository {
 //       SET forgetPasswordOtp = ?
 //       WHERE id = ?
 //     `;
-//   await this.entityManager.query(query, [otp, userId]);
+//   await this.db.query(query, [otp, userId]);
 // }
 
 // async findUsersByEmailOrFacebookId(email, facebookId): Promise<UserDto[]> {
@@ -246,6 +247,6 @@ export class UserRepository {
 //       SELECT * FROM users
 //       WHERE (email = ? OR facebookId = ?)
 //     `;
-//   return this.entityManager.query(query, [email, facebookId]);
+//   return this.db.query(query, [email, facebookId]);
 
 // }

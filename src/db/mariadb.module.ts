@@ -1,5 +1,5 @@
-import { Global, Inject, Module, OnModuleDestroy, Scope } from '@nestjs/common';
-import { DB_PROVIDER, SQLB_PROVIDER } from './constants';
+import { Global, Inject, Module, OnModuleDestroy } from '@nestjs/common';
+import { DB_PROVIDER } from './constants';
 import { Pool, PoolConfig, createPool } from 'mariadb';
 import { ConfigService } from '@nestjs/config';
 import { join } from 'node:path';
@@ -7,7 +7,7 @@ import { appendFile } from 'node:fs/promises';
 
 @Global()
 @Module({
-  exports: [DB_PROVIDER, SQLB_PROVIDER],
+  exports: [DB_PROVIDER],
   providers: [
     {
       provide: DB_PROVIDER,

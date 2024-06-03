@@ -1,13 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { EntityManager } from 'typeorm';
 import { TacticCreateDto } from './dtos/tactic-create.dto';
 import { TacticStepCreateDto } from './dtos/tactic-step-create.dto';
 import { TacticUpdateDto } from './dtos/tactic-update.dto';
 import { TacticReturnDto } from './dtos/tactic-return.dto';
+import { DB_PROVIDER } from 'src/db/constants';
+import { Pool } from 'mariadb';
 
 @Injectable()
 export class TacticRepository {
-  constructor(private readonly entityManager: EntityManager) {}
+  constructor(@Inject(DB_PROVIDER) private db: Pool) {}
 
   async create(
     tacticCreateBody: TacticCreateDto,
@@ -28,7 +30,7 @@ export class TacticRepository {
       userId,
     ];
 
-    let { insertId } = await this.entityManager.query(query, params);
+    let { insertId } = await this.db.query(query, params);
 
     if (tacticCreateBody.steps && tacticCreateBody.steps.length > 0) {
       await this.addSteps(insertId, tacticCreateBody.steps);
@@ -55,7 +57,7 @@ export class TacticRepository {
     const query =
       'INSERT INTO tactic_step (tacticId,name,description,`order`) VALUES ?';
 
-    await this.entityManager.query(query, [stepsArray]);
+    await this.db.query(query, [stepsArray]);
   }
 
   async deletePastSteps(tacticId: number) {
@@ -63,7 +65,7 @@ export class TacticRepository {
       DELETE FROM tactic_step
       WHERE tacticId = ?
     `;
-    await this.entityManager.query(query, [tacticId]);
+    await this.db.query(query, [tacticId]);
   }
 
   async addToStage(tacticId: number, stageId: number) {
@@ -73,14 +75,11 @@ export class TacticRepository {
       FROM tactics_stages
       WHERE tacticId = ? AND stageId = ?
     `;
-    const tactic_stage = await this.entityManager.query(query, [
-      tacticId,
-      stageId,
-    ]);
+    const tactic_stage = await this.db.query(query, [tacticId, stageId]);
     if (tactic_stage.length == 0) {
       query = 'INSERT INTO tactics_stages (tacticId,stageId) VALUES (?,?)';
 
-      await this.entityManager.query(query, [tacticId, stageId]);
+      await this.db.query(query, [tacticId, stageId]);
     }
   }
 
@@ -106,7 +105,7 @@ export class TacticRepository {
     const query =
       'DELETE FROM tactics_stages WHERE tacticId = ? AND stageId = ?';
 
-    await this.entityManager.query(query, [tacticId, stageId]);
+    await this.db.query(query, [tacticId, stageId]);
   }
 
   //update global_stage
@@ -126,7 +125,7 @@ export class TacticRepository {
       globalStageId = IFNULL(?,tactics.globalStageId)
       WHERE id = ?
     `;
-    await this.entityManager.query(query, [
+    await this.db.query(query, [
       updateBody.name,
       updateBody.description,
       updateBody.benchmarkName,
@@ -193,7 +192,7 @@ export class TacticRepository {
       LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
       WHERE tactics.id = ?
     `;
-    let [theTactic] = await this.entityManager.query(query, [id, id]);
+    let [theTactic] = await this.db.query(query, [id, id]);
     return theTactic;
   }
 
@@ -256,7 +255,7 @@ export class TacticRepository {
     WHERE tactics.private = false
     GROUP BY tactics.id
   `;
-    return await this.entityManager.query(query, []);
+    return await this.db.query(query, []);
   }
 
   //delete global_stage
@@ -265,6 +264,6 @@ export class TacticRepository {
       DELETE FROM tactics
       WHERE id = ?
     `;
-    await this.entityManager.query(query, [id]);
+    await this.db.query(query, [id]);
   }
 }
