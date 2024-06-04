@@ -25,7 +25,15 @@ export class WorkspaceController {
 
   @Put('/confirm/:id')
   @UseGuards(AuthGuard)
-  async confirm(@Param() paramsIdDto: ParamsIdDto, @UserId() userId: number) {
-    return await this.workspaceService.confirm(paramsIdDto.id, userId);
+  async confirm(
+    @Body() workspaceUpdateBody: WorkspaceUpdateDto,
+    @Param() paramsIdDto: ParamsIdDto,
+    @UserId() userId: number,
+  ) {
+    return await this.workspaceService.confirm(
+      paramsIdDto.id,
+      workspaceUpdateBody,
+      userId,
+    );
   }
 }

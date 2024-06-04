@@ -21,7 +21,7 @@ export class MessageRepository {
       FROM messages
       WHERE id = ?
      `;
-    let [createdMessage] = await this.db.query(query, [insertId]);
+    let [createdMessage] = await this.db.query(query, [Number(insertId)]);
     return createdMessage;
   }
 

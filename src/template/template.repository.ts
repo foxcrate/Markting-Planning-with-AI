@@ -25,7 +25,7 @@ export class TemplateRepository {
       template.openaiAssistantId,
     ]);
 
-    return await this.findById(insertId);
+    return await this.findById(Number(insertId));
   }
 
   async update(id: number, template: TemplateDto): Promise<TemplateReturnDto> {

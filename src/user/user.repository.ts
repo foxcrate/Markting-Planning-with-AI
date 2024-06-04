@@ -67,10 +67,11 @@ export class UserRepository {
     // console.log(query);
 
     const createdUser = await this.db.query(query, params);
+
     return new UserDto({
       firstName,
       lastName,
-      id: createdUser.insertId,
+      id: Number(createdUser.insertId),
     });
   }
 

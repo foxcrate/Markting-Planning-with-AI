@@ -23,7 +23,7 @@ export class WorkspaceRepository {
     const params = [name, goal, budget, targetGroup, marketingLevel, userId];
 
     const createdWorkspace = await this.db.query(query, params);
-    return await this.findById(createdWorkspace.insertId);
+    return await this.findById(Number(createdWorkspace.insertId));
   }
 
   async updateFirstWorkspace(
@@ -45,7 +45,8 @@ export class WorkspaceRepository {
       goal = IFNULL(?,workspaces.goal),
       budget = IFNULL(?,workspaces.budget),
       targetGroup = IFNULL(?,workspaces.targetGroup),
-      marketingLevel = IFNULL(?,workspaces.marketingLevel)
+      marketingLevel = IFNULL(?,workspaces.marketingLevel),
+      confirmed = true
       WHERE id = ?
     `;
     const params = [
