@@ -36,13 +36,29 @@ export class WorkspaceService {
     }
   }
 
-  async confirm(id: number, userId: number) {
+  // async confirm(id: number, userId: number) {
+  //   if (id == 0) {
+  //     // return await this.workspaceRepository.confirm(id);
+  //     return await this.workspaceRepository.confirmFirstWorkspace(userId);
+  //   } else {
+  //     await this.isOwner(id, userId);
+  //     return await this.workspaceRepository.confirm(id);
+  //   }
+  // }
+
+  async confirm(
+    id: number,
+    updateBody: WorkspaceUpdateDto,
+    userId: number,
+  ): Promise<WorkspaceReturnDto> {
     if (id == 0) {
-      // return await this.workspaceRepository.confirm(id);
-      return await this.workspaceRepository.confirmFirstWorkspace(userId);
+      return await this.workspaceRepository.updateFirstWorkspace(
+        updateBody,
+        userId,
+      );
     } else {
       await this.isOwner(id, userId);
-      return await this.workspaceRepository.confirm(id);
+      return await this.workspaceRepository.update(updateBody, id);
     }
   }
 

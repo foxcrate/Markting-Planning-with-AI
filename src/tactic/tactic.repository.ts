@@ -33,14 +33,17 @@ export class TacticRepository {
     let { insertId } = await this.db.query(query, params);
 
     if (tacticCreateBody.steps && tacticCreateBody.steps.length > 0) {
-      await this.addSteps(insertId, tacticCreateBody.steps);
+      await this.addSteps(Number(insertId), tacticCreateBody.steps);
     }
 
     if (tacticCreateBody.stageId) {
-      await this.addToStage(insertId, parseInt(tacticCreateBody.stageId));
+      await this.addToStage(
+        Number(insertId),
+        parseInt(tacticCreateBody.stageId),
+      );
     }
 
-    return await this.findById(insertId);
+    return await this.findById(Number(insertId));
   }
 
   async addSteps(tacticId: number, steps: TacticStepCreateDto[]) {

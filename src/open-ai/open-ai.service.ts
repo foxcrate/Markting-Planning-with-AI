@@ -182,7 +182,7 @@ export class OpenAiService implements OnModuleInit {
     funnelId: number,
     stageId: number,
   ): Promise<{
-    assistantMessage: string;
+    assistantMessage: any;
     threadEnd: boolean;
   }> {
     // console.log({ runInstructions });
@@ -221,12 +221,15 @@ export class OpenAiService implements OnModuleInit {
       //   run.required_action.submit_tool_outputs.tool_calls[0].function,
       // );
 
-      let assistantMessage = '';
+      let assistantMessage = null;
       switch (
         run.required_action.submit_tool_outputs.tool_calls[0].function.name
       ) {
-        case 'end_flow':
-          assistantMessage = await this.endFlowFunctionCallHandler(run, userId);
+        case 'end_onboarding_flow':
+          assistantMessage = await this.endOnboardingFlowFunctionCallHandler(
+            run,
+            userId,
+          );
 
           await this.threadService.finishTemplateThread(threadOpenaiId);
           return {
@@ -332,15 +335,22 @@ export class OpenAiService implements OnModuleInit {
     });
   }
 
-  private async endFlowFunctionCallHandler(run, userId) {
+  private async endOnboardingFlowFunctionCallHandler(run, userId) {
     console.log('------- endFlowFunctionCallHandler ------');
     let functionReturnJsonObject = JSON.parse(
       run.required_action.submit_tool_outputs.tool_calls[0].function.arguments,
     );
+
     if (!(await this.workspaceService.userHasConfirmedWorkspace(userId))) {
-      await this.workspaceService.create(functionReturnJsonObject, userId);
+      let createdObject = await this.workspaceService.create(
+        functionReturnJsonObject,
+        userId,
+      );
       await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
-      return functionReturnJsonObject;
+      return {
+        keys: ['name', 'goal', 'budget', 'targetGroup', 'marketingLevel'],
+        wholeObject: createdObject,
+      };
     }
 
     await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);

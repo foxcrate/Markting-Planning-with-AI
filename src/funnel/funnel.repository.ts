@@ -28,10 +28,10 @@ export class FunnelRepository {
     let { insertId } = await this.db.query(query, [name, description, userId]);
 
     if (funnelCreateBody.stages && funnelCreateBody.stages.length > 0) {
-      await this.addStages(insertId, funnelCreateBody.stages);
+      await this.addStages(Number(insertId), funnelCreateBody.stages);
     }
 
-    return await this.findById(insertId);
+    return await this.findById(Number(insertId));
   }
 
   async addStages(funnelId: number, stages: StageCreateDto[]) {
@@ -178,10 +178,10 @@ export class FunnelRepository {
     ]);
 
     if (funnelStagesObject && funnelStagesObject.length > 0) {
-      await this.addStages(insertId, funnelStagesObject);
+      await this.addStages(Number(insertId), funnelStagesObject);
     }
 
-    return await this.findById(insertId);
+    return await this.findById(Number(insertId));
   }
 
   async updateAssistantFunnel(

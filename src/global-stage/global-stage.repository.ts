@@ -28,7 +28,7 @@ export class GlobalStageRepository {
     `;
     let { insertId } = await this.db.query(query, [name, description]);
 
-    return await this.findById(insertId);
+    return await this.findById(Number(insertId));
   }
 
   //update global_stage
