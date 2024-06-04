@@ -5,7 +5,7 @@ export class SocialSignUp {
   @IsString()
   firstName: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   lastName: string;
 
