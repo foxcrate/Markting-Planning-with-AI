@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { TacticService } from './tactic.service';
@@ -15,6 +16,7 @@ import { TacticIdDto } from './dtos/tactic-id.dto';
 import { UserId } from 'src/decorators/user-id.decorator';
 import { TacticUpdateDto } from './dtos/tactic-update.dto';
 import { AddTacticToStageIdsDto } from './dtos/add-tactic-to-stage.dto';
+import { TacticNameDto } from './dtos/tactic-name.dto';
 
 @Controller({ path: 'tactic', version: '1' })
 export class TacticController {
@@ -23,6 +25,7 @@ export class TacticController {
   @Post()
   @UseGuards(AuthGuard)
   async create(@Body() tacticBody: TacticCreateDto, @UserId() userId: number) {
+    console.log('create');
     return await this.tacticService.create(tacticBody, userId);
   }
 
@@ -33,6 +36,7 @@ export class TacticController {
     @Param() paramsId: TacticIdDto,
     @UserId() userId: number,
   ) {
+    console.log('update');
     return await this.tacticService.update(
       tacticUpdateBody,
       paramsId.tacticId,
@@ -49,10 +53,14 @@ export class TacticController {
   }
 
   //get all tactics
-  @Get()
+  @Get('')
   @UseGuards(AuthGuard)
-  async getAll() {
-    return await this.tacticService.getAll();
+  async getAll(@Query() params: TacticNameDto) {
+    console.log('getall');
+
+    // console.log({ params });
+
+    return await this.tacticService.getAll(params.name);
   }
 
   //delete tactic

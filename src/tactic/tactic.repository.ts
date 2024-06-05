@@ -57,10 +57,10 @@ export class TacticRepository {
       ]);
     }
 
-    const query =
-      'INSERT INTO tactic_step (tacticId,name,description,`order`) VALUES ?';
-
-    await this.db.query(query, [stepsArray]);
+    await this.db.batch(
+      `INSERT INTO tactic_step (tacticId,name,description,\`order\`) VALUES (?,?,?,?)`,
+      stepsArray,
+    );
   }
 
   async deletePastSteps(tacticId: number) {
@@ -170,6 +170,15 @@ export class TacticRepository {
       tactics.benchmarkNumber,
       tactics.private,
       tactics.userId,
+      CASE WHEN COUNT(users.id) = 0 THEN null
+      ELSE
+      JSON_OBJECT(
+        'id',users.id,
+        'firstName', users.firstName,
+        'lastName', users.lastName,
+        'profilePicture', users.profilePicture
+      )
+      END AS user,
       CASE WHEN COUNT(global_stages.id) = 0 THEN null
       ELSE
       JSON_OBJECT(
@@ -184,6 +193,7 @@ export class TacticRepository {
         'id',tactic_step.id,
         'name', tactic_step.name,
         'description', tactic_step.description,
+        'attachment', tactic_step.attachment,
         'order', tactic_step.order
         ))
       END AS steps,
@@ -193,6 +203,7 @@ export class TacticRepository {
       FROM tactics
       LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
       LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
+      LEFT JOIN users ON users.id = tactics.userId
       WHERE tactics.id = ?
     `;
     let [theTactic] = await this.db.query(query, [id, id]);
@@ -200,7 +211,7 @@ export class TacticRepository {
   }
 
   //find all tactics
-  async findAll(): Promise<TacticReturnDto[]> {
+  async findAll(name: string): Promise<TacticReturnDto[]> {
     const query = `
     WITH
     this_tactics_stages AS (
@@ -225,6 +236,15 @@ export class TacticRepository {
     tactics.benchmarkNumber,
     tactics.private,
     tactics.userId,
+    CASE WHEN COUNT(users.id) = 0 THEN null
+    ELSE
+    JSON_OBJECT(
+      'id',users.id,
+      'firstName', users.firstName,
+      'lastName', users.lastName,
+      'profilePicture', users.profilePicture
+    )
+    END AS user,
     CASE WHEN COUNT(global_stages.id) = 0 THEN null
     ELSE
     JSON_OBJECT(
@@ -239,6 +259,7 @@ export class TacticRepository {
       'id',tactic_step.id,
       'name', tactic_step.name,
       'description', tactic_step.description,
+      'attachment', tactic_step.attachment,
       'order', tactic_step.order
       ))
     END AS steps,
@@ -255,10 +276,16 @@ export class TacticRepository {
     FROM tactics
     LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
     LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
+    LEFT JOIN users ON users.id = tactics.userId
     WHERE tactics.private = false
-    GROUP BY tactics.id
+    
   `;
-    return await this.db.query(query, []);
+    let search = ``;
+    if (name) {
+      search = `AND tactics.name LIKE '%${name}%'`;
+    }
+    let query2 = `GROUP BY tactics.id`;
+    return await this.db.query(query + search + query2, []);
   }
 
   //delete global_stage

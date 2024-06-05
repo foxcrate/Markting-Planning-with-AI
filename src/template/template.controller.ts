@@ -55,8 +55,12 @@ export class TemplateController {
       await this.workspaceService.userUnConfirmedWorkspace(userId);
 
     if (userUnconfirmedWorkspaces.length > 0) {
+      let assistantMessage = {
+        keys: ['name', 'goal', 'budget', 'targetGroup', 'marketingLevel'],
+        wholeObject: userUnconfirmedWorkspaces[0],
+      };
       return {
-        assistantMessage: userUnconfirmedWorkspaces[0],
+        assistantMessage: assistantMessage,
         threadEnd: true,
       };
     }

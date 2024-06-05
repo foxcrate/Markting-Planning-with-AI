@@ -35,8 +35,8 @@ export class TacticService {
   }
 
   //get all tactics
-  async getAll(): Promise<TacticReturnDto[]> {
-    return await this.tacticRepository.findAll();
+  async getAll(name: string): Promise<TacticReturnDto[]> {
+    return await this.tacticRepository.findAll(name);
   }
 
   async delete(tacticId: number, userId: number): Promise<TacticReturnDto> {
@@ -84,7 +84,7 @@ export class TacticService {
     if (!tactic) {
       throw new UnprocessableEntityException('Tactic not found');
     }
-    if (tactic.userId == null) {
+    if (tactic.userId == null || tactic.private == false) {
       return true;
     }
     if (tactic.userId !== userId) {
