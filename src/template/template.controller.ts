@@ -110,10 +110,11 @@ export class TemplateController {
     if (!funnelTemplate) {
       throw new UnprocessableEntityException('There is no funnel template');
     }
+    // let userWorkspace = await this.workspaceService.userWorkspace(userId);
     return await this.templateService.startTemplateFlow(
       funnelTemplate.id,
       userId,
-      null,
+      8,
       null,
       null,
     );
@@ -132,7 +133,7 @@ export class TemplateController {
       funnelTemplate.id,
       questionAnswer.answer,
       userId,
-      null,
+      8,
       null,
       null,
     );
@@ -161,7 +162,7 @@ export class TemplateController {
     return await this.templateService.startTemplateFlow(
       tacticTemplate.id,
       userId,
-      null,
+      8,
       startTacticTemplateBody.funnelId,
       startTacticTemplateBody.stageId,
     );
@@ -180,7 +181,7 @@ export class TemplateController {
       tacticTemplate.id,
       questionAnswer.answer,
       userId,
-      null,
+      8,
       questionAnswer.funnelId,
       questionAnswer.stageId,
     );

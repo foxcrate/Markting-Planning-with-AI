@@ -46,7 +46,7 @@ export class FunnelRepository {
     }
 
     await this.db.batch(
-      `stages (funnelId,name,\`order\`,description) VALUES (?,?,?,?)`,
+      `INSERT INTO stages (funnelId,name,\`order\`,description) VALUES (?,?,?,?)`,
       stagesArray,
     );
   }

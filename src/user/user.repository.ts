@@ -175,6 +175,7 @@ export class UserRepository {
       users.firstName,
       users.lastName,
       users.email,
+      users.credits,
       users.profilePicture,
       users.phoneVerified,
       users.phoneNumber,

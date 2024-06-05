@@ -6,6 +6,7 @@ import { TacticUpdateDto } from './dtos/tactic-update.dto';
 import { TacticReturnDto } from './dtos/tactic-return.dto';
 import { DB_PROVIDER } from 'src/db/constants';
 import { Pool } from 'mariadb';
+import { TacticsFilterDto } from './dtos/tactic-filter.dto';
 
 @Injectable()
 export class TacticRepository {
@@ -111,6 +112,84 @@ export class TacticRepository {
     await this.db.query(query, [tacticId, stageId]);
   }
 
+  async getTacticsByUserId(userId: number, filterOptions: TacticsFilterDto) {
+    const queryStart = `
+    WITH
+    this_tactics_stages AS (
+      SELECT tactics_stages.tacticId,
+      CASE WHEN COUNT(tactics_stages.stageId) = 0 THEN null
+      ELSE
+      JSON_ARRAYAGG(JSON_OBJECT(
+        'id', stages.id,
+        'name', stages.name,
+        'description', stages.description,
+        'order', stages.order
+        ))
+      END AS stages
+      FROM tactics_stages
+      JOIN stages ON tactics_stages.stageId = stages.id
+      GROUP BY tactics_stages.tacticId
+    )
+    SELECT tactics.id,
+    tactics.name,
+    tactics.description,
+    tactics.benchmarkName,
+    tactics.benchmarkNumber,
+    tactics.private,
+    tactics.userId,
+    CASE WHEN COUNT(users.id) = 0 THEN null
+    ELSE
+    JSON_OBJECT(
+      'id',users.id,
+      'firstName', users.firstName,
+      'lastName', users.lastName,
+      'profilePicture', users.profilePicture
+    )
+    END AS user,
+    CASE WHEN COUNT(global_stages.id) = 0 THEN null
+    ELSE
+    JSON_OBJECT(
+      'id',global_stages.id,
+      'name', global_stages.name,
+      'description', global_stages.description
+    )
+    END AS global_stage,
+    CASE WHEN COUNT(tactic_step.id) = 0 THEN null
+    ELSE
+    JSON_ARRAYAGG(JSON_OBJECT(
+      'id',tactic_step.id,
+      'name', tactic_step.name,
+      'description', tactic_step.description,
+      'attachment', tactic_step.attachment,
+      'order', tactic_step.order
+      ))
+    END AS steps,
+
+    (
+      SELECT
+      stages
+      FROM
+      this_tactics_stages
+      where this_tactics_stages.tacticId = tactics.id
+    )
+    AS stages
+
+    FROM tactics
+    LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
+    LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
+    LEFT JOIN users ON users.id = tactics.userId
+    WHERE tactics.userId = ?
+    
+  `;
+    let filter = ``;
+    if (filterOptions.private) {
+      filter = ` AND tactics.private = ${filterOptions.private}`;
+    }
+    let queryEnd = ` GROUP BY tactics.id`;
+
+    return await this.db.query(queryStart + filter + queryEnd, [userId]);
+  }
+
   //update global_stage
   async update(
     updateBody: TacticUpdateDto,
@@ -138,7 +217,10 @@ export class TacticRepository {
       tacticId,
     ]);
 
-    if (updateBody.steps && updateBody.steps.length > 0) {
+    if (updateBody.steps.length == 0) {
+      await this.deletePastSteps(tacticId);
+    } else if (updateBody.steps && updateBody.steps.length > 0) {
+      await this.deletePastSteps(tacticId);
       await this.addSteps(tacticId, updateBody.steps);
     }
 
@@ -205,14 +287,16 @@ export class TacticRepository {
       LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
       LEFT JOIN users ON users.id = tactics.userId
       WHERE tactics.id = ?
+      GROUP BY tactics.id;
     `;
     let [theTactic] = await this.db.query(query, [id, id]);
+
     return theTactic;
   }
 
   //find all tactics
   async findAll(name: string): Promise<TacticReturnDto[]> {
-    const query = `
+    const queryStart = `
     WITH
     this_tactics_stages AS (
       SELECT tactics_stages.tacticId,
@@ -284,8 +368,8 @@ export class TacticRepository {
     if (name) {
       search = `AND tactics.name LIKE '%${name}%'`;
     }
-    let query2 = `GROUP BY tactics.id`;
-    return await this.db.query(query + search + query2, []);
+    let queryEnd = `GROUP BY tactics.id`;
+    return await this.db.query(queryStart + search + queryEnd, []);
   }
 
   //delete global_stage
