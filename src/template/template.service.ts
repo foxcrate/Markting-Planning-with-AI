@@ -293,8 +293,10 @@ export class TemplateService {
   ) {
     //get workspace data
     let workspaceData;
+
     if (workspaceId) {
       let workspace = await this.workspaceRepository.findById(workspaceId);
+
       //if no workspace
       if (!workspace) {
         throw new UnprocessableEntityException('Workspace not found');

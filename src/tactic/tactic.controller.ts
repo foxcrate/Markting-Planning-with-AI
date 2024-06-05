@@ -17,6 +17,7 @@ import { UserId } from 'src/decorators/user-id.decorator';
 import { TacticUpdateDto } from './dtos/tactic-update.dto';
 import { AddTacticToStageIdsDto } from './dtos/add-tactic-to-stage.dto';
 import { TacticNameDto } from './dtos/tactic-name.dto';
+import { TacticsFilterDto } from './dtos/tactic-filter.dto';
 
 @Controller({ path: 'tactic', version: '1' })
 export class TacticController {
@@ -50,6 +51,17 @@ export class TacticController {
   @UseGuards(AuthGuard)
   async getOne(@Param() paramsId: TacticIdDto, @UserId() userId: number) {
     return await this.tacticService.getOne(paramsId.tacticId, userId);
+  }
+
+  // get all my private tactics
+
+  @Get('/mine')
+  @UseGuards(AuthGuard)
+  async getMyTactics(
+    @Query() filter: TacticsFilterDto,
+    @UserId() userId: number,
+  ) {
+    return await this.tacticService.getMyTactics(userId, filter);
   }
 
   //get all tactics

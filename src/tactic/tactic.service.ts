@@ -7,6 +7,7 @@ import { TacticRepository } from './tactic.repository';
 import { TacticCreateDto } from './dtos/tactic-create.dto';
 import { TacticUpdateDto } from './dtos/tactic-update.dto';
 import { TacticReturnDto } from './dtos/tactic-return.dto';
+import { TacticsFilterDto } from './dtos/tactic-filter.dto';
 
 @Injectable()
 export class TacticService {
@@ -32,6 +33,13 @@ export class TacticService {
   async getOne(tacticId: number, userId: number): Promise<TacticReturnDto> {
     await this.isOwner(tacticId, userId);
     return await this.tacticRepository.findById(tacticId);
+  }
+
+  async getMyTactics(
+    userId: number,
+    filter: TacticsFilterDto,
+  ): Promise<TacticReturnDto[]> {
+    return await this.tacticRepository.getTacticsByUserId(userId, filter);
   }
 
   //get all tactics
@@ -81,6 +89,7 @@ export class TacticService {
   async isOwner(tacticId: number, userId: number) {
     // return true;
     const tactic = await this.tacticRepository.findById(tacticId);
+
     if (!tactic) {
       throw new UnprocessableEntityException('Tactic not found');
     }
