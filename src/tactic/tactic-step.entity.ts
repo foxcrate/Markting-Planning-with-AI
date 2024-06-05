@@ -19,6 +19,9 @@ export class TacticStepEntity {
   @Column({ type: 'longtext' })
   description: string;
 
+  @Column({ default: null })
+  attachment: string;
+
   @Column()
   order: number;
 

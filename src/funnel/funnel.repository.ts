@@ -45,10 +45,10 @@ export class FunnelRepository {
       ]);
     }
 
-    const query =
-      'INSERT INTO stages (funnelId,name,`order`,description) VALUES ?';
-
-    await this.db.query(query, [stagesArray]);
+    await this.db.batch(
+      `stages (funnelId,name,\`order\`,description) VALUES (?,?,?,?)`,
+      stagesArray,
+    );
   }
 
   async deletePastStages(funnelId: number) {

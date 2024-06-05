@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class TacticStepCreateDto {
   @IsNotEmpty()
@@ -8,6 +8,10 @@ export class TacticStepCreateDto {
   @IsNotEmpty()
   @IsString()
   description: string;
+
+  @IsOptional()
+  @IsString()
+  attachment: string;
 
   @IsNotEmpty()
   @IsNumber()
