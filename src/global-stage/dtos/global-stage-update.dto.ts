@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class GlobalStageUpdateDto {
   @IsString()
@@ -8,4 +8,8 @@ export class GlobalStageUpdateDto {
   @IsString()
   @IsOptional()
   description: string;
+
+  @IsOptional()
+  @IsNumber()
+  order: number;
 }

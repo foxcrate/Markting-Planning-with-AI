@@ -10,6 +10,7 @@ import { FunnelUpdateDto } from './dtos/funnel-update.dto';
 import { StageReturnDto } from './dtos/stage-return.dto';
 import { DB_PROVIDER } from 'src/db/constants';
 import { Pool } from 'mariadb';
+import { GlobalStageReturnDto } from 'src/global-stage/dtos/global-stage-return.dto';
 
 @Injectable()
 export class FunnelRepository {
@@ -27,37 +28,40 @@ export class FunnelRepository {
     `;
     let { insertId } = await this.db.query(query, [name, description, userId]);
 
-    if (funnelCreateBody.stages && funnelCreateBody.stages.length > 0) {
-      await this.addStages(Number(insertId), funnelCreateBody.stages);
-    }
+    // if (funnelCreateBody.stages && funnelCreateBody.stages.length > 0) {
+    //   await this.addStages(Number(insertId), funnelCreateBody.stages);
+    // }
+
+    //create 4 basic stages for this funnel
+    // await this.createStages(Number(insertId));
 
     return await this.findById(Number(insertId));
   }
 
-  async addStages(funnelId: number, stages: StageCreateDto[]) {
-    let stagesArray = [];
-    for (let i = 0; i < stages.length; i++) {
-      stagesArray.push([
-        funnelId,
-        stages[i].name,
-        stages[i].order,
-        stages[i].description,
-      ]);
-    }
+  // async addStages(funnelId: number, stages: StageCreateDto[]) {
+  //   let stagesArray = [];
+  //   for (let i = 0; i < stages.length; i++) {
+  //     stagesArray.push([
+  //       funnelId,
+  //       stages[i].name,
+  //       stages[i].order,
+  //       stages[i].description,
+  //     ]);
+  //   }
 
-    await this.db.batch(
-      `INSERT INTO stages (funnelId,name,\`order\`,description) VALUES (?,?,?,?)`,
-      stagesArray,
-    );
-  }
+  //   await this.db.batch(
+  //     `INSERT INTO stages (funnelId,name,\`order\`,description) VALUES (?,?,?,?)`,
+  //     stagesArray,
+  //   );
+  // }
 
-  async deletePastStages(funnelId: number) {
-    const query = `
-      DELETE FROM stages
-      WHERE funnelId = ?
-    `;
-    await this.db.query(query, [funnelId]);
-  }
+  // async deletePastStages(funnelId: number) {
+  //   const query = `
+  //     DELETE FROM stages
+  //     WHERE funnelId = ?
+  //   `;
+  //   await this.db.query(query, [funnelId]);
+  // }
 
   //update funnel
   async update(updateBody: FunnelUpdateDto, funnelId: number) {
@@ -75,10 +79,10 @@ export class FunnelRepository {
       funnelId,
     ]);
 
-    if (updateBody.stages && updateBody.stages.length > 0) {
-      await this.deletePastStages(funnelId);
-      await this.addStages(funnelId, updateBody.stages);
-    }
+    // if (updateBody.stages && updateBody.stages.length > 0) {
+    //   await this.deletePastStages(funnelId);
+    //   await this.addStages(funnelId, updateBody.stages);
+    // }
     return await this.findById(funnelId);
   }
 
@@ -152,6 +156,18 @@ export class FunnelRepository {
     return theFunnel;
   }
 
+  async addStage(funnelId: number, stage: GlobalStageReturnDto) {
+    const query = `
+      INSERT INTO stages (name, funnelId, order, description) VALUES (?, ?, ?, ?)
+    `;
+    await this.db.query(query, [
+      stage.name,
+      funnelId,
+      stage.order,
+      stage.description,
+    ]);
+  }
+
   async findUserAssistantFunnel(userId: number): Promise<FunnelReturnDto> {
     const query = `
       SELECT id,name,description,userId
@@ -163,39 +179,39 @@ export class FunnelRepository {
     return x;
   }
 
-  async createAssistantFunnel(
-    funnelStagesObject: StageCreateDto[],
-    userId: number,
-  ) {
-    const query = `
-    INSERT INTO funnels (name, description, createdByAssistant, userId) VALUES (?, ?, ?, ?)
-  `;
-    let { insertId } = await this.db.query(query, [
-      'assistant funnel',
-      'funnel created by assistant based on user workspace information',
-      true,
-      userId,
-    ]);
+  // async createAssistantFunnel(
+  //   funnelStagesObject: StageCreateDto[],
+  //   userId: number,
+  // ) {
+  //   const query = `
+  //   INSERT INTO funnels (name, description, createdByAssistant, userId) VALUES (?, ?, ?, ?)
+  // `;
+  //   let { insertId } = await this.db.query(query, [
+  //     'assistant funnel',
+  //     'funnel created by assistant based on user workspace information',
+  //     true,
+  //     userId,
+  //   ]);
 
-    if (funnelStagesObject && funnelStagesObject.length > 0) {
-      await this.addStages(Number(insertId), funnelStagesObject);
-    }
+  //   // if (funnelStagesObject && funnelStagesObject.length > 0) {
+  //   //   await this.addStages(Number(insertId), funnelStagesObject);
+  //   // }
 
-    return await this.findById(Number(insertId));
-  }
+  //   return await this.findById(Number(insertId));
+  // }
 
-  async updateAssistantFunnel(
-    funnelStagesObject: StageCreateDto[],
-    userId: number,
-  ) {
-    let theAssistantFunnel = await this.findUserAssistantFunnel(userId);
+  // async updateAssistantFunnel(
+  //   funnelStagesObject: StageCreateDto[],
+  //   userId: number,
+  // ) {
+  //   let theAssistantFunnel = await this.findUserAssistantFunnel(userId);
 
-    if (funnelStagesObject.length > 0) {
-      await this.deletePastStages(theAssistantFunnel.id);
-      await this.addStages(theAssistantFunnel.id, funnelStagesObject);
-    }
-    return await this.findById(theAssistantFunnel.id);
-  }
+  //   // if (funnelStagesObject.length > 0) {
+  //   //   await this.deletePastStages(theAssistantFunnel.id);
+  //   //   await this.addStages(theAssistantFunnel.id, funnelStagesObject);
+  //   // }
+  //   return await this.findById(theAssistantFunnel.id);
+  // }
 
   //delete funnel
   async delete(id: number) {

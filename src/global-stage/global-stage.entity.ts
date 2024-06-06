@@ -21,6 +21,9 @@ export class GlobalStageEntity {
   @Column({ type: 'longtext' })
   description: string;
 
+  @Column()
+  order: number;
+
   @OneToMany(() => TacticEntity, (tactic) => tactic.globalStage)
   @JoinColumn()
   tactics: TacticEntity[];

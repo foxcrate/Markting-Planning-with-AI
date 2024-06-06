@@ -16,15 +16,4 @@ export class FunnelUpdateDto {
   @IsString()
   @IsOptional()
   description: string;
-
-  // @IsArray()
-  // @IsOptional()
-  // stages: StageCreateDto[];
-
-  @IsArray()
-  @IsOptional()
-  @ArrayNotEmpty()
-  @ValidateNested({ each: true })
-  @Type(() => StageCreateDto)
-  stages: StageCreateDto[];
 }

@@ -7,12 +7,24 @@ import { FunnelRepository } from './funnel.repository';
 import { FunnelCreateDto } from './dtos/funnel-create.dto';
 import { FunnelUpdateDto } from './dtos/funnel-update.dto';
 import { StageCreateDto } from './dtos/stage-create.dto';
+import { GlobalStageService } from 'src/global-stage/global-stage.service';
 
 @Injectable()
 export class FunnelService {
-  constructor(private readonly funnelRepository: FunnelRepository) {}
+  constructor(
+    private readonly funnelRepository: FunnelRepository,
+    private readonly globalStageService: GlobalStageService,
+  ) {}
   async create(funnelCreateBody: FunnelCreateDto, userId: number) {
-    return await this.funnelRepository.create(funnelCreateBody, userId);
+    let newFunnel = await this.funnelRepository.create(
+      funnelCreateBody,
+      userId,
+    );
+
+    // add default stages to the new funnel
+    await this.addDefaultStages(newFunnel.id);
+
+    return await this.funnelRepository.findById(newFunnel.id);
   }
 
   async update(updateBody: FunnelUpdateDto, funnelId: number, userId: number) {
@@ -51,24 +63,34 @@ export class FunnelService {
     return theAssistantFunnel ? true : false;
   }
 
-  async createAssistantFunnel(
-    funnelStagesObject: StageCreateDto[],
-    userId: number,
-  ) {
-    await this.funnelRepository.createAssistantFunnel(
-      funnelStagesObject,
-      userId,
-    );
-  }
+  // async createAssistantFunnel(
+  //   funnelStagesObject: StageCreateDto[],
+  //   userId: number,
+  // ) {
+  //   await this.funnelRepository.createAssistantFunnel(
+  //     funnelStagesObject,
+  //     userId,
+  //   );
+  // }
 
-  async updateAssistantFunnel(
-    funnelStagesObject: StageCreateDto[],
-    userId: number,
-  ) {
-    await this.funnelRepository.updateAssistantFunnel(
-      funnelStagesObject,
-      userId,
-    );
+  // async updateAssistantFunnel(
+  //   funnelStagesObject: StageCreateDto[],
+  //   userId: number,
+  // ) {
+  //   await this.funnelRepository.updateAssistantFunnel(
+  //     funnelStagesObject,
+  //     userId,
+  //   );
+  // }
+
+  async addDefaultStages(funnelId: number) {
+    let allDefaultStages = await this.globalStageService.getAll();
+
+    for (let i = 0; i < allDefaultStages.length; i++) {
+      await this.funnelRepository.addStage(funnelId, allDefaultStages[i]);
+    }
+
+    // await this.funnelRepository.addDefaultStages(funnelId);
   }
 
   //authenticate funnel owner
