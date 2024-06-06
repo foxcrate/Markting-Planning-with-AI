@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateProfileDto } from './dtos/update-profile-dto';
 import { UserId } from 'src/decorators/user-id.decorator';
@@ -21,39 +21,49 @@ export class UserController {
     return this.userService.update(UpdateProfileBody, userId);
   }
 
+  @Get()
+  @UseGuards(AuthGuard)
+  async getUserData(@UserId() userId: number) {
+    return this.userService.getUserData(userId);
+  }
+
   @Post('change/phone-number')
   @UseGuards(AuthGuard)
-  async changePhoneNumber(
-    @Body() changePhoneNumberBody: ChangePhoneNumberDto,
-  ) {
-    return this.userService.changePhoneNumber(changePhoneNumberBody.phoneNumber);
+  async changePhoneNumber(@Body() changePhoneNumberBody: ChangePhoneNumberDto) {
+    return this.userService.changePhoneNumber(
+      changePhoneNumberBody.phoneNumber,
+    );
   }
 
   @Post('verify/change-phone-number')
   @UseGuards(AuthGuard)
-  async verifyChangePhoneNumber(@Body() body: VerifyChangePhoneNumberDto,@UserId() userId) {
+  async verifyChangePhoneNumber(
+    @Body() body: VerifyChangePhoneNumberDto,
+    @UserId() userId,
+  ) {
     return await this.userService.verifyChangePhoneNumberOTP(
       body.phoneNumber,
       body.otp,
-      userId
+      userId,
     );
   }
 
   @Post('change/email')
   @UseGuards(AuthGuard)
-  async changeEmail(
-    @Body() changeEmailBody: ChangeEmailDto,
-  ) {
+  async changeEmail(@Body() changeEmailBody: ChangeEmailDto) {
     return this.userService.changeEmail(changeEmailBody.email);
   }
 
   @Post('verify/change-email')
   @UseGuards(AuthGuard)
-  async verifyChangeEmail(@Body() body: VerifyChangeEmailDto,@UserId() userId) {
+  async verifyChangeEmail(
+    @Body() body: VerifyChangeEmailDto,
+    @UserId() userId,
+  ) {
     return await this.userService.verifyChangeEmailOTP(
       body.email,
       body.otp,
-      userId
+      userId,
     );
   }
 }
