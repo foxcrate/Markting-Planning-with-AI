@@ -1,4 +1,8 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { UpdateProfileDto } from './dtos/update-profile-dto';
 import { UserDto } from './dtos/user.dto';
@@ -15,6 +19,14 @@ export class UserService {
   ) {}
   async update(UpdateProfileBody: UpdateProfileDto, userId): Promise<UserDto> {
     return await this.userRepository.update(UpdateProfileBody, userId);
+  }
+
+  async getUserData(userId: number): Promise<UserDto> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
   }
 
   async userOnboarded(userId: number): Promise<boolean> {
