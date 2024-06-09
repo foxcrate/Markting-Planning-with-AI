@@ -23,7 +23,7 @@ export class TacticStepEntity {
   attachment: string;
 
   @Column()
-  order: number;
+  theOrder: number;
 
   @ManyToOne(() => TacticEntity, (tactic) => tactic.tacticSteps, {
     cascade: true,

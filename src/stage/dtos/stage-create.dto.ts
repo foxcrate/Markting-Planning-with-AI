@@ -1,5 +1,4 @@
-export class GlobalStageReturnDto {
-  id: number;
+export class StageCreateDto {
   name: string;
   description: string;
   theOrder: number;

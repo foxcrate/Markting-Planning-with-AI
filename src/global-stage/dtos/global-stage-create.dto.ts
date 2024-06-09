@@ -17,5 +17,5 @@ export class GlobalStageCreateDto {
 
   @IsNotEmpty()
   @IsNumber()
-  order: number;
+  theOrder: number;
 }

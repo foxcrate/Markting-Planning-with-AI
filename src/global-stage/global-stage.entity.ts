@@ -22,7 +22,7 @@ export class GlobalStageEntity {
   description: string;
 
   @Column()
-  order: number;
+  theOrder: number;
 
   @OneToMany(() => TacticEntity, (tactic) => tactic.globalStage)
   @JoinColumn()

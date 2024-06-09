@@ -11,5 +11,5 @@ export class GlobalStageUpdateDto {
 
   @IsOptional()
   @IsNumber()
-  order: number;
+  theOrder: number;
 }

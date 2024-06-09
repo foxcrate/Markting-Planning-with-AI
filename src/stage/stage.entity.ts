@@ -8,7 +8,7 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { FunnelEntity } from './funnel.entity';
+import { FunnelEntity } from '../funnel/funnel.entity';
 import { TacticsStagesEntity } from './tactics-stages.entity';
 
 @Entity({ name: 'stages' })
@@ -23,7 +23,7 @@ export class StageEntity {
   description: string;
 
   @Column()
-  order: number;
+  theOrder: number;
 
   @ManyToOne(() => FunnelEntity, (funnel) => funnel.stages, {
     cascade: true,

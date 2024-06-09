@@ -4,6 +4,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Column,
 } from 'typeorm';
 import { TacticEntity } from '../tactic/tactic.entity';
 import { StageEntity } from './stage.entity';
@@ -12,6 +13,9 @@ import { StageEntity } from './stage.entity';
 export class TacticsStagesEntity {
   @PrimaryGeneratedColumn()
   id: number;
+
+  @Column()
+  theOrder: number;
 
   @ManyToOne(() => TacticEntity, (tactic) => tactic.tacticsStages, {
     cascade: true,

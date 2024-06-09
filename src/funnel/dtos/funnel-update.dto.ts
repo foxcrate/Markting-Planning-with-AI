@@ -1,12 +1,4 @@
-import {
-  ArrayNotEmpty,
-  IsArray,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from 'class-validator';
-import { StageCreateDto } from './stage-create.dto';
-import { Type } from 'class-transformer';
+import { IsOptional, IsString } from 'class-validator';
 
 export class FunnelUpdateDto {
   @IsString()
