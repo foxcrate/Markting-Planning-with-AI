@@ -236,17 +236,17 @@ export class OpenAiService implements OnModuleInit {
             assistantMessage: assistantMessage,
             threadEnd: true,
           };
-        case 'add_funnel_stages_to_my_workspace':
-          assistantMessage = await this.createFunnelFunctionCallHandler(
-            run,
-            userId,
-          );
+        // case 'add_funnel_stages_to_my_workspace':
+        //   assistantMessage = await this.createFunnelFunctionCallHandler(
+        //     run,
+        //     userId,
+        //   );
 
-          await this.threadService.finishTemplateThread(threadOpenaiId);
-          return {
-            assistantMessage: assistantMessage,
-            threadEnd: true,
-          };
+        //   await this.threadService.finishTemplateThread(threadOpenaiId);
+        //   return {
+        //     assistantMessage: assistantMessage,
+        //     threadEnd: true,
+        //   };
         case 'add_tactics_to_workspace':
           assistantMessage = await this.createStageTacticsFunctionCallHandler(
             run,
@@ -360,37 +360,37 @@ export class OpenAiService implements OnModuleInit {
     );
   }
 
-  private async createFunnelFunctionCallHandler(run, userId) {
-    console.log('------- createFunnelFunctionCallHandler ------');
-    let functionReturnJsonObject = JSON.parse(
-      run.required_action.submit_tool_outputs.tool_calls[0].function.arguments,
-    );
+  // private async createFunnelFunctionCallHandler(run, userId) {
+  //   console.log('------- createFunnelFunctionCallHandler ------');
+  //   let functionReturnJsonObject = JSON.parse(
+  //     run.required_action.submit_tool_outputs.tool_calls[0].function.arguments,
+  //   );
 
-    if (
-      !Array.isArray(functionReturnJsonObject.stages) ||
-      functionReturnJsonObject.stages.length == 0
-    ) {
-      console.log(functionReturnJsonObject);
-      throw new UnprocessableEntityException(
-        'Error in Assistant function call response',
-      );
-    }
+  //   if (
+  //     !Array.isArray(functionReturnJsonObject.stages) ||
+  //     functionReturnJsonObject.stages.length == 0
+  //   ) {
+  //     console.log(functionReturnJsonObject);
+  //     throw new UnprocessableEntityException(
+  //       'Error in Assistant function call response',
+  //     );
+  //   }
 
-    if (await this.funnelService.userHasAssistantFunnel(userId)) {
-      await this.funnelService.updateAssistantFunnel(
-        functionReturnJsonObject.stages,
-        userId,
-      );
-    } else {
-      await this.funnelService.createAssistantFunnel(
-        functionReturnJsonObject.stages,
-        userId,
-      );
-    }
+  //   if (await this.funnelService.userHasAssistantFunnel(userId)) {
+  //     await this.funnelService.updateAssistantFunnel(
+  //       functionReturnJsonObject.stages,
+  //       userId,
+  //     );
+  //   } else {
+  //     await this.funnelService.createAssistantFunnel(
+  //       functionReturnJsonObject.stages,
+  //       userId,
+  //     );
+  //   }
 
-    await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
-    return functionReturnJsonObject;
-  }
+  //   await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
+  //   return functionReturnJsonObject;
+  // }
 
   private async createStageTacticsFunctionCallHandler(
     run: any,

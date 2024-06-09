@@ -59,8 +59,8 @@ export class TacticService {
     stageId: number,
     userId: number,
   ): Promise<TacticReturnDto> {
-    // await this.isOwner(tacticId, userId);
-    await this.tacticRepository.addToStage(tacticId, stageId);
+    await this.isOwner(tacticId, userId);
+    await this.tacticRepository.addToStage(tacticId, stageId, 0);
     return await this.tacticRepository.findById(tacticId);
   }
 
@@ -79,7 +79,7 @@ export class TacticService {
     stageId: number,
     userId: number,
   ): Promise<TacticReturnDto> {
-    // await this.isOwner(tacticId, userId);
+    await this.isOwner(tacticId, userId);
     await this.tacticRepository.removeFromStage(tacticId, stageId);
     return await this.tacticRepository.findById(tacticId);
   }

@@ -37,12 +37,12 @@ export class TacticRepository {
       await this.addSteps(Number(insertId), tacticCreateBody.steps);
     }
 
-    if (tacticCreateBody.stageId) {
-      await this.addToStage(
-        Number(insertId),
-        parseInt(tacticCreateBody.stageId),
-      );
-    }
+    // if (tacticCreateBody.stageId) {
+    //   await this.addToStage(
+    //     Number(insertId),
+    //     parseInt(tacticCreateBody.stageId),
+    //   );
+    // }
 
     return await this.findById(Number(insertId));
   }
@@ -54,12 +54,12 @@ export class TacticRepository {
         tacticId,
         steps[i].name,
         steps[i].description,
-        steps[i].order,
+        steps[i].theOrder,
       ]);
     }
 
     await this.db.batch(
-      `INSERT INTO tactic_step (tacticId,name,description,\`order\`) VALUES (?,?,?,?)`,
+      `INSERT INTO tactic_step (tacticId,name,description,theOrder) VALUES (?,?,?,?)`,
       stepsArray,
     );
   }
@@ -72,7 +72,7 @@ export class TacticRepository {
     await this.db.query(query, [tacticId]);
   }
 
-  async addToStage(tacticId: number, stageId: number) {
+  async addToStage(tacticId: number, stageId: number, theOrder: number) {
     // check if tactic_stage exists
     let query = `
       SELECT *
@@ -81,9 +81,10 @@ export class TacticRepository {
     `;
     const tactic_stage = await this.db.query(query, [tacticId, stageId]);
     if (tactic_stage.length == 0) {
-      query = 'INSERT INTO tactics_stages (tacticId,stageId) VALUES (?,?)';
+      query =
+        'INSERT INTO tactics_stages (tacticId,stageId,theOrder) VALUES (?,?,?)';
 
-      await this.db.query(query, [tacticId, stageId]);
+      await this.db.query(query, [tacticId, stageId, theOrder]);
     }
   }
 
@@ -123,7 +124,7 @@ export class TacticRepository {
         'id', stages.id,
         'name', stages.name,
         'description', stages.description,
-        'order', stages.order
+        'theOrder', stages.theOrder
         ))
       END AS stages
       FROM tactics_stages
@@ -161,7 +162,7 @@ export class TacticRepository {
       'name', tactic_step.name,
       'description', tactic_step.description,
       'attachment', tactic_step.attachment,
-      'order', tactic_step.order
+      'theOrder', tactic_step.theOrder
       ))
     END AS steps,
 
@@ -229,22 +230,6 @@ export class TacticRepository {
 
   async findById(id: number): Promise<TacticReturnDto> {
     const query = `
-      WITH
-      this_tactic_stages AS (
-        SELECT 
-        CASE WHEN COUNT(stages.id) = 0 THEN null
-        ELSE
-        JSON_ARRAYAGG(JSON_OBJECT(
-          'id',stages.id,
-          'name', stages.name,
-          'description', stages.description,
-          'order', stages.order
-          ))
-        END AS stages
-        FROM tactics_stages
-        JOIN stages ON tactics_stages.stageId = stages.id
-        WHERE tacticId = ?
-      )
       SELECT tactics.id,
       tactics.name,
       tactics.description,
@@ -276,12 +261,9 @@ export class TacticRepository {
         'name', tactic_step.name,
         'description', tactic_step.description,
         'attachment', tactic_step.attachment,
-        'order', tactic_step.order
+        'theOrder', tactic_step.theOrder
         ))
-      END AS steps,
-      (
-        SELECT stages FROM this_tactic_stages
-      ) AS stages
+      END AS steps
       FROM tactics
       LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
       LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
@@ -297,22 +279,6 @@ export class TacticRepository {
   //find all tactics
   async findAll(name: string): Promise<TacticReturnDto[]> {
     const queryStart = `
-    WITH
-    this_tactics_stages AS (
-      SELECT tactics_stages.tacticId,
-      CASE WHEN COUNT(tactics_stages.stageId) = 0 THEN null
-      ELSE
-      JSON_ARRAYAGG(JSON_OBJECT(
-        'id', stages.id,
-        'name', stages.name,
-        'description', stages.description,
-        'order', stages.order
-        ))
-      END AS stages
-      FROM tactics_stages
-      JOIN stages ON tactics_stages.stageId = stages.id
-      GROUP BY tactics_stages.tacticId
-    )
     SELECT tactics.id,
     tactics.name,
     tactics.description,
@@ -344,18 +310,9 @@ export class TacticRepository {
       'name', tactic_step.name,
       'description', tactic_step.description,
       'attachment', tactic_step.attachment,
-      'order', tactic_step.order
+      'theOrder', tactic_step.theOrder
       ))
-    END AS steps,
-
-    (
-      SELECT
-      stages
-      FROM
-      this_tactics_stages
-      where this_tactics_stages.tacticId = tactics.id
-    )
-    AS stages
+    END AS steps
 
     FROM tactics
     LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId

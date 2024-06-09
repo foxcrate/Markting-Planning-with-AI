@@ -4,14 +4,14 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 import { MessageEntity } from './src/message/message.entity';
 import { ThreadEntity } from './src/thread/thread.entity';
 import { FunnelEntity } from './src/funnel/funnel.entity';
-import { StageEntity } from './src/funnel/stage.entity';
+import { StageEntity } from './src/stage/stage.entity';
 import { OtpEntity } from './src/otp/otp.entity';
 import { TemplateEntity } from './src/template/template.entity';
 import { WorkspaceEntity } from './src/workspace/workspace.entity';
 import { GlobalStageEntity } from './src/global-stage/global-stage.entity';
 import { TacticEntity } from './src/tactic/tactic.entity';
 import { TacticStepEntity } from './src/tactic/tactic-step.entity';
-import { TacticsStagesEntity } from './src/funnel/tactics-stages.entity';
+import { TacticsStagesEntity } from './src/stage/tactics-stages.entity';
 require('dotenv').config({
   path: `${process.env.NODE_ENV ? process.env.NODE_ENV : ''}.env`,
 });

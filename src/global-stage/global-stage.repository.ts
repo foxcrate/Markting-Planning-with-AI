@@ -16,7 +16,7 @@ export class GlobalStageRepository {
   async create(
     globalStageCreateBody: GlobalStageCreateDto,
   ): Promise<GlobalStageReturnDto> {
-    const { name, description } = globalStageCreateBody;
+    const { name, description, theOrder } = globalStageCreateBody;
     let repeatedGlobalStage = await this.findByName(name);
     if (repeatedGlobalStage) {
       throw new UnprocessableEntityException(
@@ -24,9 +24,13 @@ export class GlobalStageRepository {
       );
     }
     const query = `
-      INSERT INTO global_stages (name, description) VALUES (?, ?)
+      INSERT INTO global_stages (name, description,theOrder) VALUES (?, ?, ?)
     `;
-    let { insertId } = await this.db.query(query, [name, description]);
+    let { insertId } = await this.db.query(query, [
+      name,
+      description,
+      theOrder,
+    ]);
 
     return await this.findById(Number(insertId));
   }
@@ -41,12 +45,14 @@ export class GlobalStageRepository {
       UPDATE global_stages
       SET
       name = IFNULL(?,global_stages.name),
-      description = IFNULL(?,global_stages.description)
+      description = IFNULL(?,global_stages.description),
+      theOrder = IFNULL(?,global_stages.theOrder)
       WHERE id = ?
     `;
     await this.db.query(query, [
       updateBody.name,
       updateBody.description,
+      updateBody.theOrder,
       globalStageId,
     ]);
 
@@ -55,7 +61,7 @@ export class GlobalStageRepository {
 
   async findById(id: number): Promise<GlobalStageReturnDto> {
     const query = `
-      SELECT global_stages.id, global_stages.name, global_stages.description
+      SELECT global_stages.id, global_stages.name, global_stages.description,global_stages.theOrder
       FROM global_stages
       WHERE global_stages.id = ?
     `;
@@ -66,7 +72,7 @@ export class GlobalStageRepository {
   //find all global_stages
   async findAll(): Promise<GlobalStageReturnDto[]> {
     const query = `
-      SELECT global_stages.id, global_stages.name, global_stages.description
+      SELECT global_stages.id, global_stages.name, global_stages.description,global_stages.theOrder
       FROM global_stages
     `;
     return await this.db.query(query, []);
@@ -74,7 +80,7 @@ export class GlobalStageRepository {
 
   async findByName(name: string): Promise<GlobalStageReturnDto> {
     const query = `
-      SELECT id, name, description
+      SELECT id, name, description,theOrder
       FROM global_stages
       WHERE name = ?
     `;

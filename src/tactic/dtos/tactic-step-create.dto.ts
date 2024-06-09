@@ -15,5 +15,5 @@ export class TacticStepCreateDto {
 
   @IsNotEmpty()
   @IsNumber()
-  order: number;
+  theOrder: number;
 }

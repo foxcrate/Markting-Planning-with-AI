@@ -1,12 +1,9 @@
 import { IsNotEmpty } from 'class-validator';
 
-export class AddTacticToStageIdsDto {
+export class RemoveTacticFromStageDto {
   @IsNotEmpty()
   tacticId: number;
 
   @IsNotEmpty()
   stageId: number;
-
-  // @IsNotEmpty()
-  // theOrder: number;
 }

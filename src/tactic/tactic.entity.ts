@@ -10,7 +10,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { TacticStepEntity } from './tactic-step.entity';
-import { TacticsStagesEntity } from '../funnel/tactics-stages.entity';
+import { TacticsStagesEntity } from '../stage/tactics-stages.entity';
 import { UserEntity } from '../user/user.entity';
 
 @Entity({ name: 'tactics' })

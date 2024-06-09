@@ -34,9 +34,6 @@ export class TacticCreateDto {
   @IsNotEmpty()
   globalStageId: number;
 
-  @IsOptional()
-  stageId: string;
-
   @IsArray()
   @IsOptional()
   @ArrayNotEmpty()
