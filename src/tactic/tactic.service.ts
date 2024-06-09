@@ -54,15 +54,15 @@ export class TacticService {
     return deletedTactic;
   }
 
-  async addTacticToStage(
-    tacticId: number,
-    stageId: number,
-    userId: number,
-  ): Promise<TacticReturnDto> {
-    await this.isOwner(tacticId, userId);
-    await this.tacticRepository.addToStage(tacticId, stageId, 0);
-    return await this.tacticRepository.findById(tacticId);
-  }
+  // async addTacticToStage(
+  //   tacticId: number,
+  //   stageId: number,
+  //   userId: number,
+  // ): Promise<TacticReturnDto> {
+  //   await this.isOwner(tacticId, userId);
+  //   await this.tacticRepository.addToStage(tacticId, stageId, 0);
+  //   return await this.tacticRepository.findById(tacticId);
+  // }
 
   async addAssistantTacticsToStage(
     stageId: number,
@@ -74,15 +74,15 @@ export class TacticService {
   }
 
   //remove tactic from stage
-  async removeTacticFromStage(
-    tacticId: number,
-    stageId: number,
-    userId: number,
-  ): Promise<TacticReturnDto> {
-    await this.isOwner(tacticId, userId);
-    await this.tacticRepository.removeFromStage(tacticId, stageId);
-    return await this.tacticRepository.findById(tacticId);
-  }
+  // async removeTacticFromStage(
+  //   tacticId: number,
+  //   stageId: number,
+  //   userId: number,
+  // ): Promise<TacticReturnDto> {
+  //   await this.isOwner(tacticId, userId);
+  //   await this.tacticRepository.removeFromStage(tacticId, stageId);
+  //   return await this.tacticRepository.findById(tacticId);
+  // }
 
   //authenticate tactic owner
 

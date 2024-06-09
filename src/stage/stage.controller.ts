@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from 'src/gurads/auth.guard';
 import { StageService } from './stage.service';
 import { UserId } from 'src/decorators/user-id.decorator';
@@ -48,9 +57,25 @@ export class StageController {
     @Body() body: TacticIdDto,
     @UserId() userId: number,
   ) {
-    return await this.tacticService.addTacticToStage(
+    return await this.stageService.addTacticToStage(
+      params.funnelId,
+      params.stageId,
       body.tacticId,
-      body.stageId,
+      userId,
+    );
+  }
+
+  @Delete(':stageId/remove-tactic')
+  @UseGuards(AuthGuard)
+  async removeTacticFromStage(
+    @Param() params: FunnelIdAndStageIdDto,
+    @Body() body: TacticIdDto,
+    @UserId() userId: number,
+  ) {
+    return await this.stageService.removeTacticFromStage(
+      params.funnelId,
+      params.stageId,
+      body.tacticId,
       userId,
     );
   }

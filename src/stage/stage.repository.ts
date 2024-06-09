@@ -7,17 +7,20 @@ import { DB_PROVIDER } from 'src/db/constants';
 import { Pool } from 'mariadb';
 import { GlobalStageReturnDto } from 'src/global-stage/dtos/global-stage-return.dto';
 import { TacticIdAndOrderDto } from './dtos/tacticId-and-order.dto';
+import { StageDetailsReturnDto } from './dtos/stage-details-return.dto';
 
 @Injectable()
 export class StageRepository {
   constructor(@Inject(DB_PROVIDER) private db: Pool) {}
 
-  async findById(id: number): Promise<any> {
+  async findById(id: number): Promise<StageDetailsReturnDto> {
     const query = `
     SELECT
     stages.id,
     stages.name,
     stages.description,
+    stages.theOrder,
+    stages.funnelId,
     CASE WHEN COUNT(tactics_stages.id) = 0 THEN JSON_ARRAY()
     ELSE
     JSON_ARRAYAGG(
@@ -76,6 +79,29 @@ export class StageRepository {
       return false;
     }
     return true;
+  }
+
+  async addTacticToStage(stageId: number, tacticId: number, theOrder: number) {
+    // check if tactic_stage exists
+    let query = `
+      SELECT *
+      FROM tactics_stages
+      WHERE tacticId = ? AND stageId = ?
+    `;
+    const tactic_stage = await this.db.query(query, [tacticId, stageId]);
+    if (tactic_stage.length == 0) {
+      query =
+        'INSERT INTO tactics_stages (tacticId,stageId,theOrder) VALUES (?,?,?)';
+
+      await this.db.query(query, [tacticId, stageId, theOrder]);
+    }
+  }
+
+  async removeTacticFromStage(tacticId: number, stageId: number) {
+    const query =
+      'DELETE FROM tactics_stages WHERE tacticId = ? AND stageId = ?';
+
+    await this.db.query(query, [tacticId, stageId]);
   }
 
   async getAllStageTacticsIds(stageId: number): Promise<number[]> {

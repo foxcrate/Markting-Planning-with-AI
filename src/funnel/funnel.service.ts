@@ -1,5 +1,7 @@
 import {
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -12,6 +14,7 @@ import { StageService } from 'src/stage/stage.service';
 export class FunnelService {
   constructor(
     private readonly funnelRepository: FunnelRepository,
+    @Inject(forwardRef(() => StageService))
     private readonly stageService: StageService,
   ) {}
   async create(funnelCreateBody: FunnelCreateDto, userId: number) {

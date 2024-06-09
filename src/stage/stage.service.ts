@@ -1,5 +1,7 @@
 import {
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -7,12 +9,17 @@ import { StageRepository } from './stage.repository';
 import { GlobalStageService } from 'src/global-stage/global-stage.service';
 import { GlobalStageReturnDto } from 'src/global-stage/dtos/global-stage-return.dto';
 import { TacticIdAndOrderDto } from './dtos/tacticId-and-order.dto';
+import { FunnelService } from 'src/funnel/funnel.service';
+import { TacticService } from 'src/tactic/tactic.service';
 
 @Injectable()
 export class StageService {
   constructor(
     private readonly stageRepository: StageRepository,
     private readonly globalStageService: GlobalStageService,
+    private readonly tacticService: TacticService,
+    @Inject(forwardRef(() => FunnelService))
+    private readonly funnelService: FunnelService,
   ) {}
 
   async getOne(stageId: number, funnelUserId: number, userId: number) {
@@ -34,6 +41,32 @@ export class StageService {
       stageId,
       tacticsAndOrders,
     );
+    return await this.stageRepository.findById(stageId);
+  }
+
+  async addTacticToStage(
+    funnelId: number,
+    stageId: number,
+    tacticId: number,
+    userId: number,
+  ) {
+    let theFunnel = await this.funnelService.getOne(funnelId, userId);
+    await this.stageRepository.isOwner(stageId, theFunnel.userId, userId);
+    await this.tacticService.getOne(tacticId, userId);
+    await this.stageRepository.addTacticToStage(stageId, tacticId, 0);
+    return await this.stageRepository.findById(stageId);
+  }
+
+  async removeTacticFromStage(
+    funnelId: number,
+    stageId: number,
+    tacticId: number,
+    userId: number,
+  ): Promise<any> {
+    let theFunnel = await this.funnelService.getOne(funnelId, userId);
+    await this.stageRepository.isOwner(stageId, theFunnel.userId, userId);
+    await this.tacticService.getOne(tacticId, userId);
+    await this.stageRepository.removeTacticFromStage(tacticId, stageId);
     return await this.stageRepository.findById(stageId);
   }
 

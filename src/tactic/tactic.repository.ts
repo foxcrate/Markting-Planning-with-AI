@@ -72,21 +72,21 @@ export class TacticRepository {
     await this.db.query(query, [tacticId]);
   }
 
-  async addToStage(tacticId: number, stageId: number, theOrder: number) {
-    // check if tactic_stage exists
-    let query = `
-      SELECT *
-      FROM tactics_stages
-      WHERE tacticId = ? AND stageId = ?
-    `;
-    const tactic_stage = await this.db.query(query, [tacticId, stageId]);
-    if (tactic_stage.length == 0) {
-      query =
-        'INSERT INTO tactics_stages (tacticId,stageId,theOrder) VALUES (?,?,?)';
+  // async addToStage(tacticId: number, stageId: number, theOrder: number) {
+  //   // check if tactic_stage exists
+  //   let query = `
+  //     SELECT *
+  //     FROM tactics_stages
+  //     WHERE tacticId = ? AND stageId = ?
+  //   `;
+  //   const tactic_stage = await this.db.query(query, [tacticId, stageId]);
+  //   if (tactic_stage.length == 0) {
+  //     query =
+  //       'INSERT INTO tactics_stages (tacticId,stageId,theOrder) VALUES (?,?,?)';
 
-      await this.db.query(query, [tacticId, stageId, theOrder]);
-    }
-  }
+  //     await this.db.query(query, [tacticId, stageId, theOrder]);
+  //   }
+  // }
 
   //create tactics
   async createTactics(tactics: any[], stageId: number) {
@@ -106,12 +106,12 @@ export class TacticRepository {
     return true;
   }
 
-  async removeFromStage(tacticId: number, stageId: number) {
-    const query =
-      'DELETE FROM tactics_stages WHERE tacticId = ? AND stageId = ?';
+  // async removeFromStage(tacticId: number, stageId: number) {
+  //   const query =
+  //     'DELETE FROM tactics_stages WHERE tacticId = ? AND stageId = ?';
 
-    await this.db.query(query, [tacticId, stageId]);
-  }
+  //   await this.db.query(query, [tacticId, stageId]);
+  // }
 
   async getTacticsByUserId(userId: number, filterOptions: TacticsFilterDto) {
     const queryStart = `

@@ -84,29 +84,29 @@ export class TacticController {
     return await this.tacticService.delete(paramsId.tacticId, userId);
   }
 
-  @Post('add-to-stage')
-  @UseGuards(AuthGuard)
-  async addTacticToStage(
-    @Body() body: AddTacticToStageIdsDto,
-    @UserId() userId: number,
-  ) {
-    return await this.tacticService.addTacticToStage(
-      body.tacticId,
-      body.stageId,
-      userId,
-    );
-  }
+  // @Post('add-to-stage')
+  // @UseGuards(AuthGuard)
+  // async addTacticToStage(
+  //   @Body() body: AddTacticToStageIdsDto,
+  //   @UserId() userId: number,
+  // ) {
+  //   return await this.tacticService.addTacticToStage(
+  //     body.tacticId,
+  //     body.stageId,
+  //     userId,
+  //   );
+  // }
 
-  @Delete('remove-from-stage')
-  @UseGuards(AuthGuard)
-  async removeTacticFromStage(
-    @Body() body: RemoveTacticFromStageDto,
-    @UserId() userId: number,
-  ) {
-    return await this.tacticService.removeTacticFromStage(
-      body.tacticId,
-      body.stageId,
-      userId,
-    );
-  }
+  // @Delete('remove-from-stage')
+  // @UseGuards(AuthGuard)
+  // async removeTacticFromStage(
+  //   @Body() body: RemoveTacticFromStageDto,
+  //   @UserId() userId: number,
+  // ) {
+  //   return await this.tacticService.removeTacticFromStage(
+  //     body.tacticId,
+  //     body.stageId,
+  //     userId,
+  //   );
+  // }
 }
