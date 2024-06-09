@@ -19,6 +19,7 @@ import { GlobalStageModule } from './global-stage/global-stage.module';
 import { TacticModule } from './tactic/tactic.module';
 import { FileModule } from './file/file.module';
 import { MariadbModule } from './db/mariadb.module';
+import { StageModule } from './stage/stage.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -48,6 +49,7 @@ import { MariadbModule } from './db/mariadb.module';
     WorkspaceModule,
     GlobalStageModule,
     TacticModule,
+    StageModule,
   ],
   controllers: [AppController],
   providers: [AppService],

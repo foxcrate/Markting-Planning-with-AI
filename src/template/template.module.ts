@@ -8,6 +8,7 @@ import { MessageModule } from 'src/message/message.module';
 import { ThreadModule } from 'src/thread/thread.module';
 import { WorkspaceModule } from 'src/workspace/workspace.module';
 import { FunnelModule } from 'src/funnel/funnel.module';
+import { StageModule } from 'src/stage/stage.module';
 
 @Module({
   controllers: [TemplateController],
@@ -18,6 +19,7 @@ import { FunnelModule } from 'src/funnel/funnel.module';
     ThreadModule,
     WorkspaceModule,
     FunnelModule,
+    StageModule,
   ],
 })
 export class TemplateModule {}

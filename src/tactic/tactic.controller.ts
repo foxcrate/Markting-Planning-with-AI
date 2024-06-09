@@ -18,6 +18,7 @@ import { TacticUpdateDto } from './dtos/tactic-update.dto';
 import { AddTacticToStageIdsDto } from './dtos/add-tactic-to-stage.dto';
 import { TacticNameDto } from './dtos/tactic-name.dto';
 import { TacticsFilterDto } from './dtos/tactic-filter.dto';
+import { RemoveTacticFromStageDto } from './dtos/remove-tactic-from-stage.dto';
 
 @Controller({ path: 'tactic', version: '1' })
 export class TacticController {
@@ -83,28 +84,28 @@ export class TacticController {
     return await this.tacticService.delete(paramsId.tacticId, userId);
   }
 
-  @Post('/:tacticId/add-to-stage/:stageId')
+  @Post('add-to-stage')
   @UseGuards(AuthGuard)
   async addTacticToStage(
-    @Param() paramsIds: AddTacticToStageIdsDto,
+    @Body() body: AddTacticToStageIdsDto,
     @UserId() userId: number,
   ) {
     return await this.tacticService.addTacticToStage(
-      paramsIds.tacticId,
-      paramsIds.stageId,
+      body.tacticId,
+      body.stageId,
       userId,
     );
   }
 
-  @Delete('/:tacticId/remove-from-stage/:stageId')
+  @Delete('remove-from-stage')
   @UseGuards(AuthGuard)
   async removeTacticFromStage(
-    @Param() paramsIds: AddTacticToStageIdsDto,
+    @Body() body: RemoveTacticFromStageDto,
     @UserId() userId: number,
   ) {
     return await this.tacticService.removeTacticFromStage(
-      paramsIds.tacticId,
-      paramsIds.stageId,
+      body.tacticId,
+      body.stageId,
       userId,
     );
   }

@@ -9,6 +9,7 @@ import { ThreadRepository } from 'src/thread/thread.repository';
 import { FunnelTemplateDto } from './dtos/funnel-template.dto';
 import { WorkspaceRepository } from 'src/workspace/workspace.repository';
 import { FunnelService } from 'src/funnel/funnel.service';
+import { StageService } from 'src/stage/stage.service';
 
 @Injectable()
 export class TemplateService {
@@ -19,6 +20,7 @@ export class TemplateService {
     private readonly threadRepository: ThreadRepository,
     private readonly workspaceRepository: WorkspaceRepository,
     private readonly funnelService: FunnelService,
+    private readonly stageService: StageService,
   ) {}
 
   async setOnboardingTemplate(template: OnboardingTemplateDto) {
@@ -350,7 +352,7 @@ export class TemplateService {
 
     ////////////////////////////////get stage data
     let stageData;
-    let stage = await this.funnelService.getOneStage(stageId, userId);
+    let stage = await this.stageService.getOne(stageId, funnel.userId, userId);
     //if no stage
     if (!stage) {
       throw new UnprocessableEntityException('Stage not found');

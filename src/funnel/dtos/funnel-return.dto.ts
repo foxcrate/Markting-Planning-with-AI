@@ -1,4 +1,4 @@
-import { StageReturnDto } from './stage-return.dto';
+import { StageReturnDto } from '../../stage/dtos/stage-return.dto';
 
 export class FunnelReturnDto {
   id: number;

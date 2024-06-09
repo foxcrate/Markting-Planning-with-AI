@@ -9,7 +9,7 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { StageEntity } from './stage.entity';
+import { StageEntity } from '../stage/stage.entity';
 
 @Entity({ name: 'funnels' })
 export class FunnelEntity {
