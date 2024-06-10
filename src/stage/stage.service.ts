@@ -11,6 +11,7 @@ import { GlobalStageReturnDto } from 'src/global-stage/dtos/global-stage-return.
 import { TacticIdAndOrderDto } from './dtos/tacticId-and-order.dto';
 import { FunnelService } from 'src/funnel/funnel.service';
 import { TacticService } from 'src/tactic/tactic.service';
+import { StageDetailsReturnDto } from './dtos/stage-details-return.dto';
 
 @Injectable()
 export class StageService {
@@ -22,7 +23,11 @@ export class StageService {
     private readonly funnelService: FunnelService,
   ) {}
 
-  async getOne(stageId: number, funnelUserId: number, userId: number) {
+  async getOne(
+    stageId: number,
+    funnelUserId: number,
+    userId: number,
+  ): Promise<StageDetailsReturnDto> {
     await this.isOwner(stageId, funnelUserId, userId);
     return await this.stageRepository.findById(stageId);
   }

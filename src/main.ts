@@ -8,6 +8,7 @@ import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { FastifyMultipartAttachFieldsToBodyOptions } from '@fastify/multipart';
 import { FastifyStaticOptions } from '@fastify/static';
 import { join } from 'path';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -34,6 +35,27 @@ async function bootstrap() {
       fileSize: 2e7,
     },
   } as FastifyMultipartAttachFieldsToBodyOptions);
+
+  // Swagger configuration
+  const config = new DocumentBuilder()
+    .setTitle('Crespo API')
+    .addBearerAuth()
+    .setVersion('1')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api-docs', app, document, {
+    swaggerOptions: {
+      plugins: [
+        (...args: any[]) => (window as any).HierarchicalTagsPlugin(...args),
+        // This is added by nestjs by default and would be overridden if not included
+        (...args: any[]) =>
+          (window as any).SwaggerUIBundle.plugins.DownloadUrl(...args),
+      ],
+      hierarchicalTagSeparator: ':', // This must be a string, as RegExp will not survive being json encoded
+    },
+    customJs: ['https://unpkg.com/swagger-ui-plugin-hierarchical-tags'],
+  });
+  //
 
   await app.listen(process.env.APP_PORT || 3000, '0.0.0.0');
 

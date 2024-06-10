@@ -4,11 +4,31 @@ import { WorkspaceService } from './workspace.service';
 import { UserId } from 'src/decorators/user-id.decorator';
 import { WorkspaceUpdateDto } from './dtos/workspace-update.dto';
 import { ParamsIdDto } from './dtos/params-id.dto';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiParam,
+  ApiTags,
+  ApiUnprocessableEntityResponse,
+} from '@nestjs/swagger';
+import { WorkspaceReturnDto } from './dtos/workspace-return.dto';
+import { ErrorResponseDto } from 'src/dtos/error-response.dto';
 
 @Controller({ path: 'workspace', version: '1' })
 export class WorkspaceController {
   constructor(private readonly workspaceService: WorkspaceService) {}
 
+  @ApiParam({ name: 'id' })
+  @ApiBody({ type: WorkspaceUpdateDto })
+  @ApiCreatedResponse({
+    type: WorkspaceReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Workspace: Update')
   @Put('/:id')
   @UseGuards(AuthGuard)
   async update(
@@ -23,6 +43,16 @@ export class WorkspaceController {
     );
   }
 
+  @ApiParam({ name: 'id' })
+  @ApiBody({ type: WorkspaceUpdateDto })
+  @ApiCreatedResponse({
+    type: WorkspaceReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Workspace: Confirm')
   @Put('/confirm/:id')
   @UseGuards(AuthGuard)
   async confirm(

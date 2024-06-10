@@ -2,11 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { GlobalStageUpdateDto } from './dtos/global-stage-update.dto';
 import { GlobalStageCreateDto } from './dtos/global-stage-create.dto';
 import { GlobalStageRepository } from './global-stage.repository';
+import { GlobalStageReturnDto } from './dtos/global-stage-return.dto';
 
 @Injectable()
 export class GlobalStageService {
   constructor(private readonly globalStageRepository: GlobalStageRepository) {}
-  async create(globalStageBody: GlobalStageCreateDto) {
+  async create(
+    globalStageBody: GlobalStageCreateDto,
+  ): Promise<GlobalStageReturnDto> {
     return await this.globalStageRepository.create(globalStageBody);
   }
 

@@ -6,8 +6,10 @@ import {
 } from 'class-validator';
 import { ParameterObjectDto } from './parameter-object.dto';
 import { Type } from 'class-transformer';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class FunnelTemplateDto {
+  @ApiProperty()
   @IsString()
   description: string;
 

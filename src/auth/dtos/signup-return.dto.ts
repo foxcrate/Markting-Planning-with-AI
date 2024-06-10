@@ -1,11 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserDto } from 'src/user/dtos/user.dto';
 
-export class AuthReturnDto {
+export class SignupReturnDto {
   @ApiProperty()
   user: UserDto;
+
   @ApiProperty()
-  token: string;
-  @ApiProperty()
-  refreshToken: string;
+  message: string;
 }
