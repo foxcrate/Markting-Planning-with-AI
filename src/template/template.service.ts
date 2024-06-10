@@ -10,6 +10,8 @@ import { FunnelTemplateDto } from './dtos/funnel-template.dto';
 import { WorkspaceRepository } from 'src/workspace/workspace.repository';
 import { FunnelService } from 'src/funnel/funnel.service';
 import { StageService } from 'src/stage/stage.service';
+import { TemplateReturnDto } from './dtos/template-return.dto';
+import { NotEndedThreadAiResponseDto } from './dtos/not-ended-thread-ai-response.dto';
 
 @Injectable()
 export class TemplateService {
@@ -23,7 +25,9 @@ export class TemplateService {
     private readonly stageService: StageService,
   ) {}
 
-  async setOnboardingTemplate(template: OnboardingTemplateDto) {
+  async setOnboardingTemplate(
+    template: OnboardingTemplateDto,
+  ): Promise<TemplateReturnDto> {
     // check if system has onboarding template
     const existingTemplate = await this.templateRepository.findByType(
       TemplateType.ONBOARDING,
@@ -104,7 +108,9 @@ export class TemplateService {
     });
   }
 
-  async setTacticTemplate(template: FunnelTemplateDto) {
+  async setTacticTemplate(
+    template: FunnelTemplateDto,
+  ): Promise<TemplateReturnDto> {
     // check if system has funnel template
     const existingTemplate = await this.templateRepository.findByType(
       TemplateType.TACTIC,
@@ -156,7 +162,7 @@ export class TemplateService {
     workspaceId: number,
     funnelId: number,
     stageId: number,
-  ) {
+  ): Promise<NotEndedThreadAiResponseDto> {
     let template = await this.templateRepository.findById(templateId);
 
     // check if user already has a user template flow "thread"
@@ -207,7 +213,7 @@ export class TemplateService {
     workspaceId: number,
     funnelId: number,
     stageId: number,
-  ) {
+  ): Promise<NotEndedThreadAiResponseDto> {
     let template = await this.templateRepository.findById(templateId);
 
     // check if user already has a user template flow "thread"

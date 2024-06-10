@@ -9,6 +9,7 @@ import { UserDto } from './dtos/user.dto';
 import { WorkspaceService } from 'src/workspace/workspace.service';
 import { OtpService } from 'src/otp/otp.service';
 import { OtpTypes } from 'src/enums/otp-types.enum';
+import { MessageReturnDto } from '../dtos/message-return.dto';
 
 @Injectable()
 export class UserService {
@@ -33,7 +34,7 @@ export class UserService {
     return await this.workspaceService.userHasConfirmedWorkspace(userId);
   }
 
-  async changePhoneNumber(phoneNumber: string): Promise<any> {
+  async changePhoneNumber(phoneNumber: string): Promise<MessageReturnDto> {
     const existingUser =
       await this.userRepository.findUserByPhoneNumber(phoneNumber);
     if (existingUser) {
@@ -54,7 +55,7 @@ export class UserService {
     newPhoneNumber: string,
     otp: string,
     userId: number,
-  ): Promise<any> {
+  ): Promise<MessageReturnDto> {
     await this.otpService.verifyOTP(
       newPhoneNumber,
       otp,
@@ -68,7 +69,7 @@ export class UserService {
     };
   }
 
-  async changeEmail(email: string): Promise<any> {
+  async changeEmail(email: string): Promise<MessageReturnDto> {
     const existingUser = await this.userRepository.findUserByEmail(email);
     if (existingUser) {
       throw new UnprocessableEntityException(`email already exists`);
@@ -85,7 +86,7 @@ export class UserService {
     newEmail: string,
     otp: string,
     userId: number,
-  ): Promise<any> {
+  ): Promise<MessageReturnDto> {
     await this.otpService.verifyOTP(newEmail, otp, OtpTypes.CHANGE_EMAIL);
 
     await this.userRepository.updateEmail(newEmail, userId);

@@ -19,18 +19,71 @@ import { AddTacticToStageIdsDto } from './dtos/add-tactic-to-stage.dto';
 import { TacticNameDto } from './dtos/tactic-name.dto';
 import { TacticsFilterDto } from './dtos/tactic-filter.dto';
 import { RemoveTacticFromStageDto } from './dtos/remove-tactic-from-stage.dto';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { TacticReturnDto } from './dtos/tactic-return.dto';
+import { ErrorResponseDto } from 'src/dtos/error-response.dto';
 
 @Controller({ path: 'tactic', version: '1' })
 export class TacticController {
   constructor(private readonly tacticService: TacticService) {}
 
+  @ApiBody({ type: TacticCreateDto })
+  @ApiCreatedResponse({
+    type: TacticReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Tactic: Create')
+  //
   @Post()
   @UseGuards(AuthGuard)
   async create(@Body() tacticBody: TacticCreateDto, @UserId() userId: number) {
-    console.log('create');
     return await this.tacticService.create(tacticBody, userId);
   }
 
+  //get all tactics
+  @ApiQuery({ name: 'name', required: false })
+  @ApiCreatedResponse({
+    type: TacticReturnDto,
+    isArray: true,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Tactic: Get All')
+  //
+  @Get('')
+  @UseGuards(AuthGuard)
+  async getAll(@Query() params: TacticNameDto) {
+    return await this.tacticService.getAll(params.name);
+  }
+
+  @ApiParam({
+    name: 'tacticId',
+    required: false,
+  })
+  @ApiBody({ type: TacticUpdateDto })
+  @ApiCreatedResponse({
+    type: TacticReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Tactic: Update')
+  //
   @Put('/:tacticId')
   @UseGuards(AuthGuard)
   async update(
@@ -38,7 +91,6 @@ export class TacticController {
     @Param() paramsId: TacticIdDto,
     @UserId() userId: number,
   ) {
-    console.log('update');
     return await this.tacticService.update(
       tacticUpdateBody,
       paramsId.tacticId,
@@ -47,7 +99,17 @@ export class TacticController {
   }
 
   //get one tactic
-
+  @ApiParam({
+    name: 'tacticId',
+  })
+  @ApiCreatedResponse({
+    type: TacticReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Tactic: Get One')
   @Get('/:tacticId')
   @UseGuards(AuthGuard)
   async getOne(@Param() paramsId: TacticIdDto, @UserId() userId: number) {
@@ -55,7 +117,17 @@ export class TacticController {
   }
 
   // get all my private tactics
-
+  @ApiQuery({ name: 'private', required: false })
+  @ApiCreatedResponse({
+    type: TacticReturnDto,
+    isArray: true,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Tactic: Get My Tactics')
+  //
   @Get('/mine')
   @UseGuards(AuthGuard)
   async getMyTactics(
@@ -65,48 +137,22 @@ export class TacticController {
     return await this.tacticService.getMyTactics(userId, filter);
   }
 
-  //get all tactics
-  @Get('')
-  @UseGuards(AuthGuard)
-  async getAll(@Query() params: TacticNameDto) {
-    console.log('getall');
-
-    // console.log({ params });
-
-    return await this.tacticService.getAll(params.name);
-  }
-
   //delete tactic
-
+  @ApiParam({
+    name: 'tacticId',
+  })
+  @ApiCreatedResponse({
+    type: TacticReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Tactic: Delete')
+  //
   @Delete('/:tacticId')
   @UseGuards(AuthGuard)
   async delete(@Param() paramsId: TacticIdDto, @UserId() userId: number) {
     return await this.tacticService.delete(paramsId.tacticId, userId);
-  }
-
-  @Post('add-to-stage')
-  @UseGuards(AuthGuard)
-  async addTacticToStage(
-    @Body() body: AddTacticToStageIdsDto,
-    @UserId() userId: number,
-  ) {
-    return await this.tacticService.addTacticToStage(
-      body.tacticId,
-      body.stageId,
-      userId,
-    );
-  }
-
-  @Delete('remove-from-stage')
-  @UseGuards(AuthGuard)
-  async removeTacticFromStage(
-    @Body() body: RemoveTacticFromStageDto,
-    @UserId() userId: number,
-  ) {
-    return await this.tacticService.removeTacticFromStage(
-      body.tacticId,
-      body.stageId,
-      userId,
-    );
   }
 }

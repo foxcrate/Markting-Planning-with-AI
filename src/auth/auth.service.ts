@@ -13,14 +13,19 @@ import { OtpService } from 'src/otp/otp.service';
 import { AuthTokenDto } from './dtos/auth-token.dto';
 import { AuthReturnDto } from './dtos/auth-return.dto';
 import axios from 'axios';
-import { SocialSignUp } from './dtos/social-signup.dto';
-import { SocialSignIn } from './dtos/social_signin.dto';
+import { SocialSignUpDto } from './dtos/social-signup.dto';
+import { SocialSignInDto } from './dtos/social-signin.dto';
 import { MobileSignInDto } from './dtos/mobile-signin.dto';
 import { MobileSignUpDto } from './dtos/mobile-signup.dto';
 import { UserRoles } from 'src/enums/user-roles.enum';
 import { OtpTypes } from 'src/enums/otp-types.enum';
 import { VerifyConnectSocialOtpDto } from './dtos/verify-connect-social-otp.dto';
 import { UserService } from 'src/user/user.service';
+import { SignupReturnDto } from './dtos/signup-return.dto';
+import { SignInReturnDto } from './dtos/signin-return.dto';
+import { RefreshTokenDto } from './dtos/refresh-token.dto';
+import { RefreshTokenReturnDto } from './dtos/refresh-token-return.dto';
+import { SendEmailReturnDto } from './dtos/send-email-return-otp.dto';
 
 @Injectable()
 export class AuthService {
@@ -73,9 +78,7 @@ export class AuthService {
     }
   }
 
-  async refreshToken(
-    refreshToken: string,
-  ): Promise<{ user: UserDto; token: string }> {
+  async refreshToken(refreshToken: string): Promise<RefreshTokenReturnDto> {
     let payload: any = this.verifyRefreshToken(refreshToken);
 
     if (payload.sub == null) {
@@ -103,7 +106,7 @@ export class AuthService {
 
   /////////////////// Mobile Auth //////////////////////////
 
-  async mobileSignIn(signIn: MobileSignInDto): Promise<any> {
+  async mobileSignIn(signIn: MobileSignInDto): Promise<SignInReturnDto> {
     let theUser = await this.userRepository.findUserByPhoneNumber(
       signIn.phoneNumber,
     );
@@ -121,9 +124,7 @@ export class AuthService {
     };
   }
 
-  async mobileSignUp(
-    signUp: MobileSignUpDto,
-  ): Promise<{ user: UserDto; message: string }> {
+  async mobileSignUp(signUp: MobileSignUpDto): Promise<SignupReturnDto> {
     const existingUser = await this.userRepository.findUserByPhoneNumber(
       signUp.phoneNumber,
     );
@@ -204,7 +205,7 @@ export class AuthService {
 
   /////////////////// Social Auth  //////////////////////
 
-  async getGoogleUserData(access_token) {
+  async getGoogleUserData(access_token: string) {
     try {
       const { data } = await axios({
         url: 'https://www.googleapis.com/oauth2/v2/userinfo',
@@ -241,7 +242,7 @@ export class AuthService {
     }
   }
 
-  async socialSignUp(socialSignUp: SocialSignUp) {
+  async socialSignUp(socialSignUp: SocialSignUpDto) {
     if (!socialSignUp.facebookId && !socialSignUp.googleId) {
       throw new UnprocessableEntityException(
         'Please provide a social id (facebookId or googleId)',
@@ -317,7 +318,7 @@ export class AuthService {
     };
   }
 
-  async socialSignIn(signInData: SocialSignIn): Promise<AuthReturnDto> {
+  async socialSignIn(signInData: SocialSignInDto): Promise<AuthReturnDto> {
     if (!signInData.facebookId && !signInData.googleId) {
       throw new UnprocessableEntityException(
         'Please provide a social id (facebookId or googleId)',
@@ -353,7 +354,9 @@ export class AuthService {
     };
   }
 
-  async requestConnectPhoneNumberWithSocial(phoneNumber: string) {
+  async requestConnectPhoneNumberWithSocial(
+    phoneNumber: string,
+  ): Promise<SignInReturnDto> {
     let theUser = await this.userRepository.findUserByPhoneNumber(phoneNumber);
 
     if (!theUser) {
@@ -420,16 +423,16 @@ export class AuthService {
 
   ////////////////////////
 
-  async sendEmailOtp(email: string): Promise<any> {
+  async sendEmailOtp(email: string): Promise<SendEmailReturnDto> {
     await this.otpService.sendEmailOtp(email, OtpTypes.ADD_EMAIL);
-    return 'Email sent successfully';
+    return { message: 'Email sent successfully' };
   }
 
   async verifyEmailOTP(
     email: string,
     otp: string,
     userId: number,
-  ): Promise<any> {
+  ): Promise<UserDto> {
     await this.otpService.verifyOTP(email, otp, OtpTypes.ADD_EMAIL);
     // add the email to user data
 
@@ -437,292 +440,3 @@ export class AuthService {
     return await this.userRepository.findById(userId);
   }
 }
-
-// async googleSignInUp(token: string): Promise<AuthReturnDto> {
-//   const googleUser = await this.googleAuthService.verifyToken(token);
-//   const existingUsers = await this.userRepository.findUsersByEmailOrGoogleId(
-//     googleUser.email,
-//     googleUser.googleId,
-//   );
-//   if (Array.isArray(existingUsers) && existingUsers.length) {
-//     if (
-//       existingUsers.length > 1 ||
-//       existingUsers[0].email === googleUser.email
-//     ) {
-//       throw new UnprocessableEntityException(
-//         'Found matching users with the same email',
-//       );
-//     }
-//     const [user] = existingUsers;
-//     return {
-//       user: user,
-//       token: this.createNormalToken(user),
-//       refreshToken: this.createRefreshToken(user),
-//     };
-//   }
-//   const createdUser = await this.userRepository.create({
-//     firstName: googleUser.given_name,
-//     lastName: googleUser.family_name,
-//     email: googleUser.email,
-//     googleId: googleUser.googleId,
-//   });
-//   return {
-//     user: createdUser,
-//     token: this.createNormalToken(createdUser),
-//     refreshToken: this.createRefreshToken(createdUser),
-//   };
-// }
-
-// async googleSignUp(token: string): Promise<AuthReturnDto> {
-//   const googleUser = await this.googleAuthService.verifyToken(token);
-//   const existingUser = await this.userRepository.findUsersByGoogleId(
-//     googleUser.googleId,
-//   );
-//   if (existingUser) {
-//     throw new UnprocessableEntityException(
-//       'A user already registered with this google account',
-//     );
-//   }
-//   const createdUser = await this.userRepository.create({
-//     firstName: googleUser.given_name,
-//     lastName: googleUser.family_name,
-//     email: googleUser.email,
-//     googleId: googleUser.googleId,
-//   });
-//   return {
-//     user: createdUser,
-//     token: this.createNormalToken(createdUser),
-//     refreshToken: this.createRefreshToken(createdUser),
-//   };
-// }
-
-// async googleSignIn(token: string): Promise<AuthReturnDto> {
-//   const googleUser = await this.googleAuthService.verifyToken(token);
-//   const existingUser = await this.userRepository.findUsersByGoogleId(
-//     googleUser.googleId,
-//   );
-//   if (!existingUser) {
-//     throw new UnprocessableEntityException(
-//       'User not found with this google account',
-//     );
-//   }
-//   const { password, ...restProperties } = existingUser;
-//   return {
-//     user: restProperties,
-//     token: this.createNormalToken(restProperties),
-//     refreshToken: this.createRefreshToken(restProperties),
-//   };
-// }
-
-// async facebookSignInUp(token: string): Promise<AuthReturnDto> {
-//   const facebookUser = await this.facebookAuthService.verifyToken(token);
-//   const existingUsers =
-//     await this.userRepository.findUsersByEmailOrFacebookId(
-//       facebookUser.email,
-//       facebookUser.facebookId,
-//     );
-//   if (Array.isArray(existingUsers) && existingUsers.length) {
-//     if (
-//       existingUsers.length > 1 ||
-//       existingUsers[0].email === facebookUser.email
-//     ) {
-//       throw new UnprocessableEntityException(
-//         'Found matching users with the same email',
-//       );
-//     }
-//     const [user] = existingUsers;
-//     return {
-//       user: user,
-//       token: this.createNormalToken(user),
-//       refreshToken: this.createRefreshToken(user),
-//     };
-//   }
-//   const createdUser = await this.userRepository.create({
-//     firstName: facebookUser.firstName,
-//     lastName: facebookUser.lastName,
-//     email: facebookUser.email,
-//     facebookId: facebookUser.facebookId,
-//   });
-//   return {
-//     user: createdUser,
-//     token: this.createNormalToken(createdUser),
-//     refreshToken: this.createRefreshToken(createdUser),
-//   };
-// }
-
-// async signUp(signUp: SignUpDto): Promise<{ user: UserDto; message: string }> {
-//   const existingUser = await this.userRepository.findUserByPhoneNumber(
-//     signUp.phoneNumber,
-//   );
-//   if (existingUser) {
-//     throw new BadRequestException('phone number already exists');
-//   }
-//   const hashedPassword = await bcrypt.hash(
-//     signUp.password,
-//     AuthService.SALT_ROUNDS,
-//   );
-
-//   const createdUser = await this.userRepository.create({
-//     ...signUp,
-//     password: hashedPassword,
-//   });
-
-//   await this.otpService.sendMobileOtp(signUp.phoneNumber);
-
-//   return {
-//     user: createdUser,
-//     message: 'Please check your mobile for otp verification',
-//   };
-// }
-
-// private verifyToken(token) {
-//   try {
-//     const decoded = this.jwtService.verify(
-//       token,
-//       this.config.get('JWT_SECRET'),
-//     );
-//     return decoded;
-//   } catch (error) {
-//     console.log({ error });
-
-//     throw new UnprocessableEntityException('Wrong Token');
-//   }
-// }
-
-// private createForgetPasswordOtp() {
-//   let otp = Math.floor(Math.random() * 1000000);
-//   return String(otp);
-// }
-
-// async signIn(signIn: SignInDto): Promise<AuthReturnDto> {
-//   let theUser = await this.userRepository.findUserByEmail(signIn.email);
-
-//   if (!theUser) {
-//     throw new NotFoundException('User not found');
-//   }
-//   if (!theUser.phoneVerified) {
-//     throw new BadRequestException('Phone Number not verified');
-//   }
-//   const { password, ...restProperties } = theUser;
-//   const isPasswordValid = await bcrypt.compare(signIn.password, password);
-//   if (!isPasswordValid) {
-//     throw new UnauthorizedException('Invalid credentials');
-//   }
-//   let user = restProperties;
-//   return {
-//     user: user,
-//     token: this.createNormalToken(user),
-//     refreshToken: this.createRefreshToken(user),
-//   };
-// }
-
-// async emailVerification(token) {
-//   let decoded = this.verifyToken(token);
-//   let userId = decoded.sub;
-//   await this.userRepository.verifyEmail(userId);
-//   let theUser = await this.userRepository.findById(userId);
-
-//   return {
-//     user: theUser,
-//     token: this.createNormalToken(theUser),
-//     refreshToken: this.createRefreshToken(theUser),
-//   };
-// }
-
-// async forgetPassword(email) {
-//   let theUser = await this.userRepository.findUserByEmail(email);
-//   if (!theUser) {
-//     throw new UnprocessableEntityException('User not found');
-//   }
-//   let theOtp = this.createForgetPasswordOtp();
-//   await this.userRepository.saveForgetPasswordOtp(theOtp, theUser.id);
-
-//   this.emailService.sendEmail(
-//     theUser.email,
-//     'Crespo Forget Password',
-//     ForgetPasswordEmail(
-//       `${theUser.firstName}` + ' ' + `${theUser.lastName}`,
-//       theOtp,
-//     ),
-//   );
-//   return true;
-// }
-
-// async validateForgetPasswordOtp(otp, email): Promise<{ token: string }> {
-//   let theUser = await this.userRepository.findUserByEmail(email);
-//   if (!theUser) {
-//     throw new UnprocessableEntityException('User not found');
-//   }
-//   if (theUser.forgetPasswordOtp !== otp) {
-//     throw new UnprocessableEntityException('Invalid otp');
-//   }
-//   return { token: this.createNormalToken(theUser) };
-// }
-
-// async changePassword(
-//   password: string,
-//   userId: number,
-// ): Promise<AuthReturnDto> {
-//   let theUser = await this.userRepository.findById(userId);
-//   const hashedPassword = await bcrypt.hash(password, AuthService.SALT_ROUNDS);
-//   await this.userRepository.changePassword(hashedPassword, theUser.id);
-//   return {
-//     user: theUser,
-//     token: this.createNormalToken(theUser),
-//     refreshToken: this.createRefreshToken(theUser),
-//   };
-// }
-
-// async verifyAuthOTP(
-//   otp: string,
-//   mobileNumber: string,
-// ): Promise<AuthReturnDto> {
-//   const existingUser =
-//     await this.userRepository.findUserByPhoneNumber(mobileNumber);
-//   if (!existingUser) {
-//     throw new UnprocessableEntityException(`phone number doesn't exists`);
-//   }
-//   await this.otpService.verifyOTP(existingUser.phoneNumber, otp);
-//   const { password, ...restProperties } = existingUser;
-//   let user = restProperties;
-//   return {
-//     user: user,
-//     token: this.createNormalToken(user),
-//     refreshToken: this.createRefreshToken(user),
-//   };
-// }
-// async requestConnectPhoneNumberWithSocial(
-//   connectSocial: ConnectSocial,
-//   userId: number,
-// ) {
-//   let theUser = await this.userRepository.findById(userId);
-
-// if (!connectSocial.facebookId && !connectSocial.googleId) {
-//   throw new UnprocessableEntityException(
-//     'Please provide a social id (facebookId or googleId)',
-//   );
-// }
-
-// if (connectSocial.facebookId && connectSocial.googleId) {
-//   throw new UnprocessableEntityException(
-//     'Please provide either facebookId or googleId',
-//   );
-// }
-
-//   await this.userRepository.updateSocialMedia(
-//     connectSocial.firstName,
-//     connectSocial.lastName,
-//     connectSocial.email,
-//     connectSocial.googleId,
-//     connectSocial.facebookId,
-//     theUser.id,
-//   );
-
-//   const { password, ...restProperties } = theUser;
-
-//   return {
-//     user: restProperties,
-//     token: this.createNormalToken(restProperties),
-//     refreshToken: this.createRefreshToken(restProperties),
-//   };
-// }

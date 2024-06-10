@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class GlobalStageReturnDto {
+export class StageTacticDto {
   @ApiProperty()
   id: number;
 

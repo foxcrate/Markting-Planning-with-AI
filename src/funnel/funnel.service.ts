@@ -1,5 +1,7 @@
 import {
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -7,14 +9,19 @@ import { FunnelRepository } from './funnel.repository';
 import { FunnelCreateDto } from './dtos/funnel-create.dto';
 import { FunnelUpdateDto } from './dtos/funnel-update.dto';
 import { StageService } from 'src/stage/stage.service';
+import { FunnelReturnDto } from './dtos/funnel-return.dto';
 
 @Injectable()
 export class FunnelService {
   constructor(
     private readonly funnelRepository: FunnelRepository,
+    @Inject(forwardRef(() => StageService))
     private readonly stageService: StageService,
   ) {}
-  async create(funnelCreateBody: FunnelCreateDto, userId: number) {
+  async create(
+    funnelCreateBody: FunnelCreateDto,
+    userId: number,
+  ): Promise<FunnelReturnDto> {
     let newFunnel = await this.funnelRepository.create(
       funnelCreateBody,
       userId,
@@ -33,7 +40,7 @@ export class FunnelService {
   }
 
   //get one funnel
-  async getOne(funnelId: number, userId: number) {
+  async getOne(funnelId: number, userId: number): Promise<FunnelReturnDto> {
     await this.isOwner(funnelId, userId);
     return await this.funnelRepository.findById(funnelId);
   }
