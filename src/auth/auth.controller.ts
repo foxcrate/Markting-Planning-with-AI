@@ -17,6 +17,7 @@ import { VerifyEmailOtpDto } from './dtos/verify-email-otp.dto';
 import { UserId } from 'src/decorators/user-id.decorator';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,
@@ -242,6 +243,7 @@ export class AuthController {
   @ApiInternalServerErrorResponse({
     type: ErrorResponseDto,
   })
+  @ApiBearerAuth()
   @Post('email-otp')
   @UseGuards(AuthGuard)
   async sendEmailOtp(@Body() sendEmailDto: SendEmailDto) {
@@ -257,6 +259,7 @@ export class AuthController {
   @ApiNotFoundResponse({
     type: ErrorResponseDto,
   })
+  @ApiBearerAuth()
   @Post('verify/email-otp')
   @UseGuards(AuthGuard)
   async verifyEmailOtp(
