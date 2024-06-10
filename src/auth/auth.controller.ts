@@ -5,8 +5,8 @@ import { RefreshTokenDto } from './dtos/refresh-token.dto';
 import { GoogleReturnDataSerializer } from './serializers/google-return-data.serializer';
 import { FacebookReturnDataSerializer } from './serializers/facebook-return-data.serializer';
 import { SocialSignDto } from './dtos/social-sign.dto';
-import { SocialSignUp } from './dtos/social-signup.dto';
-import { SocialSignIn } from './dtos/social_signin.dto';
+import { SocialSignUpDto } from './dtos/social-signup.dto';
+import { SocialSignInDto } from './dtos/social-signin.dto';
 import { MobileSignUpDto } from './dtos/mobile-signup.dto';
 import { MobileSignInDto } from './dtos/mobile-signin.dto';
 import { VerifyConnectSocialOtpDto } from './dtos/verify-connect-social-otp.dto';
@@ -15,18 +15,57 @@ import { SendEmailDto } from './dtos/send-email-otp.dto';
 import { AuthGuard } from 'src/gurads/auth.guard';
 import { VerifyEmailOtpDto } from './dtos/verify-email-otp.dto';
 import { UserId } from 'src/decorators/user-id.decorator';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiCreatedResponse,
+  ApiInternalServerErrorResponse,
+  ApiNotFoundResponse,
+  ApiTags,
+  ApiUnauthorizedResponse,
+  ApiUnprocessableEntityResponse,
+} from '@nestjs/swagger';
+import { SignupReturnDto } from './dtos/signup-return.dto';
+import { ErrorResponseDto } from 'src/dtos/error-response.dto';
+import { SignInReturnDto } from './dtos/signin-return.dto';
+import { FacebookDataReturnDto } from './dtos/facebook-data-return.dto';
+import { GoogleDataReturnDto } from './dtos/google-data-return.dto';
+import { AuthReturnDto } from './dtos/auth-return.dto';
+import { RefreshTokenReturnDto } from './dtos/refresh-token-return.dto';
+import { SendEmailReturnDto } from './dtos/send-email-return-otp.dto';
+import { UserDto } from 'src/user/dtos/user.dto';
 
+@ApiTags('Auth')
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   /////////////////// Mobile Auth //////////////////////////
 
+  @ApiBody({
+    type: MobileSignUpDto,
+  })
+  @ApiCreatedResponse({
+    type: SignupReturnDto,
+  })
+  @ApiBadRequestResponse({
+    type: ErrorResponseDto,
+  })
   @Post('mobile-sign-up')
   async mobileSignUp(@Body() signUpDto: MobileSignUpDto) {
     return this.authService.mobileSignUp(signUpDto);
   }
 
+  @ApiBody({
+    type: MobileSignInDto,
+  })
+  @ApiCreatedResponse({
+    type: SignInReturnDto,
+    description: 'OTP will be sent to the phone number',
+  })
+  @ApiNotFoundResponse({
+    type: ErrorResponseDto,
+  })
   @Post('mobile-sign-in')
   async mobileSignIn(@Body() signInDto: MobileSignInDto) {
     return this.authService.mobileSignIn(signInDto);
@@ -34,6 +73,15 @@ export class AuthController {
 
   //////////////////////Social Auth ///////////////////////////
 
+  @ApiBody({
+    type: SocialSignDto,
+  })
+  @ApiCreatedResponse({
+    type: GoogleDataReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
   @Post('google-data')
   async googleRedirect(@Body() socialSign: SocialSignDto) {
     let userData = await this.authService.getGoogleUserData(
@@ -43,6 +91,15 @@ export class AuthController {
     return GoogleReturnDataSerializer.serialize(userData);
   }
 
+  @ApiBody({
+    type: SocialSignDto,
+  })
+  @ApiCreatedResponse({
+    type: FacebookDataReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
   @Post('facebook-data')
   async facebookRedirect(@Body() socialSign: SocialSignDto) {
     let userData = await this.authService.getFacebookUserData(
@@ -52,16 +109,52 @@ export class AuthController {
     return FacebookReturnDataSerializer.serialize(userData);
   }
 
+  @ApiBody({
+    type: SocialSignUpDto,
+  })
+  @ApiCreatedResponse({
+    type: SignupReturnDto,
+    description: 'OTP will be sent to the phone number',
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
   @Post('social-sign-up')
-  async socialSignUp(@Body() socialSignUp: SocialSignUp) {
+  async socialSignUp(@Body() socialSignUp: SocialSignUpDto) {
     return await this.authService.socialSignUp(socialSignUp);
   }
 
+  @ApiBody({
+    type: SocialSignInDto,
+    description: 'googleId or facebookId is required',
+  })
+  @ApiCreatedResponse({
+    type: AuthReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiNotFoundResponse({
+    type: ErrorResponseDto,
+  })
   @Post('social-sign-in')
-  async socialSignIn(@Body() socialSignIn: SocialSignIn) {
+  async socialSignIn(@Body() socialSignIn: SocialSignInDto) {
     return await this.authService.socialSignIn(socialSignIn);
   }
 
+  @ApiBody({
+    type: PhoneNumberDto,
+  })
+  @ApiCreatedResponse({
+    type: SignInReturnDto,
+    description: 'OTP will be sent to the phone number',
+  })
+  @ApiNotFoundResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBadRequestResponse({
+    type: ErrorResponseDto,
+  })
   @Post('request/connect-phone-social')
   async connectPhoneSocial(@Body() { phoneNumber }: PhoneNumberDto) {
     return await this.authService.requestConnectPhoneNumberWithSocial(
@@ -69,6 +162,15 @@ export class AuthController {
     );
   }
 
+  @ApiBody({
+    type: VerifyConnectSocialOtpDto,
+  })
+  @ApiCreatedResponse({
+    type: AuthReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
   @Post('verify/connect-social-otp')
   async verifyConnectSocialOtp1(
     @Body() verifyConnectSocialOtp: VerifyConnectSocialOtpDto,
@@ -80,11 +182,29 @@ export class AuthController {
 
   ///////////////////////////////
 
+  @ApiBody({
+    type: RefreshTokenDto,
+  })
+  @ApiCreatedResponse({
+    type: RefreshTokenReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
   @Post('refresh-token')
   async refreshToken(@Body() { refreshToken }: RefreshTokenDto) {
     return await this.authService.refreshToken(refreshToken);
   }
 
+  @ApiBody({
+    type: VerifyOtpDto,
+  })
+  @ApiCreatedResponse({
+    type: AuthReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
   @Post('verify/signup-otp')
   async verifySignupOtp1(@Body() verifyOtpData: VerifyOtpDto) {
     return await this.authService.verifySignupOTP(
@@ -93,6 +213,15 @@ export class AuthController {
     );
   }
 
+  @ApiBody({
+    type: VerifyOtpDto,
+  })
+  @ApiCreatedResponse({
+    type: AuthReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
   @Post('verify/signin-otp')
   async verifySigninOtp1(@Body() verifyOtpData: VerifyOtpDto) {
     return await this.authService.verifySigninOTP(
@@ -103,12 +232,31 @@ export class AuthController {
 
   ////////////////////////
 
+  @ApiBody({
+    type: SendEmailDto,
+  })
+  @ApiCreatedResponse({
+    type: SendEmailReturnDto,
+    description: 'Email sent successfully',
+  })
+  @ApiInternalServerErrorResponse({
+    type: ErrorResponseDto,
+  })
   @Post('email-otp')
   @UseGuards(AuthGuard)
   async sendEmailOtp(@Body() sendEmailDto: SendEmailDto) {
     return await this.authService.sendEmailOtp(sendEmailDto.email);
   }
 
+  @ApiBody({
+    type: VerifyEmailOtpDto,
+  })
+  @ApiCreatedResponse({
+    type: UserDto,
+  })
+  @ApiNotFoundResponse({
+    type: ErrorResponseDto,
+  })
   @Post('verify/email-otp')
   @UseGuards(AuthGuard)
   async verifyEmailOtp(
@@ -122,60 +270,3 @@ export class AuthController {
     );
   }
 }
-
-// @Post('verify-signup-otp')
-// async verifySignupOtp1(@Body() verifyOtpData: VerifyOtpDto) {
-//   return await this.authService.verifyAuthOTP(
-//     verifyOtpData.otp,
-//     verifyOtpData.mobileNumber,
-//   );
-// }
-
-// @Post('google')
-// async signInUpWithGoogle(@Body() googleSignInUp: GoogleSignInUpDto) {
-//   return this.authService.googleSignInUp(googleSignInUp.token);
-// }
-
-// @Post('facebook')
-// async signInUpWithFacebook(@Body() googleSignInUp: GoogleSignInUpDto) {
-//   return this.authService.facebookSignInUp(googleSignInUp.token);
-// }
-
-// @Post('sign-up')
-// async signUp(@Body() signUpDto: SignUpDto) {
-//   return this.authService.signUp(signUpDto);
-// }
-
-// @Post('email-verification')
-// async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
-//   return this.authService.emailVerification(verifyEmailDto.token);
-// }
-
-// @Post('forget-password')
-// async forgetPassword(@Body() forgetPasswordDto: ForgetPasswordDto) {
-//   return this.authService.forgetPassword(forgetPasswordDto.email);
-// }
-
-// @Post('validate-forget-password-otp')
-// async validateForgetPasswordOtp(
-//   @Body() verifyForgetPasswordOtpDto: VerifyForgetPasswordOtpDto,
-// ) {
-//   return this.authService.validateForgetPasswordOtp(
-//     verifyForgetPasswordOtpDto.otp,
-//     verifyForgetPasswordOtpDto.email,
-//   );
-// }
-
-// @Post('change-password')
-// @UseGuards(AuthGuard)
-// async changePassword(
-//   @Body() changePasswordDto: ChangePasswordDto,
-//   @UserId() userId: number,
-// ) {
-//   return this.authService.changePassword(changePasswordDto.password, userId);
-// }
-
-// @Post('sign-in')
-// async signIn(@Body() signInDto: SignInDto) {
-//   return this.authService.signIn(signInDto);
-// }

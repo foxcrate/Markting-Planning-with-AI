@@ -67,12 +67,7 @@ export class UserRepository {
     // console.log(query);
 
     const createdUser = await this.db.query(query, params);
-
-    return new UserDto({
-      firstName,
-      lastName,
-      id: Number(createdUser.insertId),
-    });
+    return await this.findById(createdUser.insertId);
   }
 
   async update(UpdateProfileBody: UpdateProfileDto, userId: number) {
