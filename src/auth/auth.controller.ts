@@ -36,7 +36,6 @@ import { RefreshTokenReturnDto } from './dtos/refresh-token-return.dto';
 import { SendEmailReturnDto } from './dtos/send-email-return-otp.dto';
 import { UserDto } from 'src/user/dtos/user.dto';
 
-@ApiTags('Auth')
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -52,6 +51,7 @@ export class AuthController {
   @ApiBadRequestResponse({
     type: ErrorResponseDto,
   })
+  @ApiTags('Auth: Mobile Signup')
   @Post('mobile-sign-up')
   async mobileSignUp(@Body() signUpDto: MobileSignUpDto) {
     return this.authService.mobileSignUp(signUpDto);
@@ -67,6 +67,7 @@ export class AuthController {
   @ApiNotFoundResponse({
     type: ErrorResponseDto,
   })
+  @ApiTags('Auth: Mobile Signin')
   @Post('mobile-sign-in')
   async mobileSignIn(@Body() signInDto: MobileSignInDto) {
     return this.authService.mobileSignIn(signInDto);
@@ -83,6 +84,7 @@ export class AuthController {
   @ApiUnprocessableEntityResponse({
     type: ErrorResponseDto,
   })
+  @ApiTags('Auth: Get Google Data')
   @Post('google-data')
   async googleRedirect(@Body() socialSign: SocialSignDto) {
     let userData = await this.authService.getGoogleUserData(
@@ -101,6 +103,7 @@ export class AuthController {
   @ApiUnprocessableEntityResponse({
     type: ErrorResponseDto,
   })
+  @ApiTags('Auth: Get Facebook Data')
   @Post('facebook-data')
   async facebookRedirect(@Body() socialSign: SocialSignDto) {
     let userData = await this.authService.getFacebookUserData(
@@ -120,6 +123,7 @@ export class AuthController {
   @ApiUnprocessableEntityResponse({
     type: ErrorResponseDto,
   })
+  @ApiTags('Auth: Social Signup')
   @Post('social-sign-up')
   async socialSignUp(@Body() socialSignUp: SocialSignUpDto) {
     return await this.authService.socialSignUp(socialSignUp);
@@ -138,6 +142,7 @@ export class AuthController {
   @ApiNotFoundResponse({
     type: ErrorResponseDto,
   })
+  @ApiTags('Auth:Social Signin')
   @Post('social-sign-in')
   async socialSignIn(@Body() socialSignIn: SocialSignInDto) {
     return await this.authService.socialSignIn(socialSignIn);
@@ -156,6 +161,7 @@ export class AuthController {
   @ApiBadRequestResponse({
     type: ErrorResponseDto,
   })
+  @ApiTags('Auth: Request to connect phone number with social')
   @Post('request/connect-phone-social')
   async connectPhoneSocial(@Body() { phoneNumber }: PhoneNumberDto) {
     return await this.authService.requestConnectPhoneNumberWithSocial(
@@ -172,6 +178,7 @@ export class AuthController {
   @ApiUnprocessableEntityResponse({
     type: ErrorResponseDto,
   })
+  @ApiTags('Auth: Connect Social Verification')
   @Post('verify/connect-social-otp')
   async verifyConnectSocialOtp1(
     @Body() verifyConnectSocialOtp: VerifyConnectSocialOtpDto,
@@ -192,6 +199,7 @@ export class AuthController {
   @ApiUnauthorizedResponse({
     type: ErrorResponseDto,
   })
+  @ApiTags('Auth: Refresh Token')
   @Post('refresh-token')
   async refreshToken(@Body() { refreshToken }: RefreshTokenDto) {
     return await this.authService.refreshToken(refreshToken);
@@ -206,6 +214,7 @@ export class AuthController {
   @ApiUnprocessableEntityResponse({
     type: ErrorResponseDto,
   })
+  @ApiTags('Auth: Signup OTP Verification')
   @Post('verify/signup-otp')
   async verifySignupOtp1(@Body() verifyOtpData: VerifyOtpDto) {
     return await this.authService.verifySignupOTP(
@@ -223,6 +232,7 @@ export class AuthController {
   @ApiUnprocessableEntityResponse({
     type: ErrorResponseDto,
   })
+  @ApiTags('Auth: Signin OTP Verification')
   @Post('verify/signin-otp')
   async verifySigninOtp1(@Body() verifyOtpData: VerifyOtpDto) {
     return await this.authService.verifySigninOTP(
@@ -244,6 +254,7 @@ export class AuthController {
     type: ErrorResponseDto,
   })
   @ApiBearerAuth()
+  @ApiTags('Auth: Send Email OTP')
   @Post('email-otp')
   @UseGuards(AuthGuard)
   async sendEmailOtp(@Body() sendEmailDto: SendEmailDto) {
@@ -260,6 +271,7 @@ export class AuthController {
     type: ErrorResponseDto,
   })
   @ApiBearerAuth()
+  @ApiTags('Auth: Email OTP Verification')
   @Post('verify/email-otp')
   @UseGuards(AuthGuard)
   async verifyEmailOtp(
