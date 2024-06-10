@@ -184,9 +184,12 @@ export class TacticRepository {
   `;
     let filter = ``;
     if (filterOptions.private) {
-      filter = ` AND tactics.private = ${filterOptions.private}`;
+      filter = filter + ` AND tactics.private = ${filterOptions.private} `;
     }
-    let queryEnd = ` GROUP BY tactics.id`;
+    if (filterOptions.name) {
+      filter = filter + ` AND tactics.name LIKE '%${filterOptions.name}%' `;
+    }
+    let queryEnd = `GROUP BY tactics.id`;
 
     return await this.db.query(queryStart + filter + queryEnd, [userId]);
   }

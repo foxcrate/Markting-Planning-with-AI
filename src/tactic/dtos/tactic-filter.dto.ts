@@ -5,4 +5,8 @@ export class TacticsFilterDto {
   @ApiProperty()
   @IsOptional()
   private: boolean;
+
+  @ApiProperty()
+  @IsOptional()
+  name: string;
 }
