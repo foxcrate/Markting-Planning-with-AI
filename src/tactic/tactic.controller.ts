@@ -118,6 +118,7 @@ export class TacticController {
 
   // get all my private tactics
   @ApiQuery({ name: 'private', required: false })
+  @ApiQuery({ name: 'name', required: false })
   @ApiCreatedResponse({
     type: TacticReturnDto,
     isArray: true,
