@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { StageTacticDto } from './satge-tactic.dto';
+import { StageTacticDto } from './stage-tactic.dto';
 
 export class StageDetailsReturnDto {
   @ApiProperty()
