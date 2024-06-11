@@ -7,7 +7,8 @@ import { TacticRepository } from './tactic.repository';
 import { TacticCreateDto } from './dtos/tactic-create.dto';
 import { TacticUpdateDto } from './dtos/tactic-update.dto';
 import { TacticReturnDto } from './dtos/tactic-return.dto';
-import { TacticsFilterDto } from './dtos/tactic-filter.dto';
+import { GetMineFilterDto } from './dtos/get-mine-filter.dto';
+import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 
 @Injectable()
 export class TacticService {
@@ -37,14 +38,14 @@ export class TacticService {
 
   async getMyTactics(
     userId: number,
-    filter: TacticsFilterDto,
+    filter: GetMineFilterDto,
   ): Promise<TacticReturnDto[]> {
     return await this.tacticRepository.getTacticsByUserId(userId, filter);
   }
 
   //get all tactics
-  async getAll(name: string): Promise<TacticReturnDto[]> {
-    return await this.tacticRepository.findAll(name);
+  async getAll(filter: GetAllFilterDto): Promise<TacticReturnDto[]> {
+    return await this.tacticRepository.findAll(filter);
   }
 
   async delete(tacticId: number, userId: number): Promise<TacticReturnDto> {

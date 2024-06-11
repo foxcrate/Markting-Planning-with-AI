@@ -15,15 +15,11 @@ import { TacticCreateDto } from './dtos/tactic-create.dto';
 import { TacticIdDto } from './dtos/tactic-id.dto';
 import { UserId } from 'src/decorators/user-id.decorator';
 import { TacticUpdateDto } from './dtos/tactic-update.dto';
-import { AddTacticToStageIdsDto } from './dtos/add-tactic-to-stage.dto';
-import { TacticNameDto } from './dtos/tactic-name.dto';
-import { TacticsFilterDto } from './dtos/tactic-filter.dto';
-import { RemoveTacticFromStageDto } from './dtos/remove-tactic-from-stage.dto';
+import { GetMineFilterDto } from './dtos/get-mine-filter.dto';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
-  ApiForbiddenResponse,
   ApiParam,
   ApiQuery,
   ApiTags,
@@ -31,6 +27,8 @@ import {
 } from '@nestjs/swagger';
 import { TacticReturnDto } from './dtos/tactic-return.dto';
 import { ErrorResponseDto } from 'src/dtos/error-response.dto';
+import { GlobalStagesEnum } from 'src/enums/global-stages.enum';
+import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 
 @Controller({ path: 'tactic', version: '1' })
 export class TacticController {
@@ -54,6 +52,7 @@ export class TacticController {
 
   //get all tactics
   @ApiQuery({ name: 'name', required: false })
+  @ApiQuery({ name: 'globalStage', required: false, enum: GlobalStagesEnum })
   @ApiCreatedResponse({
     type: TacticReturnDto,
     isArray: true,
@@ -66,8 +65,8 @@ export class TacticController {
   //
   @Get('')
   @UseGuards(AuthGuard)
-  async getAll(@Query() params: TacticNameDto) {
-    return await this.tacticService.getAll(params.name);
+  async getAll(@Query() filter: GetAllFilterDto) {
+    return await this.tacticService.getAll(filter);
   }
 
   @ApiParam({
@@ -116,9 +115,10 @@ export class TacticController {
     return await this.tacticService.getOne(paramsId.tacticId, userId);
   }
 
-  // get all my private tactics
+  // get all my tactics
   @ApiQuery({ name: 'private', required: false })
   @ApiQuery({ name: 'name', required: false })
+  @ApiQuery({ name: 'globalStage', required: false, enum: GlobalStagesEnum })
   @ApiCreatedResponse({
     type: TacticReturnDto,
     isArray: true,
@@ -132,7 +132,7 @@ export class TacticController {
   @Get('/mine')
   @UseGuards(AuthGuard)
   async getMyTactics(
-    @Query() filter: TacticsFilterDto,
+    @Query() filter: GetMineFilterDto,
     @UserId() userId: number,
   ) {
     return await this.tacticService.getMyTactics(userId, filter);

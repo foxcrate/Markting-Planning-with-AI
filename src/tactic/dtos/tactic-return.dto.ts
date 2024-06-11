@@ -8,7 +8,7 @@ export class TacticReturnDto {
   @ApiProperty()
   name: string;
   @ApiProperty()
-  description: number;
+  description: string;
   @ApiProperty()
   benchmarkName: string;
   @ApiProperty()

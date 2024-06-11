@@ -48,16 +48,36 @@ export class FunnelRepository {
 
   async findById(id: number): Promise<FunnelReturnDto> {
     const query = `
-      SELECT funnels.id,funnels.name,funnels.description,funnels.userId,
-      CASE WHEN COUNT(stages.id) = 0 THEN null
-      ELSE
-      JSON_ARRAYAGG(JSON_OBJECT(
-        'id',stages.id,
-        'name', stages.name,
-        'description', stages.description,
-        'theOrder', stages.theOrder
-        ))
-      END AS stages
+      SELECT
+        funnels.id,funnels.name,funnels.description,funnels.userId,
+        CASE WHEN COUNT(stages.id) = 0 THEN JSON_ARRAY()
+        ELSE
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'id',stages.id,
+            'name', stages.name,
+            'description', stages.description,
+            'theOrder', stages.theOrder,
+            'tactics', (
+              SELECT
+                CASE WHEN COUNT(tactics.id) = 0 THEN JSON_ARRAY()
+                ELSE
+                  JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                      'id',tactics.id,
+                      'name', tactics.name,
+                      'description', tactics.description,
+                      'theOrder', tactics_stages.theOrder
+                    )
+                  )
+                END
+              FROM tactics_stages
+              LEFT JOIN tactics ON tactics.id = tactics_stages.tacticId
+              WHERE tactics_stages.stageId = stages.id
+              )
+          )
+        )
+        END AS stages
       FROM funnels
       LEFT JOIN stages ON stages.funnelId = funnels.id
       WHERE funnels.id = ?

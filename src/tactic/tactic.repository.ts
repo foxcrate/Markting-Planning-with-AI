@@ -1,12 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
 import { TacticCreateDto } from './dtos/tactic-create.dto';
 import { TacticStepCreateDto } from './dtos/tactic-step-create.dto';
 import { TacticUpdateDto } from './dtos/tactic-update.dto';
 import { TacticReturnDto } from './dtos/tactic-return.dto';
 import { DB_PROVIDER } from 'src/db/constants';
 import { Pool } from 'mariadb';
-import { TacticsFilterDto } from './dtos/tactic-filter.dto';
+import { GetMineFilterDto } from './dtos/get-mine-filter.dto';
+import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 
 @Injectable()
 export class TacticRepository {
@@ -113,7 +113,7 @@ export class TacticRepository {
   //   await this.db.query(query, [tacticId, stageId]);
   // }
 
-  async getTacticsByUserId(userId: number, filterOptions: TacticsFilterDto) {
+  async getTacticsByUserId(userId: number, filterOptions: GetMineFilterDto) {
     const queryStart = `
     WITH
     this_tactics_stages AS (
@@ -154,7 +154,7 @@ export class TacticRepository {
       'name', global_stages.name,
       'description', global_stages.description
     )
-    END AS global_stage,
+    END AS globalStage,
     CASE WHEN COUNT(tactic_step.id) = 0 THEN null
     ELSE
     JSON_ARRAYAGG(JSON_OBJECT(
@@ -188,6 +188,11 @@ export class TacticRepository {
     }
     if (filterOptions.name) {
       filter = filter + ` AND tactics.name LIKE '%${filterOptions.name}%' `;
+    }
+
+    if (filterOptions.globalStage) {
+      filter =
+        filter + ` AND global_stages.name = '${filterOptions.globalStage}' `;
     }
     let queryEnd = `GROUP BY tactics.id`;
 
@@ -256,7 +261,7 @@ export class TacticRepository {
         'name', global_stages.name,
         'description', global_stages.description
       )
-      END AS global_stage,
+      END AS globalStage,
       CASE WHEN COUNT(tactic_step.id) = 0 THEN null
       ELSE
       JSON_ARRAYAGG(JSON_OBJECT(
@@ -280,7 +285,7 @@ export class TacticRepository {
   }
 
   //find all tactics
-  async findAll(name: string): Promise<TacticReturnDto[]> {
+  async findAll(filterOptions: GetAllFilterDto): Promise<TacticReturnDto[]> {
     const queryStart = `
     SELECT tactics.id,
     tactics.name,
@@ -305,7 +310,7 @@ export class TacticRepository {
       'name', global_stages.name,
       'description', global_stages.description
     )
-    END AS global_stage,
+    END AS globalStage,
     CASE WHEN COUNT(tactic_step.id) = 0 THEN null
     ELSE
     JSON_ARRAYAGG(JSON_OBJECT(
@@ -324,12 +329,18 @@ export class TacticRepository {
     WHERE tactics.private = false
     
   `;
-    let search = ``;
-    if (name) {
-      search = `AND tactics.name LIKE '%${name}%'`;
+    let filter = ``;
+    if (filterOptions.name) {
+      filter = filter + ` AND tactics.name LIKE '%${filterOptions.name}%' `;
+    }
+
+    if (filterOptions.globalStage) {
+      filter =
+        filter + ` AND global_stages.name = '${filterOptions.globalStage}' `;
     }
     let queryEnd = `GROUP BY tactics.id`;
-    return await this.db.query(queryStart + search + queryEnd, []);
+
+    return await this.db.query(queryStart + filter + queryEnd);
   }
 
   //delete global_stage

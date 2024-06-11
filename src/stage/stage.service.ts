@@ -57,8 +57,24 @@ export class StageService {
   ) {
     let theFunnel = await this.funnelService.getOne(funnelId, userId);
     await this.stageRepository.isOwner(stageId, theFunnel.userId, userId);
-    await this.tacticService.getOne(tacticId, userId);
-    await this.stageRepository.addTacticToStage(stageId, tacticId, 0);
+    let theTactic = await this.tacticService.getOne(tacticId, userId);
+
+    // create new tactic record
+    let tacticCreateObject = {
+      name: theTactic.name,
+      description: theTactic.description,
+      benchmarkName: theTactic.benchmarkName,
+      benchmarkNumber: theTactic.benchmarkNumber,
+      private: theTactic.private,
+      globalStageId: theTactic.globalStage.id,
+      steps: theTactic.steps,
+    };
+    let createdTactic = await this.tacticService.create(
+      tacticCreateObject,
+      userId,
+    );
+    // add stage tactic relationship
+    await this.stageRepository.addTacticToStage(stageId, createdTactic.id, 0);
     return await this.stageRepository.findById(stageId);
   }
 
