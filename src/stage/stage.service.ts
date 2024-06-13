@@ -12,6 +12,7 @@ import { TacticIdAndOrderDto } from './dtos/tacticId-and-order.dto';
 import { FunnelService } from 'src/funnel/funnel.service';
 import { TacticService } from 'src/tactic/tactic.service';
 import { StageDetailsReturnDto } from './dtos/stage-details-return.dto';
+import { TacticCreateDto } from 'src/tactic/dtos/tactic-create.dto';
 
 @Injectable()
 export class StageService {
@@ -63,8 +64,9 @@ export class StageService {
     let tacticCreateObject = {
       name: theTactic.name,
       description: theTactic.description,
-      benchmarkName: theTactic.benchmarkName,
-      benchmarkNumber: theTactic.benchmarkNumber,
+      kpiName: theTactic.kpiName,
+      kpiUnit: theTactic.kpiUnit,
+      kpiMeasuringFrequency: theTactic.kpiMeasuringFrequency,
       private: theTactic.private,
       globalStageId: theTactic.globalStage.id,
       steps: theTactic.steps,
@@ -73,6 +75,21 @@ export class StageService {
       tacticCreateObject,
       userId,
     );
+    // add stage tactic relationship
+    await this.stageRepository.addTacticToStage(stageId, createdTactic.id, 0);
+    return await this.stageRepository.findById(stageId);
+  }
+
+  async addNewTacticToStage(
+    funnelId: number,
+    stageId: number,
+    tacticBody: TacticCreateDto,
+    userId: number,
+  ) {
+    let theFunnel = await this.funnelService.getOne(funnelId, userId);
+    await this.stageRepository.isOwner(stageId, theFunnel.userId, userId);
+
+    let createdTactic = await this.tacticService.create(tacticBody, userId);
     // add stage tactic relationship
     await this.stageRepository.addTacticToStage(stageId, createdTactic.id, 0);
     return await this.stageRepository.findById(stageId);

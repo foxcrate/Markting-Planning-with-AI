@@ -12,6 +12,7 @@ import {
 import { TacticStepEntity } from './tactic-step.entity';
 import { TacticsStagesEntity } from '../stage/tactics-stages.entity';
 import { UserEntity } from '../user/user.entity';
+import { KpiMeasuringFrequencyEnum } from 'src/enums/kpi-measuring-frequency.enum';
 
 @Entity({ name: 'tactics' })
 export class TacticEntity {
@@ -22,10 +23,18 @@ export class TacticEntity {
   name: string;
 
   @Column({ nullable: true })
-  benchmarkName: string;
+  kpiName: string;
 
   @Column({ nullable: true })
-  benchmarkNumber: string;
+  kpiUnit: string;
+
+  @Column({
+    type: 'enum',
+    enum: KpiMeasuringFrequencyEnum,
+    nullable: true,
+    default: null,
+  })
+  kpiMeasuringFrequency: KpiMeasuringFrequencyEnum | null;
 
   @Column({ type: 'longtext' })
   description: string;

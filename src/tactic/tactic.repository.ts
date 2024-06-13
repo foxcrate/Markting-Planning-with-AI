@@ -17,14 +17,15 @@ export class TacticRepository {
     userId: number,
   ): Promise<TacticReturnDto> {
     const query = `
-    INSERT INTO tactics (name, description, benchmarkName, benchmarkNumber, private,globalStageId,userId) VALUES (?,?,?,?, ?,?,?)
+    INSERT INTO tactics (name, description, kpiName, kpiUnit, kpiMeasuringFrequency,private,globalStageId,userId) VALUES (?,?,?,?,?,?,?,?)
   `;
     const params = [
       tacticCreateBody.name,
       tacticCreateBody.description,
-      tacticCreateBody.benchmarkName ? tacticCreateBody.benchmarkName : null,
-      tacticCreateBody.benchmarkNumber
-        ? tacticCreateBody.benchmarkNumber
+      tacticCreateBody.kpiName ? tacticCreateBody.kpiName : null,
+      tacticCreateBody.kpiUnit ? tacticCreateBody.kpiUnit : null,
+      tacticCreateBody.kpiMeasuringFrequency
+        ? tacticCreateBody.kpiMeasuringFrequency
         : null,
       tacticCreateBody.private ? tacticCreateBody.private : false,
       tacticCreateBody.globalStageId,
@@ -36,13 +37,6 @@ export class TacticRepository {
     if (tacticCreateBody.steps && tacticCreateBody.steps.length > 0) {
       await this.addSteps(Number(insertId), tacticCreateBody.steps);
     }
-
-    // if (tacticCreateBody.stageId) {
-    //   await this.addToStage(
-    //     Number(insertId),
-    //     parseInt(tacticCreateBody.stageId),
-    //   );
-    // }
 
     return await this.findById(Number(insertId));
   }
@@ -72,30 +66,15 @@ export class TacticRepository {
     await this.db.query(query, [tacticId]);
   }
 
-  // async addToStage(tacticId: number, stageId: number, theOrder: number) {
-  //   // check if tactic_stage exists
-  //   let query = `
-  //     SELECT *
-  //     FROM tactics_stages
-  //     WHERE tacticId = ? AND stageId = ?
-  //   `;
-  //   const tactic_stage = await this.db.query(query, [tacticId, stageId]);
-  //   if (tactic_stage.length == 0) {
-  //     query =
-  //       'INSERT INTO tactics_stages (tacticId,stageId,theOrder) VALUES (?,?,?)';
-
-  //     await this.db.query(query, [tacticId, stageId, theOrder]);
-  //   }
-  // }
-
   //create tactics
   async createTactics(tactics: any[], stageId: number) {
     try {
       for (let i = 0; i < tactics.length; i++) {
         tactics[i].stageId = stageId;
         tactics[i].globalStageId = null;
-        tactics[i].benchmarkName = null;
-        tactics[i].benchmarkNumber = null;
+        tactics[i].kpiName = null;
+        tactics[i].kpiUnit = null;
+        tactics[i].kpiMeasuringFrequency = null;
         await this.create(tactics[i], null);
       }
     } catch (e) {
@@ -105,13 +84,6 @@ export class TacticRepository {
 
     return true;
   }
-
-  // async removeFromStage(tacticId: number, stageId: number) {
-  //   const query =
-  //     'DELETE FROM tactics_stages WHERE tacticId = ? AND stageId = ?';
-
-  //   await this.db.query(query, [tacticId, stageId]);
-  // }
 
   async getTacticsByUserId(userId: number, filterOptions: GetMineFilterDto) {
     const queryStart = `
@@ -134,8 +106,9 @@ export class TacticRepository {
     SELECT tactics.id,
     tactics.name,
     tactics.description,
-    tactics.benchmarkName,
-    tactics.benchmarkNumber,
+    tactics.kpiName,
+    tactics.kpiUnit,
+    tactics.kpiMeasuringFrequency,
     tactics.private,
     tactics.userId,
     CASE WHEN COUNT(users.id) = 0 THEN null
@@ -210,8 +183,9 @@ export class TacticRepository {
       SET
       name = IFNULL(?,tactics.name),
       description = IFNULL(?,tactics.description),
-      benchmarkName = IFNULL(?,tactics.benchmarkName),
-      benchmarkNumber = IFNULL(?,tactics.benchmarkNumber),
+      kpiName = IFNULL(?,tactics.kpiName),
+      kpiUnit = IFNULL(?,tactics.kpiUnit),
+      kpiMeasuringFrequency = IFNULL(?,tactics.kpiMeasuringFrequency),
       private = IFNULL(?,tactics.private),
       globalStageId = IFNULL(?,tactics.globalStageId)
       WHERE id = ?
@@ -219,8 +193,9 @@ export class TacticRepository {
     await this.db.query(query, [
       updateBody.name,
       updateBody.description,
-      updateBody.benchmarkName,
-      updateBody.benchmarkNumber,
+      updateBody.kpiName,
+      updateBody.kpiUnit,
+      updateBody.kpiMeasuringFrequency,
       updateBody.private,
       updateBody.globalStageId,
       tacticId,
@@ -241,8 +216,9 @@ export class TacticRepository {
       SELECT tactics.id,
       tactics.name,
       tactics.description,
-      tactics.benchmarkName,
-      tactics.benchmarkNumber,
+      tactics.kpiName,
+      tactics.kpiUnit,
+      tactics.kpiMeasuringFrequency,
       tactics.private,
       tactics.userId,
       CASE WHEN COUNT(users.id) = 0 THEN null
@@ -290,8 +266,9 @@ export class TacticRepository {
     SELECT tactics.id,
     tactics.name,
     tactics.description,
-    tactics.benchmarkName,
-    tactics.benchmarkNumber,
+    tactics.kpiName,
+    tactics.kpiUnit,
+    tactics.kpiMeasuringFrequency,
     tactics.private,
     tactics.userId,
     CASE WHEN COUNT(users.id) = 0 THEN null

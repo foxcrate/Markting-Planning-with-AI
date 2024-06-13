@@ -1,5 +1,7 @@
 import {
   Injectable,
+  InternalServerErrorException,
+  NotFoundException,
   OnModuleInit,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -10,6 +12,12 @@ import { TacticService } from 'src/tactic/tactic.service';
 import { ParameterObjectDto } from 'src/template/dtos/parameter-object.dto';
 import { ThreadService } from 'src/thread/thread.service';
 import { WorkspaceService } from 'src/workspace/workspace.service';
+import { CreateAiTacticDto } from './dtos/create-ai-tactic.dto';
+import { StageService } from 'src/stage/stage.service';
+import { WorkspaceReturnDto } from 'src/workspace/dtos/workspace-return.dto';
+import { ConfigService } from '@nestjs/config';
+import { SerializedDataObjectDto } from './dtos/serializedDataObject.dto';
+import { AiCreatedTacticDto } from './dtos/ai-created-tactic.dto';
 
 @Injectable()
 export class OpenAiService implements OnModuleInit {
@@ -17,7 +25,9 @@ export class OpenAiService implements OnModuleInit {
     private workspaceService: WorkspaceService,
     private funnelService: FunnelService,
     private threadService: ThreadService,
+    private stageService: StageService,
     private tacticService: TacticService,
+    private configService: ConfigService,
   ) {}
   public instance: OpenAI;
   public getInstance(): OpenAI {
@@ -33,6 +43,72 @@ export class OpenAiService implements OnModuleInit {
     this.instance = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
+  }
+
+  async aiCreateTactic(body: CreateAiTacticDto, userId: number): Promise<any> {
+    let serializedUserDataObject = await this.getFunctionalAiUserData(
+      body.workspaceId,
+      body.funnelId,
+      body.stageId,
+      userId,
+    );
+
+    return await this.runFunctionalAssistant(
+      this.configService.getOrThrow('CREATE_ONE_TACTIC_ASSISTANT_ID'),
+      serializedUserDataObject,
+      body.prompt,
+      body.workspaceId,
+      body.funnelId,
+      body.stageId,
+      userId,
+    );
+  }
+
+  async getFunctionalAiUserData(
+    workspaceId: number,
+    funnelId: number,
+    stageId: number,
+    userId: number,
+  ): Promise<SerializedDataObjectDto> {
+    let theWorkspace: WorkspaceReturnDto;
+    if (workspaceId == 0) {
+      let userWorkspaces =
+        await this.workspaceService.userConfirmedWorkspace(userId);
+      theWorkspace = userWorkspaces[0];
+      if (!theWorkspace) {
+        throw new NotFoundException('User has no workspaces');
+      }
+    } else {
+      theWorkspace = await this.workspaceService.getOne(workspaceId, userId);
+    }
+
+    let theFunnel = await this.funnelService.getOne(funnelId, userId);
+
+    let theStage = await this.stageService.getOne(
+      stageId,
+      theFunnel.userId,
+      userId,
+    );
+
+    let serializedReturnObject = {
+      project_data: {
+        name: theWorkspace.name,
+        goal: theWorkspace.goal,
+        budget: theWorkspace.budget,
+        targetGroup: theWorkspace.targetGroup,
+        marketingLevel: theWorkspace.marketingLevel,
+      },
+      funnel_data: {
+        name: theFunnel.name,
+        description: theFunnel.description,
+      },
+      stage_data: {
+        name: theStage.name,
+        description: theStage.description,
+        stage_tactics: theStage.tactics,
+      },
+    };
+    return serializedReturnObject;
   }
 
   async createTemplateAssistance(
@@ -166,6 +242,97 @@ export class OpenAiService implements OnModuleInit {
       };
     } else {
       console.log(JSON.stringify(run));
+      throw new UnprocessableEntityException(
+        `error in openAI run: ${run.status}`,
+      );
+    }
+  }
+
+  async runFunctionalAssistant(
+    openaiAssistantId: string,
+    runInstructions: SerializedDataObjectDto,
+    prompt: string,
+    workspaceId: number,
+    funnelId: number,
+    stageId: number,
+    userId: number,
+  ) {
+    let openAiThread = await this.createUserThread();
+    let theThread = await this.threadService.create(
+      userId,
+      null,
+      openAiThread.id,
+    );
+
+    let run = await this.instance.beta.threads.runs.create(theThread.openAiId, {
+      assistant_id: openaiAssistantId,
+      additional_instructions: JSON.stringify({
+        ...runInstructions,
+        prompt: prompt,
+      }),
+    });
+
+    while (['queued', 'in_progress', 'cancelling'].includes(run.status)) {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second
+      run = await this.instance.beta.threads.runs.retrieve(
+        run.thread_id,
+        run.id,
+      );
+    }
+
+    if (run.status === 'completed') {
+      const messages: any = await this.instance.beta.threads.messages.list(
+        run.thread_id,
+      );
+
+      return {
+        assistantMessage: messages.data[0].content[0].text.value,
+        threadEnd: false,
+      };
+    } else if (run.status === 'requires_action') {
+      let assistantMessage = null;
+      switch (
+        run.required_action.submit_tool_outputs.tool_calls[0].function.name
+      ) {
+        case 'add_tactic_to_workspace':
+          console.log('-- add_tactic_to_workspace --');
+
+          if (workspaceId === null || funnelId === null || stageId === null) {
+            throw new UnprocessableEntityException(
+              'workspaceId and funnelId and stageId is required',
+            );
+          }
+
+          let aiCratedObject = JSON.parse(
+            run.required_action.submit_tool_outputs.tool_calls[0].function
+              .arguments,
+          );
+
+          if (
+            Object.keys(aiCratedObject).length === 0 &&
+            Object.keys(aiCratedObject.tactic).length === 0
+          ) {
+            console.log('-- empty object from openai --');
+
+            throw new UnprocessableEntityException(
+              `error in openAI run:  ${run.status}`,
+            );
+          }
+
+          console.log(aiCratedObject);
+
+          assistantMessage = await this.addTacticToWorkspaceHandler(
+            aiCratedObject.tactic,
+          );
+
+          await this.threadService.finishTemplateThread(theThread.openAiId);
+          return {
+            assistantMessage: assistantMessage,
+            threadEnd: true,
+          };
+      }
+    } else {
+      console.log(run);
       throw new UnprocessableEntityException(
         `error in openAI run: ${run.status}`,
       );
@@ -310,6 +477,21 @@ export class OpenAiService implements OnModuleInit {
   async createUserThread() {
     const thread = await this.instance.beta.threads.create();
     return thread;
+  }
+
+  private async addTacticToWorkspaceHandler(
+    aiCreatedTactic: any,
+  ): Promise<AiCreatedTacticDto> {
+    //return serialized tactic
+    return {
+      name: aiCreatedTactic.name,
+      description: aiCreatedTactic.description,
+      theOrder: aiCreatedTactic.theOrder,
+      kpiName: aiCreatedTactic.kpi_name,
+      kpiUnit: aiCreatedTactic.kpi_unit,
+      kpiMeasuringFrequency: aiCreatedTactic.kpi_measuring_frequency,
+      steps: aiCreatedTactic.steps_to_achieve_the_tactic,
+    };
   }
 
   private createFunctionParametersObject(
