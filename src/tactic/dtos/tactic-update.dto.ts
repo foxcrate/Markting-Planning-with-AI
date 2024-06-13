@@ -1,13 +1,16 @@
 import {
+  ArrayNotEmpty,
   IsArray,
   IsBoolean,
   IsEnum,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
 import { TacticStepCreateDto } from './tactic-step-create.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { KpiMeasuringFrequencyEnum } from 'src/enums/kpi-measuring-frequency.enum';
+import { Type } from 'class-transformer';
 
 export class TacticUpdateDto {
   @ApiProperty()
@@ -47,8 +50,14 @@ export class TacticUpdateDto {
   @IsOptional()
   globalStageId: number;
 
-  @ApiProperty({ type: TacticStepCreateDto, isArray: true })
+  @ApiProperty({
+    type: TacticStepCreateDto,
+    isArray: true,
+  })
   @IsArray()
   @IsOptional()
+  @ArrayNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => TacticStepCreateDto)
   steps: TacticStepCreateDto[];
 }

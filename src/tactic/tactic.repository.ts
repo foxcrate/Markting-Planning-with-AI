@@ -266,8 +266,9 @@ export class TacticRepository {
     SELECT tactics.id,
     tactics.name,
     tactics.description,
-    tactics.benchmarkName,
-    tactics.benchmarkNumber,
+    tactics.kpiName,
+    tactics.kpiUnit,
+    tactics.kpiMeasuringFrequency,
     tactics.private,
     tactics.userId,
     CASE WHEN COUNT(users.id) = 0 THEN null
