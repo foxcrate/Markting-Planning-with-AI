@@ -1,6 +1,13 @@
-import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { TacticStepCreateDto } from './tactic-step-create.dto';
 import { ApiProperty } from '@nestjs/swagger';
+import { KpiMeasuringFrequencyEnum } from 'src/enums/kpi-measuring-frequency.enum';
 
 export class TacticUpdateDto {
   @ApiProperty()
@@ -16,12 +23,20 @@ export class TacticUpdateDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  benchmarkName: string;
+  kpiName: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  benchmarkNumber: string;
+  kpiUnit: string;
+
+  @ApiProperty({
+    enum: KpiMeasuringFrequencyEnum,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(KpiMeasuringFrequencyEnum)
+  kpiMeasuringFrequency: KpiMeasuringFrequencyEnum;
 
   @ApiProperty()
   @IsBoolean()

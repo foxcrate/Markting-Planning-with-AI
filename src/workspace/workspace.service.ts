@@ -36,16 +36,6 @@ export class WorkspaceService {
     }
   }
 
-  // async confirm(id: number, userId: number) {
-  //   if (id == 0) {
-  //     // return await this.workspaceRepository.confirm(id);
-  //     return await this.workspaceRepository.confirmFirstWorkspace(userId);
-  //   } else {
-  //     await this.isOwner(id, userId);
-  //     return await this.workspaceRepository.confirm(id);
-  //   }
-  // }
-
   async confirm(
     id: number,
     updateBody: WorkspaceUpdateDto,
@@ -72,8 +62,17 @@ export class WorkspaceService {
     }
   }
 
+  async getOne(id: number, userId: number): Promise<WorkspaceReturnDto> {
+    await this.isOwner(id, userId);
+    return await this.workspaceRepository.findById(id);
+  }
+
   async userUnConfirmedWorkspace(userId): Promise<WorkspaceReturnDto[]> {
     return await this.workspaceRepository.findUserUnConfirmedWorkspaces(userId);
+  }
+
+  async userConfirmedWorkspace(userId): Promise<WorkspaceReturnDto[]> {
+    return await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
   }
 
   async isOwner(workspaceId: number, userId: number) {
