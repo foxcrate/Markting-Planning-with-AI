@@ -262,6 +262,8 @@ export class OpenAiService implements OnModuleInit {
     stageId: number,
     userId: number,
   ) {
+    console.log({ runInstructions });
+
     let openAiThread = await this.createUserThread();
     let theThread = await this.threadService.create(
       userId,
