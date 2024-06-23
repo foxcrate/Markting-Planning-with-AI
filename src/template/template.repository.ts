@@ -99,6 +99,8 @@ export class TemplateRepository {
   }
 
   async findByType(type: string): Promise<TemplateReturnDto> {
+    // console.log('aloooooooo');
+
     const query = `
     SELECT
       templates.id,
@@ -117,7 +119,20 @@ export class TemplateRepository {
     }
     const template = templates[0];
 
-    template.parameters = JSON.parse(template.parameters);
+    // template.parameters = JSON.parse(template.parameters);
+
+    let arrayOfObjects;
+
+    try {
+      arrayOfObjects = eval(`(${template.parameters})`);
+      // console.log(arrayOfObjects);
+    } catch (error) {
+      console.error('Parsing error:', error);
+    }
+
+    template.parameters = arrayOfObjects;
+
+    // console.log(template);
 
     return template;
   }
