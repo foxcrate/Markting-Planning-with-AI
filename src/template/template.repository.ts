@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { OnboardingTemplateDto } from './dtos/onboarding-template.dto';
 import { TemplateReturnDto } from './dtos/template-return.dto';
 import { TemplateType } from 'src/enums/template-type.enum';
 import { TemplateDto } from './dtos/template.dto';

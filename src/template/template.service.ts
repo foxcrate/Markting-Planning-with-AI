@@ -1,4 +1,9 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { OnboardingTemplateDto } from './dtos/onboarding-template.dto';
 import { TemplateRepository } from './template.repository';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
@@ -17,6 +22,7 @@ import { NotEndedThreadAiResponseDto } from './dtos/not-ended-thread-ai-response
 export class TemplateService {
   constructor(
     private readonly templateRepository: TemplateRepository,
+    @Inject(forwardRef(() => OpenAiService))
     private readonly openAiService: OpenAiService,
     private readonly messageRepository: MessageRepository,
     private readonly threadRepository: ThreadRepository,
@@ -25,18 +31,19 @@ export class TemplateService {
     private readonly stageService: StageService,
   ) {}
 
-  async setOnboardingTemplate(
-    template: OnboardingTemplateDto,
-  ): Promise<TemplateReturnDto> {
+  async setOnboardingTemplate(template: OnboardingTemplateDto): Promise<any> {
     // check if system has onboarding template
     const existingTemplate = await this.templateRepository.findByType(
       TemplateType.ONBOARDING,
     );
+    // console.log(template.parameters);
+
+    // return await this.openAiService.getOnboardingParametersName();
 
     let description =
       'Start the conversation by greeting the user and saying who are you.\n' +
       template.description +
-      '\n Collect the data step by step. When you collect this data, call the end_flow function';
+      '\n Collect the data step by step. When you collect this data, call the end_onboarding_flow function';
 
     if (existingTemplate) {
       await this.openAiService.updateTemplateAssistance(
@@ -148,8 +155,16 @@ export class TemplateService {
     });
   }
 
-  async getOne(templateId: number) {
+  async getOne(templateId: number): Promise<TemplateReturnDto> {
     let template = await this.templateRepository.findById(templateId);
+    if (!template) {
+      throw new UnprocessableEntityException('Template not found');
+    }
+    return template;
+  }
+
+  async getOneByType(type: string): Promise<TemplateReturnDto> {
+    let template = await this.templateRepository.findByType(type);
     if (!template) {
       throw new UnprocessableEntityException('Template not found');
     }
@@ -249,6 +264,8 @@ export class TemplateService {
         funnelId,
         stageId,
       );
+
+    // console.log({ aiResponseObject });
 
     if (aiResponseObject.threadEnd) {
       return {

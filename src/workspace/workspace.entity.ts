@@ -13,20 +13,23 @@ export class WorkspaceEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  name: string;
+  // @Column()
+  // name: string;
 
-  @Column({ type: 'longtext', nullable: true })
-  goal: string;
+  // @Column({ type: 'longtext', nullable: true })
+  // goal: string;
 
-  @Column({ nullable: true })
-  budget: string;
+  // @Column({ nullable: true })
+  // budget: string;
 
-  @Column({ nullable: true })
-  targetGroup: string;
+  // @Column({ nullable: true })
+  // targetGroup: string;
 
-  @Column({ nullable: true })
-  marketingLevel: string;
+  // @Column({ nullable: true })
+  // marketingLevel: string;
+
+  @Column({ type: 'json', nullable: true, default: null })
+  parameters: object;
 
   @Column({ default: false })
   confirmed: boolean;

@@ -5,19 +5,7 @@ export class WorkspaceReturnDto {
   id: number;
 
   @ApiProperty()
-  name: string;
-
-  @ApiProperty()
-  goal: string;
-
-  @ApiProperty()
-  budget: string;
-
-  @ApiProperty()
-  targetGroup: string;
-
-  @ApiProperty()
-  marketingLevel: string;
+  parameters: {};
 
   @ApiProperty()
   userId: number;

@@ -1,4 +1,6 @@
 import {
+  forwardRef,
+  Inject,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -18,6 +20,8 @@ import { WorkspaceReturnDto } from 'src/workspace/dtos/workspace-return.dto';
 import { ConfigService } from '@nestjs/config';
 import { SerializedDataObjectDto } from './dtos/serializedDataObject.dto';
 import { AiCreatedTacticDto } from './dtos/ai-created-tactic.dto';
+import { TemplateType } from 'src/enums/template-type.enum';
+import { TemplateService } from 'src/template/template.service';
 
 @Injectable()
 export class OpenAiService implements OnModuleInit {
@@ -27,6 +31,8 @@ export class OpenAiService implements OnModuleInit {
     private threadService: ThreadService,
     private stageService: StageService,
     private tacticService: TacticService,
+    @Inject(forwardRef(() => TemplateService))
+    private readonly templateService: TemplateService,
     private configService: ConfigService,
   ) {}
   public instance: OpenAI;
@@ -52,6 +58,10 @@ export class OpenAiService implements OnModuleInit {
       body.stageId,
       userId,
     );
+
+    console.log({
+      serializedUserDataObject,
+    });
 
     return await this.runFunctionalAssistant(
       this.configService.getOrThrow('CREATE_ONE_TACTIC_ASSISTANT_ID'),
@@ -91,13 +101,7 @@ export class OpenAiService implements OnModuleInit {
     );
 
     let serializedReturnObject = {
-      project_data: {
-        name: theWorkspace.name,
-        goal: theWorkspace.goal,
-        budget: theWorkspace.budget,
-        targetGroup: theWorkspace.targetGroup,
-        marketingLevel: theWorkspace.marketingLevel,
-      },
+      project_data: theWorkspace.parameters,
       funnel_data: {
         name: theFunnel.name,
         description: theFunnel.description,
@@ -203,6 +207,7 @@ export class OpenAiService implements OnModuleInit {
       assistantId,
       templateAssistantObject,
     );
+
     return assistant;
   }
 
@@ -381,7 +386,10 @@ export class OpenAiService implements OnModuleInit {
         threadEnd: false,
       };
     } else if (run.status === 'requires_action') {
+      // console.log('---- run in complete-----');
+
       // console.log(run);
+
       // console.log('---------');
 
       // console.log(
@@ -530,7 +538,7 @@ export class OpenAiService implements OnModuleInit {
       );
       await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
       return {
-        keys: ['name', 'goal', 'budget', 'targetGroup', 'marketingLevel'],
+        keys: await this.getOnboardingParametersName(),
         wholeObject: createdObject,
       };
     }
@@ -540,6 +548,17 @@ export class OpenAiService implements OnModuleInit {
     throw new UnprocessableEntityException(
       'User has already created a workspace',
     );
+  }
+
+  async getOnboardingParametersName() {
+    let onboardingTemplate = await this.templateService.getOneByType(
+      TemplateType.ONBOARDING,
+    );
+    let onboardingParameters = onboardingTemplate.parameters;
+    let onboardingParametersNames = onboardingParameters.map(
+      (parameter) => parameter.name,
+    );
+    return onboardingParametersNames;
   }
 
   // private async createFunnelFunctionCallHandler(run, userId) {

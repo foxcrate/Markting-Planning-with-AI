@@ -1,8 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
-  Param,
   Post,
   UnprocessableEntityException,
   UseGuards,
@@ -22,13 +20,13 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
-  ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { ErrorResponseDto } from 'src/dtos/error-response.dto';
 import { TemplateReturnDto } from './dtos/template-return.dto';
 import { NotEndedThreadAiResponseDto } from './dtos/not-ended-thread-ai-response.dto';
+import { OpenAiService } from 'src/open-ai/open-ai.service';
 
 // @ApiTags('Template')
 @Controller({ path: 'template', version: '1' })
@@ -37,6 +35,7 @@ export class TemplateController {
     private readonly templateService: TemplateService,
     private readonly templateRepository: TemplateRepository,
     private readonly workspaceService: WorkspaceService,
+    private readonly openAiService: OpenAiService,
   ) {}
 
   ///////////////////////// Onboarding //////////////////////////////
@@ -85,7 +84,7 @@ export class TemplateController {
 
     if (userUnconfirmedWorkspaces.length > 0) {
       let assistantMessage = {
-        keys: ['name', 'goal', 'budget', 'targetGroup', 'marketingLevel'],
+        keys: await this.openAiService.getOnboardingParametersName(),
         wholeObject: userUnconfirmedWorkspaces[0],
       };
       return {
