@@ -69,7 +69,13 @@ export class TemplateRepository {
 
     const template = templates[0];
 
-    template.parameters = JSON.parse(JSON.stringify(template.parameters));
+    // template.parameters = JSON.parse(JSON.stringify(template.parameters));
+    try {
+      template.parameters = eval(`(${template.parameters})`);
+      // console.log(arrayOfObjects);
+    } catch (error) {
+      console.error('Parsing error:', error);
+    }
 
     return template;
   }
@@ -121,16 +127,12 @@ export class TemplateRepository {
 
     // template.parameters = JSON.parse(template.parameters);
 
-    let arrayOfObjects;
-
     try {
-      arrayOfObjects = eval(`(${template.parameters})`);
+      template.parameters = eval(`(${template.parameters})`);
       // console.log(arrayOfObjects);
     } catch (error) {
       console.error('Parsing error:', error);
     }
-
-    template.parameters = arrayOfObjects;
 
     // console.log(template);
 
