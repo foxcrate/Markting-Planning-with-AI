@@ -109,7 +109,9 @@ export class WorkspaceRepository {
 
     const [theWorkspace] = await this.db.query(query, [id]);
 
-    theWorkspace.parameters = JSON.parse(theWorkspace.parameters);
+    theWorkspace.parameters = JSON.parse(
+      JSON.stringify(theWorkspace.parameters),
+    );
 
     return theWorkspace;
   }
