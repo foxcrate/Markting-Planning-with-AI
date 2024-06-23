@@ -555,6 +555,8 @@ export class OpenAiService implements OnModuleInit {
       TemplateType.ONBOARDING,
     );
     let onboardingParameters = onboardingTemplate.parameters;
+    console.log(onboardingParameters);
+
     let onboardingParametersNames = onboardingParameters.map(
       (parameter) => parameter.name,
     );
