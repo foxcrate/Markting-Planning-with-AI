@@ -14,37 +14,38 @@ import {
 } from '@nestjs/swagger';
 import { WorkspaceReturnDto } from './dtos/workspace-return.dto';
 import { ErrorResponseDto } from 'src/dtos/error-response.dto';
+import { Any } from 'typeorm';
 
 @Controller({ path: 'workspace', version: '1' })
 export class WorkspaceController {
   constructor(private readonly workspaceService: WorkspaceService) {}
 
-  @ApiParam({ name: 'id' })
-  @ApiBody({ type: WorkspaceUpdateDto })
-  @ApiCreatedResponse({
-    type: WorkspaceReturnDto,
-  })
-  @ApiUnprocessableEntityResponse({
-    type: ErrorResponseDto,
-  })
-  @ApiBearerAuth()
-  @ApiTags('Workspace: Update')
-  @Put('/:id')
-  @UseGuards(AuthGuard)
-  async update(
-    @Body() workspaceUpdateDto: WorkspaceUpdateDto,
-    @Param() paramsIdDto: ParamsIdDto,
-    @UserId() userId: number,
-  ) {
-    return await this.workspaceService.update(
-      paramsIdDto.id,
-      workspaceUpdateDto,
-      userId,
-    );
-  }
+  // @ApiParam({ name: 'id' })
+  // @ApiBody({ type: Any })
+  // @ApiCreatedResponse({
+  //   type: WorkspaceReturnDto,
+  // })
+  // @ApiUnprocessableEntityResponse({
+  //   type: ErrorResponseDto,
+  // })
+  // @ApiBearerAuth()
+  // @ApiTags('Workspace: Update')
+  // @Put('/:id')
+  // @UseGuards(AuthGuard)
+  // async update(
+  //   @Body() workspaceUpdateDto: any,
+  //   @Param() paramsIdDto: ParamsIdDto,
+  //   @UserId() userId: number,
+  // ) {
+  //   return await this.workspaceService.update(
+  //     paramsIdDto.id,
+  //     workspaceUpdateDto,
+  //     userId,
+  //   );
+  // }
 
   @ApiParam({ name: 'id' })
-  @ApiBody({ type: WorkspaceUpdateDto })
+  @ApiBody({ type: Any })
   @ApiCreatedResponse({
     type: WorkspaceReturnDto,
   })
@@ -56,7 +57,7 @@ export class WorkspaceController {
   @Put('/confirm/:id')
   @UseGuards(AuthGuard)
   async confirm(
-    @Body() workspaceUpdateBody: WorkspaceUpdateDto,
+    @Body() workspaceUpdateBody: any,
     @Param() paramsIdDto: ParamsIdDto,
     @UserId() userId: number,
   ) {

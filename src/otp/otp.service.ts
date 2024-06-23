@@ -21,7 +21,7 @@ export class OtpService {
 
   async sendEmailOtp(email: string, type: OtpTypes) {
     // const createdOtp = this.createOtp();
-    const createdOtp = '123456';
+    const createdOtp = this.createOtp();
     await this.otpRepository.saveOTP(email, createdOtp, type);
     this.emailService.sendEmail(
       email,
@@ -41,7 +41,7 @@ export class OtpService {
   }
 
   private createOtp() {
-    let otp = Math.floor(Math.random() * 10000000);
+    let otp = Math.floor(Math.random() * 1000000);
     return String(otp);
   }
 }

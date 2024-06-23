@@ -12,17 +12,12 @@ export class WorkspaceService {
   constructor(private readonly workspaceRepository: WorkspaceRepository) {}
 
   async create(workspaceData, userId): Promise<WorkspaceReturnDto> {
-    let SerializeWorkspaceData = this.serializeWorkspaceData(workspaceData);
-
-    return await this.workspaceRepository.create({
-      ...SerializeWorkspaceData,
-      userId,
-    });
+    return await this.workspaceRepository.create(workspaceData, userId);
   }
 
   async update(
     id: number,
-    workspaceData: WorkspaceUpdateDto,
+    workspaceData: any,
     userId: number,
   ): Promise<WorkspaceReturnDto> {
     if (id == 0) {
@@ -38,7 +33,7 @@ export class WorkspaceService {
 
   async confirm(
     id: number,
-    updateBody: WorkspaceUpdateDto,
+    updateBody: any,
     userId: number,
   ): Promise<WorkspaceReturnDto> {
     if (id == 0) {
@@ -83,15 +78,5 @@ export class WorkspaceService {
     if (workspace.userId !== userId) {
       throw new ForbiddenException('You are not the owner of this workspace');
     }
-  }
-
-  private serializeWorkspaceData(workspaceData) {
-    return {
-      name: workspaceData.project_name,
-      goal: workspaceData.project_goal,
-      budget: workspaceData.project_budget,
-      targetGroup: workspaceData.project_target_group,
-      marketingLevel: workspaceData.project_marketing_level,
-    };
   }
 }

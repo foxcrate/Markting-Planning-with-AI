@@ -13,26 +13,25 @@ import { DB_PROVIDER } from 'src/db/constants';
 export class WorkspaceRepository {
   constructor(@Inject(DB_PROVIDER) private db: Pool) {}
 
-  async create(workspace: WorkspaceDto): Promise<WorkspaceReturnDto> {
-    const { name, goal, budget, targetGroup, marketingLevel, userId } =
-      workspace;
-
+  async create(
+    workspaceObject: any,
+    userId: number,
+  ): Promise<WorkspaceReturnDto> {
     const query = `
-      INSERT INTO workspaces (name, goal, budget, targetGroup, marketingLevel , userId) VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO workspaces (parameters , userId) VALUES ( ?, ?)
     `;
-    const params = [name, goal, budget, targetGroup, marketingLevel, userId];
+    const params = [workspaceObject, userId];
 
     const createdWorkspace = await this.db.query(query, params);
     return await this.findById(Number(createdWorkspace.insertId));
   }
 
   async updateFirstWorkspace(
-    workspace: WorkspaceUpdateDto,
+    workspaceObject: any,
     userId: number,
   ): Promise<WorkspaceReturnDto> {
     // get user first workspace
     let userWorkspaces = await this.findAllUserWorkspaces(userId);
-    // console.log({ userWorkspaces });
 
     if (userWorkspaces.length == 0) {
       throw new UnprocessableEntityException('User has no workspaces');
@@ -41,50 +40,28 @@ export class WorkspaceRepository {
     const query = `
       UPDATE workspaces
       SET
-      name = IFNULL(?,workspaces.name),
-      goal = IFNULL(?,workspaces.goal),
-      budget = IFNULL(?,workspaces.budget),
-      targetGroup = IFNULL(?,workspaces.targetGroup),
-      marketingLevel = IFNULL(?,workspaces.marketingLevel),
+      parameters = IFNULL(?,workspaces.parameters),
       confirmed = true
       WHERE id = ?
     `;
-    const params = [
-      workspace.name,
-      workspace.goal,
-      workspace.budget,
-      workspace.targetGroup,
-      workspace.marketingLevel,
-      userWorkspaces[0].id,
-    ];
+    const params = [workspaceObject, userWorkspaces[0].id];
     await this.db.query(query, params);
 
     return this.findById(userWorkspaces[0].id);
   }
 
   async update(
-    workspace: WorkspaceUpdateDto,
+    workspaceObject: any,
     workspaceId: number,
   ): Promise<WorkspaceReturnDto> {
     const query = `
       UPDATE workspaces
       SET
-      name = IFNULL(?,workspaces.name),
-      goal = IFNULL(?,workspaces.goal),
-      budget = IFNULL(?,workspaces.budget),
-      targetGroup = IFNULL(?,workspaces.targetGroup),
-      marketingLevel = IFNULL(?,workspaces.marketingLevel),
+      parameters = IFNULL(?,workspaces.parameters),
       confirmed = true
       WHERE id = ?
     `;
-    const params = [
-      workspace.name,
-      workspace.goal,
-      workspace.budget,
-      workspace.targetGroup,
-      workspace.marketingLevel,
-      workspaceId,
-    ];
+    const params = [workspaceObject, workspaceId];
     await this.db.query(query, params);
     return await this.findById(workspaceId);
   }
@@ -124,17 +101,15 @@ export class WorkspaceRepository {
     let query = `
     SELECT
       workspaces.id,
-      workspaces.name,
-      workspaces.goal,
-      workspaces.budget,
-      workspaces.targetGroup,
-      workspaces.marketingLevel,
+      workspaces.parameters,
       workspaces.userId
     FROM workspaces
     WHERE workspaces.id = ?
   `;
 
     const [theWorkspace] = await this.db.query(query, [id]);
+
+    theWorkspace.parameters = JSON.parse(theWorkspace.parameters);
 
     return theWorkspace;
   }
@@ -143,11 +118,7 @@ export class WorkspaceRepository {
     let query = `
     SELECT
       workspaces.id,
-      workspaces.name,
-      workspaces.goal,
-      workspaces.budget,
-      workspaces.targetGroup,
-      workspaces.marketingLevel,
+      workspaces.parameters,
       workspaces.userId
     FROM workspaces
     WHERE workspaces.userId = ?
@@ -156,6 +127,10 @@ export class WorkspaceRepository {
 
     const theWorkspaces = await this.db.query(query, [userId]);
 
+    theWorkspaces.forEach((workspace) => {
+      workspace.parameters = JSON.parse(workspace.parameters);
+    });
+
     return theWorkspaces;
   }
 
@@ -163,11 +138,7 @@ export class WorkspaceRepository {
     let query = `
     SELECT
       workspaces.id,
-      workspaces.name,
-      workspaces.goal,
-      workspaces.budget,
-      workspaces.targetGroup,
-      workspaces.marketingLevel,
+      workspaces.parameters,
       workspaces.userId
     FROM workspaces
     WHERE workspaces.userId = ?
@@ -177,6 +148,10 @@ export class WorkspaceRepository {
 
     const theWorkspaces = await this.db.query(query, [userId]);
 
+    theWorkspaces.forEach((workspace) => {
+      workspace.parameters = JSON.parse(workspace.parameters);
+    });
+
     return theWorkspaces;
   }
 
@@ -184,11 +159,7 @@ export class WorkspaceRepository {
     let query = `
     SELECT
       workspaces.id,
-      workspaces.name,
-      workspaces.goal,
-      workspaces.budget,
-      workspaces.targetGroup,
-      workspaces.marketingLevel,
+      workspaces.parameters,
       workspaces.userId
     FROM workspaces
     WHERE workspaces.userId = ?
@@ -197,6 +168,10 @@ export class WorkspaceRepository {
   `;
 
     const theWorkspaces = await this.db.query(query, [userId]);
+
+    theWorkspaces.forEach((workspace) => {
+      workspace.parameters = JSON.parse(workspace.parameters);
+    });
 
     return theWorkspaces;
   }

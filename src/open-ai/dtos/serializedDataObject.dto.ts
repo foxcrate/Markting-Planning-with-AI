@@ -1,13 +1,7 @@
 import { StageTacticDto } from 'src/stage/dtos/stage-tactic.dto';
 
 export class SerializedDataObjectDto {
-  project_data: {
-    name: string;
-    goal: string;
-    budget: string;
-    targetGroup: string;
-    marketingLevel: string;
-  };
+  project_data: {};
   funnel_data: {
     name: string;
     description: string;

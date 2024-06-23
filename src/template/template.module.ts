@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TemplateController } from './template.controller';
 import { TemplateService } from './template.service';
 import { TemplateRepository } from './template.repository';
@@ -14,12 +14,13 @@ import { StageModule } from 'src/stage/stage.module';
   controllers: [TemplateController],
   providers: [TemplateService, TemplateRepository, keyValueFlowValidator],
   imports: [
-    OpenAiModule,
+    forwardRef(() => OpenAiModule),
     MessageModule,
     ThreadModule,
     WorkspaceModule,
     FunnelModule,
     StageModule,
   ],
+  exports: [TemplateService, TemplateRepository],
 })
 export class TemplateModule {}
