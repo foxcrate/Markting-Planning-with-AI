@@ -93,7 +93,7 @@ export class TemplateRepository {
     }
     const template = templates[0];
 
-    template.parameters = JSON.parse(template.parameters);
+    template.parameters = JSON.parse(JSON.stringify(template.parameters));
 
     return template;
   }
@@ -117,7 +117,7 @@ export class TemplateRepository {
     }
     const template = templates[0];
 
-    template.parameters = JSON.parse(JSON.stringify(template.parameters));
+    template.parameters = JSON.parse(template.parameters);
 
     return template;
   }
@@ -138,7 +138,7 @@ export class TemplateRepository {
    `;
     const [template] = await this.db.query(query, [TemplateType.ONBOARDING]);
 
-    template.parameters = JSON.parse(template.parameters);
+    template.parameters = JSON.parse(JSON.stringify(template.parameters));
     return template;
   }
 }

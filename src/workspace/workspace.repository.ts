@@ -109,9 +109,7 @@ export class WorkspaceRepository {
 
     const [theWorkspace] = await this.db.query(query, [id]);
 
-    theWorkspace.parameters = JSON.parse(
-      JSON.stringify(theWorkspace.parameters),
-    );
+    theWorkspace.parameters = JSON.parse(theWorkspace.parameters);
 
     return theWorkspace;
   }
@@ -130,7 +128,7 @@ export class WorkspaceRepository {
     const theWorkspaces = await this.db.query(query, [userId]);
 
     theWorkspaces.forEach((workspace) => {
-      workspace.parameters = JSON.parse(workspace.parameters);
+      workspace.parameters = JSON.parse(JSON.stringify(workspace.parameters));
     });
 
     return theWorkspaces;
@@ -151,7 +149,7 @@ export class WorkspaceRepository {
     const theWorkspaces = await this.db.query(query, [userId]);
 
     theWorkspaces.forEach((workspace) => {
-      workspace.parameters = JSON.parse(workspace.parameters);
+      workspace.parameters = JSON.parse(JSON.stringify(workspace.parameters));
     });
 
     return theWorkspaces;
@@ -172,7 +170,7 @@ export class WorkspaceRepository {
     const theWorkspaces = await this.db.query(query, [userId]);
 
     theWorkspaces.forEach((workspace) => {
-      workspace.parameters = JSON.parse(workspace.parameters);
+      workspace.parameters = JSON.parse(JSON.stringify(workspace.parameters));
     });
 
     return theWorkspaces;
