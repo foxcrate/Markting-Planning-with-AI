@@ -109,7 +109,14 @@ export class WorkspaceRepository {
 
     const [theWorkspace] = await this.db.query(query, [id]);
 
-    theWorkspace.parameters = JSON.parse(theWorkspace.parameters);
+    // theWorkspace.parameters = JSON.parse(theWorkspace.parameters);
+
+    try {
+      theWorkspace.parameters = eval(`(${theWorkspace.parameters})`);
+      // console.log(arrayOfObjects);
+    } catch (error) {
+      console.error('Parsing error:', error);
+    }
 
     return theWorkspace;
   }
@@ -128,7 +135,14 @@ export class WorkspaceRepository {
     const theWorkspaces = await this.db.query(query, [userId]);
 
     theWorkspaces.forEach((workspace) => {
-      workspace.parameters = JSON.parse(JSON.stringify(workspace.parameters));
+      // workspace.parameters = JSON.parse(JSON.stringify(workspace.parameters));
+
+      try {
+        workspace.parameters = eval(`(${workspace.parameters})`);
+        // console.log(arrayOfObjects);
+      } catch (error) {
+        console.error('Parsing error:', error);
+      }
     });
 
     return theWorkspaces;
@@ -149,7 +163,14 @@ export class WorkspaceRepository {
     const theWorkspaces = await this.db.query(query, [userId]);
 
     theWorkspaces.forEach((workspace) => {
-      workspace.parameters = JSON.parse(JSON.stringify(workspace.parameters));
+      // workspace.parameters = JSON.parse(JSON.stringify(workspace.parameters));
+
+      try {
+        workspace.parameters = eval(`(${workspace.parameters})`);
+        // console.log(arrayOfObjects);
+      } catch (error) {
+        console.error('Parsing error:', error);
+      }
     });
 
     return theWorkspaces;
@@ -170,7 +191,14 @@ export class WorkspaceRepository {
     const theWorkspaces = await this.db.query(query, [userId]);
 
     theWorkspaces.forEach((workspace) => {
-      workspace.parameters = JSON.parse(JSON.stringify(workspace.parameters));
+      // workspace.parameters = JSON.parse(JSON.stringify(workspace.parameters));
+
+      try {
+        workspace.parameters = eval(`(${workspace.parameters})`);
+        // console.log(arrayOfObjects);
+      } catch (error) {
+        console.error('Parsing error:', error);
+      }
     });
 
     return theWorkspaces;
