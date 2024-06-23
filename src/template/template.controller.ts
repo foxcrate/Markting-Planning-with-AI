@@ -105,7 +105,7 @@ export class TemplateController {
   @ApiBody({ type: OnboardingQuestionAnswer })
   @ApiCreatedResponse({
     type: NotEndedThreadAiResponseDto,
-    description: 'ThreadEnd boolean will bee false when the thread is ended',
+    description: 'ThreadEnd boolean will be true when the thread is ended',
   })
   @ApiUnauthorizedResponse({
     type: ErrorResponseDto,
@@ -231,7 +231,7 @@ export class TemplateController {
   })
   @ApiCreatedResponse({
     type: NotEndedThreadAiResponseDto,
-    description: 'ThreadEnd boolean will bee false when the thread is ended',
+    description: 'ThreadEnd boolean will be true when the thread is ended',
   })
   @ApiUnauthorizedResponse({
     type: ErrorResponseDto,
