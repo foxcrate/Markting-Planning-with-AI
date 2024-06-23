@@ -135,7 +135,7 @@ export class OpenAiService implements OnModuleInit {
           {
             type: 'function',
             function: {
-              name: 'end_flow',
+              name: 'end_onboarding_flow',
               description:
                 'function will be called when the assistant collect the desired parameters',
               parameters: {
@@ -183,7 +183,7 @@ export class OpenAiService implements OnModuleInit {
           {
             type: 'function',
             function: {
-              name: 'end_flow',
+              name: 'end_onboarding_flow',
               description:
                 'function will be called when the assistant collect the desired parameters',
               parameters: {
