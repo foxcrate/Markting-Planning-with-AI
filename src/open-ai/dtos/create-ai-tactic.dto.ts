@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateAiTacticDto {
   @ApiProperty()
@@ -13,12 +13,12 @@ export class CreateAiTacticDto {
   workspaceId: number;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   funnelId: number;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   stageId: number;
 }

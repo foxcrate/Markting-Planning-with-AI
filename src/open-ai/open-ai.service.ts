@@ -92,13 +92,30 @@ export class OpenAiService implements OnModuleInit {
       theWorkspace = await this.workspaceService.getOne(workspaceId, userId);
     }
 
-    let theFunnel = await this.funnelService.getOne(funnelId, userId);
+    let theFunnel: any;
+    if (!funnelId) {
+      theFunnel = {
+        name: null,
+        description: null,
+      };
+    } else {
+      theFunnel = await this.funnelService.getOne(funnelId, userId);
+    }
 
-    let theStage = await this.stageService.getOne(
-      stageId,
-      theFunnel.userId,
-      userId,
-    );
+    let theStage: any;
+    if (!stageId) {
+      theStage = {
+        name: null,
+        description: null,
+        tactics: null,
+      };
+    } else {
+      theStage = await this.stageService.getOne(
+        stageId,
+        theFunnel.userId,
+        userId,
+      );
+    }
 
     let serializedReturnObject = {
       project_data: theWorkspace.parameters,
