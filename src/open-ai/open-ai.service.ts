@@ -59,9 +59,9 @@ export class OpenAiService implements OnModuleInit {
       userId,
     );
 
-    console.log({
-      serializedUserDataObject,
-    });
+    // console.log({
+    //   serializedUserDataObject,
+    // });
 
     return await this.runFunctionalAssistant(
       this.configService.getOrThrow('CREATE_ONE_TACTIC_ASSISTANT_ID'),
@@ -324,7 +324,7 @@ export class OpenAiService implements OnModuleInit {
             );
           }
 
-          console.log(aiCratedObject);
+          // console.log(aiCratedObject);
 
           assistantMessage = await this.addTacticToWorkspaceHandler(
             aiCratedObject.tactic,
@@ -539,7 +539,7 @@ export class OpenAiService implements OnModuleInit {
       await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
       return {
         keys: await this.getOnboardingParametersName(),
-        wholeObject: createdObject,
+        wholeObject: createdObject.parameters,
       };
     }
 
@@ -555,7 +555,7 @@ export class OpenAiService implements OnModuleInit {
       TemplateType.ONBOARDING,
     );
     let onboardingParameters = onboardingTemplate.parameters;
-    console.log(onboardingParameters);
+    // console.log(onboardingParameters);
 
     let onboardingParametersNames = onboardingParameters.map(
       (parameter) => parameter.name,

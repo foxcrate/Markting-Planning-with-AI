@@ -85,7 +85,7 @@ export class TemplateController {
     if (userUnconfirmedWorkspaces.length > 0) {
       let assistantMessage = {
         keys: await this.openAiService.getOnboardingParametersName(),
-        wholeObject: userUnconfirmedWorkspaces[0],
+        wholeObject: userUnconfirmedWorkspaces[0].parameters,
       };
       return {
         assistantMessage: assistantMessage,
