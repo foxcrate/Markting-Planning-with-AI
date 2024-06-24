@@ -73,6 +73,22 @@ export class AuthController {
     return this.authService.mobileSignIn(signInDto);
   }
 
+  @ApiBody({
+    type: PhoneNumberDto,
+  })
+  @ApiCreatedResponse({
+    type: Boolean,
+    description: 'return true if phone number is saved',
+  })
+  @ApiNotFoundResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiTags('Auth: Check Saved Phone Number')
+  @Post('check/saved-phone')
+  async checkSavedPhone(@Body() body: PhoneNumberDto) {
+    return this.authService.checkSavedPhone(body.phoneNumber);
+  }
+
   //////////////////////Social Auth ///////////////////////////
 
   @ApiBody({

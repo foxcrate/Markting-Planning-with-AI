@@ -203,6 +203,16 @@ export class AuthService {
     };
   }
 
+  async checkSavedPhone(phoneNumber: string): Promise<boolean> {
+    let foundedUser =
+      await this.userRepository.findUserByPhoneNumber(phoneNumber);
+
+    if (foundedUser) {
+      return true;
+    }
+    return false;
+  }
+
   /////////////////// Social Auth  //////////////////////
 
   async getGoogleUserData(access_token: string) {

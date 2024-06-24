@@ -123,6 +123,7 @@ export class UserRepository {
         WHERE phoneNumber = ? LIMIT 1
       `;
     const [user] = await this.db.query(query, [phoneNumber]);
+
     return user;
   }
 
