@@ -17,7 +17,7 @@ export class TacticRepository {
     userId: number,
   ): Promise<TacticReturnDto> {
     const query = `
-    INSERT INTO tactics (name, description, kpiName, kpiUnit, kpiMeasuringFrequency,private,globalStageId,userId) VALUES (?,?,?,?,?,?,?,?)
+    INSERT INTO tactics (name, description, kpiName, kpiUnit, kpiMeasuringFrequency,private,globalStageId,userId,instance) VALUES (?,?,?,?,?,?,?,?,?)
   `;
     const params = [
       tacticCreateBody.name,
@@ -30,6 +30,7 @@ export class TacticRepository {
       tacticCreateBody.private ? tacticCreateBody.private : false,
       tacticCreateBody.globalStageId,
       userId,
+      tacticCreateBody.instance ? tacticCreateBody.instance : false,
     ];
 
     let { insertId } = await this.db.query(query, params);
@@ -67,23 +68,25 @@ export class TacticRepository {
   }
 
   //create tactics
-  async createTactics(tactics: any[], stageId: number) {
-    try {
-      for (let i = 0; i < tactics.length; i++) {
-        tactics[i].stageId = stageId;
-        tactics[i].globalStageId = null;
-        tactics[i].kpiName = null;
-        tactics[i].kpiUnit = null;
-        tactics[i].kpiMeasuringFrequency = null;
-        await this.create(tactics[i], null);
-      }
-    } catch (e) {
-      console.log(e);
-      throw e;
-    }
 
-    return true;
-  }
+  // async createTactics(tactics: any[], stageId: number) {
+  //   try {
+  //     for (let i = 0; i < tactics.length; i++) {
+  //       tactics[i].stageId = stageId;
+  //       tactics[i].globalStageId = null;
+  //       tactics[i].kpiName = null;
+  //       tactics[i].kpiUnit = null;
+  //       tactics[i].instance = false;
+  //       tactics[i].kpiMeasuringFrequency = null;
+  //       await this.create(tactics[i], null);
+  //     }
+  //   } catch (e) {
+  //     console.log(e);
+  //     throw e;
+  //   }
+
+  //   return true;
+  // }
 
   async getTacticsByUserId(userId: number, filterOptions: GetMineFilterDto) {
     const queryStart = `
@@ -153,6 +156,8 @@ export class TacticRepository {
     LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
     LEFT JOIN users ON users.id = tactics.userId
     WHERE tactics.userId = ?
+    AND
+    tactics.instance = false
     
   `;
     let filter = ``;
@@ -303,7 +308,9 @@ export class TacticRepository {
     LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
     LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
     LEFT JOIN users ON users.id = tactics.userId
-    WHERE tactics.private = false
+    WHERE tactics.private = false 
+    AND
+    tactics.instance = false
     
   `;
     let filter = ``;
@@ -316,6 +323,9 @@ export class TacticRepository {
         filter + ` AND global_stages.name = '${filterOptions.globalStage}' `;
     }
     let queryEnd = `GROUP BY tactics.id`;
+
+    // console.log(queryStart + filter + queryEnd);
+    // console.log('---------------------------------');
 
     return await this.db.query(queryStart + filter + queryEnd);
   }

@@ -47,6 +47,11 @@ export class TacticCreateDto {
   @IsOptional()
   private: boolean;
 
+  // @ApiProperty()
+  @IsBoolean()
+  @IsOptional()
+  instance: boolean;
+
   @ApiProperty()
   @IsNotEmpty()
   globalStageId: number;

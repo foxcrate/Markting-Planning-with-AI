@@ -70,6 +70,7 @@ export class StageService {
       private: theTactic.private,
       globalStageId: theTactic.globalStage.id,
       steps: theTactic.steps,
+      instance: true,
     };
     let createdTactic = await this.tacticService.create(
       tacticCreateObject,
@@ -80,20 +81,20 @@ export class StageService {
     return await this.stageRepository.findById(stageId);
   }
 
-  async addNewTacticToStage(
-    funnelId: number,
-    stageId: number,
-    tacticBody: TacticCreateDto,
-    userId: number,
-  ) {
-    let theFunnel = await this.funnelService.getOne(funnelId, userId);
-    await this.stageRepository.isOwner(stageId, theFunnel.userId, userId);
+  // async addNewTacticToStage(
+  //   funnelId: number,
+  //   stageId: number,
+  //   tacticBody: TacticCreateDto,
+  //   userId: number,
+  // ) {
+  //   let theFunnel = await this.funnelService.getOne(funnelId, userId);
+  //   await this.stageRepository.isOwner(stageId, theFunnel.userId, userId);
 
-    let createdTactic = await this.tacticService.create(tacticBody, userId);
-    // add stage tactic relationship
-    await this.stageRepository.addTacticToStage(stageId, createdTactic.id, 0);
-    return await this.stageRepository.findById(stageId);
-  }
+  //   let createdTactic = await this.tacticService.create(tacticBody, userId);
+  //   // add stage tactic relationship
+  //   await this.stageRepository.addTacticToStage(stageId, createdTactic.id, 0);
+  //   return await this.stageRepository.findById(stageId);
+  // }
 
   async removeTacticFromStage(
     funnelId: number,
@@ -104,7 +105,11 @@ export class StageService {
     let theFunnel = await this.funnelService.getOne(funnelId, userId);
     await this.stageRepository.isOwner(stageId, theFunnel.userId, userId);
     await this.tacticService.getOne(tacticId, userId);
+    // validate tactic is in the stage
+    await this.stageRepository.validateTacticBelongToStage(stageId, tacticId);
     await this.stageRepository.removeTacticFromStage(tacticId, stageId);
+    //delete tactic
+    await this.tacticService.delete(tacticId, userId);
     return await this.stageRepository.findById(stageId);
   }
 

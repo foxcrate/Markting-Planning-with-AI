@@ -139,6 +139,16 @@ export class StageRepository {
     }
   }
 
+  async validateTacticBelongToStage(stageId: number, tacticsId: number) {
+    // get all stage tactics
+    let stageTacticsIds = await this.getAllStageTacticsIds(stageId);
+
+    if (!stageTacticsIds.includes(tacticsId)) {
+      throw new UnprocessableEntityException('Tactic does not belong to stage');
+    }
+    return true;
+  }
+
   async validateTacticsBelongToStage(
     stageId: number,
     tacticsIdsArray: number[],

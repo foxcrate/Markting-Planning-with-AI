@@ -65,14 +65,14 @@ export class TacticService {
   //   return await this.tacticRepository.findById(tacticId);
   // }
 
-  async addAssistantTacticsToStage(
-    stageId: number,
-    tactics: any[],
-  ): Promise<any> {
-    // await this.isOwner(tacticId, userId);
-    // create tactics
-    await this.tacticRepository.createTactics(tactics, stageId);
-  }
+  // async addAssistantTacticsToStage(
+  //   stageId: number,
+  //   tactics: any[],
+  // ): Promise<any> {
+  //   // await this.isOwner(tacticId, userId);
+  //   // create tactics
+  //   await this.tacticRepository.createTactics(tactics, stageId);
+  // }
 
   //remove tactic from stage
   // async removeTacticFromStage(

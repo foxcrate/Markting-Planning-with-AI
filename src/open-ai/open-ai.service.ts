@@ -638,10 +638,10 @@ export class OpenAiService implements OnModuleInit {
 
     //delete past stages tactics
 
-    await this.tacticService.addAssistantTacticsToStage(
-      stageId,
-      functionReturnJsonObject.tactics,
-    );
+    // await this.tacticService.addAssistantTacticsToStage(
+    //   stageId,
+    //   functionReturnJsonObject.tactics,
+    // );
 
     await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
     return functionReturnJsonObject.tactics;

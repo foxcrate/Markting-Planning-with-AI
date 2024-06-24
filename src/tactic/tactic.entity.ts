@@ -42,6 +42,9 @@ export class TacticEntity {
   @Column({ type: 'boolean', default: false })
   private: boolean;
 
+  @Column({ type: 'boolean', default: false })
+  instance: boolean;
+
   @ManyToOne(() => GlobalStageEntity, (globalStage) => globalStage.tactics, {
     cascade: true,
     onDelete: 'CASCADE',
