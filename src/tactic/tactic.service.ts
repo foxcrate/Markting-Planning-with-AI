@@ -32,7 +32,9 @@ export class TacticService {
 
   //get one tactic
   async getOne(tacticId: number, userId: number): Promise<TacticReturnDto> {
-    await this.isOwner(tacticId, userId);
+    if (userId !== 0) {
+      await this.isOwner(tacticId, userId);
+    }
     return await this.tacticRepository.findById(tacticId);
   }
 
@@ -49,7 +51,9 @@ export class TacticService {
   }
 
   async delete(tacticId: number, userId: number): Promise<TacticReturnDto> {
-    await this.isOwner(tacticId, userId);
+    if (userId !== 0) {
+      await this.isOwner(tacticId, userId);
+    }
     let deletedTactic = await this.tacticRepository.findById(tacticId);
     await this.tacticRepository.delete(tacticId);
     return deletedTactic;
