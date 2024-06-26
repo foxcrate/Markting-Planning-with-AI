@@ -11,6 +11,8 @@ import { join } from 'path';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import admin from 'firebase-admin';
 
+import * as serviceAccount from './crespo-c6266-firebase-adminsdk-61im5-d24b69bbf1.json';
+
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
@@ -58,7 +60,7 @@ async function bootstrap() {
   });
   //
 
-  var serviceAccount = process.env.FIREBASE_ADMIN_AUTH_PATH;
+  // var serviceAccount = process.env.FIREBASE_ADMIN_AUTH_PATH;
 
   // admin.initializeApp({
   //   credential: admin.credential.cert(serviceAccount),
