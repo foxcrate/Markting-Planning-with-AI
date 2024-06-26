@@ -58,7 +58,7 @@ async function bootstrap() {
   });
   //
 
-  var serviceAccount = require(process.env.FIREBASE_ADMIN_AUTH_PATH);
+  var serviceAccount = process.env.FIREBASE_ADMIN_AUTH_PATH;
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
