@@ -9,7 +9,7 @@ import { FastifyMultipartAttachFieldsToBodyOptions } from '@fastify/multipart';
 import { FastifyStaticOptions } from '@fastify/static';
 import { join } from 'path';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import * as admin from 'firebase-admin';
+import admin from 'firebase-admin';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
