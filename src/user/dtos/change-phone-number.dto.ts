@@ -6,4 +6,9 @@ export class ChangePhoneNumberDto {
   @IsNotEmpty()
   @IsString()
   phoneNumber: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsString()
+  newPhoneNumber: string;
 }

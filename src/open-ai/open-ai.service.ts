@@ -59,10 +59,6 @@ export class OpenAiService implements OnModuleInit {
       userId,
     );
 
-    // console.log({
-    //   serializedUserDataObject,
-    // });
-
     return await this.runFunctionalAssistant(
       this.configService.getOrThrow('CREATE_ONE_TACTIC_ASSISTANT_ID'),
       serializedUserDataObject,
@@ -344,6 +340,7 @@ export class OpenAiService implements OnModuleInit {
           // console.log(aiCratedObject);
 
           assistantMessage = await this.addTacticToWorkspaceHandler(
+            prompt,
             aiCratedObject.tactic,
           );
 
@@ -505,10 +502,12 @@ export class OpenAiService implements OnModuleInit {
   }
 
   private async addTacticToWorkspaceHandler(
+    prompt: string,
     aiCreatedTactic: any,
   ): Promise<AiCreatedTacticDto> {
     //return serialized tactic
     return {
+      prompt: prompt,
       name: aiCreatedTactic.name,
       description: aiCreatedTactic.description,
       theOrder: aiCreatedTactic.theOrder,

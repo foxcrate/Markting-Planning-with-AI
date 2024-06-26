@@ -34,33 +34,18 @@ export class UserService {
     return await this.workspaceService.userHasConfirmedWorkspace(userId);
   }
 
-  async changePhoneNumber(phoneNumber: string): Promise<MessageReturnDto> {
-    const existingUser =
-      await this.userRepository.findUserByPhoneNumber(phoneNumber);
-    if (existingUser) {
-      throw new UnprocessableEntityException(`phone number already exists`);
-    }
-
-    await this.otpService.sendMobileOtp(
-      phoneNumber,
-      OtpTypes.CHANGE_PHONE_NUMBER,
-    );
-
-    return {
-      message: 'Please check your new mobile for an otp',
-    };
-  }
-
-  async verifyChangePhoneNumberOTP(
+  async changePhoneNumber(
+    phoneNumber: string,
     newPhoneNumber: string,
-    otp: string,
     userId: number,
   ): Promise<MessageReturnDto> {
-    await this.otpService.verifyOTP(
-      newPhoneNumber,
-      otp,
-      OtpTypes.CHANGE_PHONE_NUMBER,
-    );
+    const existingUser =
+      await this.userRepository.findUserByPhoneNumber(newPhoneNumber);
+    if (existingUser) {
+      throw new UnprocessableEntityException(`new phone number already exists`);
+    }
+
+    await this.otpService.verifyFirebaseOTP(phoneNumber);
 
     await this.userRepository.updatePhoneNumber(newPhoneNumber, userId);
 
@@ -68,6 +53,24 @@ export class UserService {
       message: 'Phone Number updated successfully',
     };
   }
+
+  // async verifyChangePhoneNumberOTP(
+  //   newPhoneNumber: string,
+  //   otp: string,
+  //   userId: number,
+  // ): Promise<MessageReturnDto> {
+  //   await this.otpService.verifyOTP(
+  //     newPhoneNumber,
+  //     otp,
+  //     OtpTypes.CHANGE_PHONE_NUMBER,
+  //   );
+
+  //   await this.userRepository.updatePhoneNumber(newPhoneNumber, userId);
+
+  //   return {
+  //     message: 'Phone Number updated successfully',
+  //   };
+  // }
 
   async changeEmail(email: string): Promise<MessageReturnDto> {
     const existingUser = await this.userRepository.findUserByEmail(email);

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class StageTacticDto {
+export class StageTacticStepsDto {
   @ApiProperty()
   id: number;
 
@@ -9,6 +9,9 @@ export class StageTacticDto {
 
   @ApiProperty()
   description: string;
+
+  @ApiProperty()
+  attachment: string;
 
   @ApiProperty()
   checked: boolean;

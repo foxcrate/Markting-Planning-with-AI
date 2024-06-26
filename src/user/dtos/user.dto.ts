@@ -20,8 +20,6 @@ export class UserDto {
   @ApiProperty()
   profilePicture?: string;
   @ApiProperty()
-  phoneVerified?: boolean;
-  @ApiProperty()
   googleId?: string;
   @ApiProperty()
   facebookId?: string;
