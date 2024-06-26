@@ -58,7 +58,7 @@ async function bootstrap() {
   });
   //
 
-  var serviceAccount = require('/home/fawzy/Desktop/Projects/Nest/crespo_backend/crespo-c6266-firebase-adminsdk-61im5-d24b69bbf1.json');
+  var serviceAccount = require(process.env.FIREBASE_ADMIN_AUTH_PATH);
 
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
