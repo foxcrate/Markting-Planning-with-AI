@@ -60,9 +60,15 @@ async function bootstrap() {
 
   var serviceAccount = process.env.FIREBASE_ADMIN_AUTH_PATH;
 
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+  // admin.initializeApp({
+  //   credential: admin.credential.cert(serviceAccount),
+  // });
+
+  const firebaseAdminApp = admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
   });
+
+  console.log(firebaseAdminApp);
 
   await app.listen(process.env.APP_PORT || 3000, '0.0.0.0');
 
