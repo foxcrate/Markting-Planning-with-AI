@@ -7,10 +7,8 @@ import { ThreadReturnDto } from 'src/thread/dtos/thread-return.dto';
 
 @Injectable()
 export class MessageService {
-  // constructor() private readonly threadRepository: ThreadRepository,
-  // private readonly messageRepository: MessageRepository,
-  // private readonly openAiService: OpenAiService,
-  // {}
+  constructor(private readonly messageRepository: MessageRepository) {}
+
   async sendMessage(message: string, threadId: number, userId: number) {
     // let theThread = {} as ThreadReturnDto;
     // if (!threadId) {
@@ -30,5 +28,9 @@ export class MessageService {
     //   SenderRole.ASSISTANT,
     // );
     // return aiResponse;
+  }
+
+  async create(message: string, threadId: number, role: string) {
+    return await this.messageRepository.create(message, threadId, role);
   }
 }

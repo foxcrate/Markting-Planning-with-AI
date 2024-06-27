@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { ThreadRepository } from './thread.repository';
 import { ThreadReturnDto } from './dtos/thread-return.dto';
 
@@ -19,5 +23,20 @@ export class ThreadService {
       templateId,
       openAiThreadId,
     );
+  }
+
+  async getOne(id: number, userId: number): Promise<ThreadReturnDto> {
+    await this.isOwner(id, userId);
+    return await this.threadRepository.findById(id);
+  }
+
+  async isOwner(threadId: number, userId: number) {
+    const theThread = await this.threadRepository.findById(threadId);
+    if (!theThread) {
+      throw new UnprocessableEntityException('Thread not found');
+    }
+    if (theThread.userId !== userId) {
+      throw new ForbiddenException('You are not the owner of this thread');
+    }
   }
 }

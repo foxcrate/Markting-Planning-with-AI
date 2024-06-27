@@ -8,7 +8,7 @@ import { OnboardingTemplateDto } from './dtos/onboarding-template.dto';
 import { TemplateRepository } from './template.repository';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
 import { TemplateType } from 'src/enums/template-type.enum';
-import { MessageRepository } from 'src/message/message.repository';
+import { MessageService } from 'src/message/message.service';
 import { SenderRole } from 'src/enums/sender-role.enum';
 import { ThreadRepository } from 'src/thread/thread.repository';
 import { FunnelTemplateDto } from './dtos/funnel-template.dto';
@@ -24,7 +24,7 @@ export class TemplateService {
     private readonly templateRepository: TemplateRepository,
     @Inject(forwardRef(() => OpenAiService))
     private readonly openAiService: OpenAiService,
-    private readonly messageRepository: MessageRepository,
+    private readonly messageService: MessageService,
     private readonly threadRepository: ThreadRepository,
     private readonly workspaceRepository: WorkspaceRepository,
     private readonly funnelService: FunnelService,
@@ -212,7 +212,7 @@ export class TemplateService {
     );
 
     // save new message
-    await this.messageRepository.create(
+    await this.messageService.create(
       runObject.assistantMessage,
       thread.id,
       SenderRole.ASSISTANT,
@@ -242,7 +242,7 @@ export class TemplateService {
     }
 
     // save user message
-    await this.messageRepository.create(answer, thread.id, SenderRole.USER);
+    await this.messageService.create(answer, thread.id, SenderRole.USER);
 
     //get the template run instruction if exists
     let runInstruction = await this.getTemplateRunInstruction(
@@ -274,7 +274,7 @@ export class TemplateService {
       };
     } else {
       // save assistant message
-      await this.messageRepository.create(
+      await this.messageService.create(
         aiResponseObject.assistantMessage,
         thread.id,
         SenderRole.ASSISTANT,

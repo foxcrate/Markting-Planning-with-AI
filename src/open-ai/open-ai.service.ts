@@ -2,7 +2,6 @@ import {
   forwardRef,
   Inject,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
   OnModuleInit,
   UnprocessableEntityException,
@@ -10,7 +9,6 @@ import {
 import OpenAI from 'openai';
 import { AssistantCreateParams } from 'openai/resources/beta/assistants/assistants';
 import { FunnelService } from 'src/funnel/funnel.service';
-import { TacticService } from 'src/tactic/tactic.service';
 import { ParameterObjectDto } from 'src/template/dtos/parameter-object.dto';
 import { ThreadService } from 'src/thread/thread.service';
 import { WorkspaceService } from 'src/workspace/workspace.service';
@@ -22,6 +20,12 @@ import { SerializedDataObjectDto } from './dtos/serializedDataObject.dto';
 import { AiCreatedTacticDto } from './dtos/ai-created-tactic.dto';
 import { TemplateType } from 'src/enums/template-type.enum';
 import { TemplateService } from 'src/template/template.service';
+import { AiChatRequestDto } from './dtos/ai-chat-request.dto';
+import { ThreadReturnDto } from 'src/thread/dtos/thread-return.dto';
+import { SenderRole } from 'src/enums/sender-role.enum';
+import { MessageService } from 'src/message/message.service';
+import { AiChatResponseDto } from './dtos/ai-chat-response.dto';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class OpenAiService implements OnModuleInit {
@@ -29,8 +33,9 @@ export class OpenAiService implements OnModuleInit {
     private workspaceService: WorkspaceService,
     private funnelService: FunnelService,
     private threadService: ThreadService,
+    private messageService: MessageService,
+    private userService: UserService,
     private stageService: StageService,
-    private tacticService: TacticService,
     @Inject(forwardRef(() => TemplateService))
     private readonly templateService: TemplateService,
     private configService: ConfigService,
@@ -72,6 +77,109 @@ export class OpenAiService implements OnModuleInit {
       body.stageId,
       userId,
     );
+  }
+
+  async aiChat(
+    body: AiChatRequestDto,
+    userId: number,
+  ): Promise<AiChatResponseDto> {
+    //get user chat thread
+    let theThread = {} as ThreadReturnDto;
+    if (!body.threadId) {
+      let openAiThread = await this.createUserThread();
+      let newThread = await this.threadService.create(
+        userId,
+        null,
+        openAiThread.id,
+      );
+      theThread = newThread;
+    } else {
+      theThread = await this.threadService.getOne(body.threadId, userId);
+    }
+    //save user message
+    await this.messageService.create(
+      body.message,
+      theThread.id,
+      SenderRole.USER,
+    );
+
+    let serializedUserDataObject = await this.getFunctionalAiUserData(
+      body.workspaceId,
+      body.funnelId,
+      body.stageId,
+      userId,
+    );
+
+    //get user data
+    let theUser = await this.userService.getUserData(userId);
+
+    let newSerializedUserDataObject = {
+      user_data: { user_name: theUser.firstName + ' ' + theUser.lastName },
+      ...serializedUserDataObject,
+    };
+
+    // console.log({
+    //   newSerializedUserDataObject,
+    // });
+
+    return await this.chatAssistant(
+      this.configService.getOrThrow('CHAT_ASSISTANT_ID'),
+      newSerializedUserDataObject,
+      body.message,
+      theThread.id,
+      theThread.openAiId,
+    );
+  }
+
+  async chatAssistant(
+    openaiAssistantId: string,
+    runInstructions: SerializedDataObjectDto,
+    message: string,
+    threadId: number,
+    threadOpenAiId: string,
+  ): Promise<AiChatResponseDto> {
+    //start the assistant with the thread and run instructions
+    await this.instance.beta.threads.messages.create(threadOpenAiId, {
+      role: 'user',
+      content: message,
+    });
+    let run = await this.instance.beta.threads.runs.create(threadOpenAiId, {
+      assistant_id: openaiAssistantId,
+      additional_instructions: JSON.stringify(runInstructions),
+    });
+
+    while (['queued', 'in_progress', 'cancelling'].includes(run.status)) {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second
+      run = await this.instance.beta.threads.runs.retrieve(
+        run.thread_id,
+        run.id,
+      );
+    }
+
+    if (run.status === 'completed') {
+      const messages: any = await this.instance.beta.threads.messages.list(
+        run.thread_id,
+      );
+
+      let aiMessage = messages.data[0].content[0].text.value;
+
+      //save ai message
+      await this.messageService.create(
+        aiMessage,
+        threadId,
+        SenderRole.ASSISTANT,
+      );
+
+      return {
+        message: aiMessage,
+        threadId: threadId,
+      };
+    } else {
+      console.log(run.status);
+      throw new UnprocessableEntityException(
+        `error in openAI chat run: ${run.status}`,
+      );
+    }
   }
 
   async getFunctionalAiUserData(
