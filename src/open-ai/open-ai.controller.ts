@@ -12,6 +12,8 @@ import { UserId } from 'src/decorators/user-id.decorator';
 import { OpenAiService } from './open-ai.service';
 import { AiCreatedTacticDto } from './dtos/ai-created-tactic.dto';
 import { ErrorResponseDto } from 'src/dtos/error-response.dto';
+import { AiChatRequestDto } from './dtos/ai-chat-request.dto';
+import { AiChatResponseDto } from './dtos/ai-chat-response.dto';
 
 @Controller({ path: 'ai', version: '1' })
 export class OpenAiController {
@@ -33,5 +35,20 @@ export class OpenAiController {
     @UserId() userId: number,
   ) {
     return this.openAiService.aiCreateTactic(body, userId);
+  }
+
+  @ApiBody({ type: AiChatRequestDto })
+  @ApiCreatedResponse({
+    type: AiChatResponseDto,
+  })
+  @ApiNotFoundResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Ai: Chat')
+  @Post('chat')
+  @UseGuards(AuthGuard)
+  async aiChat(@Body() body: AiChatRequestDto, @UserId() userId: number) {
+    return this.openAiService.aiChat(body, userId);
   }
 }

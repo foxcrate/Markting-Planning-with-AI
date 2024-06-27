@@ -8,6 +8,7 @@ import { ThreadModule } from 'src/thread/thread.module';
 import { TacticModule } from 'src/tactic/tactic.module';
 import { StageModule } from 'src/stage/stage.module';
 import { TemplateModule } from 'src/template/template.module';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   controllers: [OpenAiController],
@@ -21,6 +22,7 @@ import { TemplateModule } from 'src/template/template.module';
     forwardRef(() => TemplateModule),
     StageModule,
     TacticModule,
+    UserModule,
   ],
 })
 export class OpenAiModule {}
