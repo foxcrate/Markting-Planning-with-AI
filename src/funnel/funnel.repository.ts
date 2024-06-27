@@ -68,6 +68,7 @@ export class FunnelRepository {
                       'id',tactics.id,
                       'name', tactics.name,
                       'description', tactics.description,
+                      'checked', tactics.checked,
                       'theOrder', tactics_stages.theOrder
                     )
                   )
