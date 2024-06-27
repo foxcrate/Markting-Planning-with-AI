@@ -81,33 +81,38 @@ export class UserController {
   @ApiTags('User: Change Phone Number')
   @Post('change/phone-number')
   @UseGuards(AuthGuard)
-  async changePhoneNumber(@Body() changePhoneNumberBody: ChangePhoneNumberDto) {
+  async changePhoneNumber(
+    @Body() changePhoneNumberBody: ChangePhoneNumberDto,
+    @UserId() userId: number,
+  ) {
     return this.userService.changePhoneNumber(
       changePhoneNumberBody.phoneNumber,
-    );
-  }
-
-  @ApiBody({ type: VerifyChangePhoneNumberDto })
-  @ApiCreatedResponse({
-    type: MessageReturnDto,
-  })
-  @ApiNotFoundResponse({
-    type: ErrorResponseDto,
-  })
-  @ApiBearerAuth()
-  @ApiTags('User: Change phone number verification')
-  @Post('verify/change-phone-number')
-  @UseGuards(AuthGuard)
-  async verifyChangePhoneNumber(
-    @Body() body: VerifyChangePhoneNumberDto,
-    @UserId() userId,
-  ) {
-    return await this.userService.verifyChangePhoneNumberOTP(
-      body.phoneNumber,
-      body.otp,
+      changePhoneNumberBody.newPhoneNumber,
       userId,
     );
   }
+
+  // @ApiBody({ type: VerifyChangePhoneNumberDto })
+  // @ApiCreatedResponse({
+  //   type: MessageReturnDto,
+  // })
+  // @ApiNotFoundResponse({
+  //   type: ErrorResponseDto,
+  // })
+  // @ApiBearerAuth()
+  // @ApiTags('User: Change phone number verification')
+  // @Post('verify/change-phone-number')
+  // @UseGuards(AuthGuard)
+  // async verifyChangePhoneNumber(
+  //   @Body() body: VerifyChangePhoneNumberDto,
+  //   @UserId() userId,
+  // ) {
+  //   return await this.userService.verifyChangePhoneNumberOTP(
+  //     body.phoneNumber,
+  //     body.otp,
+  //     userId,
+  //   );
+  // }
 
   @ApiBody({ type: ChangeEmailDto })
   @ApiCreatedResponse({

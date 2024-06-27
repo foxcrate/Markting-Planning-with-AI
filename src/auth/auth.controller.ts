@@ -9,7 +9,7 @@ import { SocialSignUpDto } from './dtos/social-signup.dto';
 import { SocialSignInDto } from './dtos/social-signin.dto';
 import { MobileSignUpDto } from './dtos/mobile-signup.dto';
 import { MobileSignInDto } from './dtos/mobile-signin.dto';
-import { VerifyConnectSocialOtpDto } from './dtos/verify-connect-social-otp.dto';
+import { ConnectSocialDto } from './dtos/connect-social.dto';
 import { PhoneNumberDto } from './dtos/phone-number.dto';
 import { SendEmailDto } from './dtos/send-email-otp.dto';
 import { AuthGuard } from 'src/gurads/auth.guard';
@@ -46,7 +46,7 @@ export class AuthController {
     type: MobileSignUpDto,
   })
   @ApiCreatedResponse({
-    type: SignupReturnDto,
+    type: AuthReturnDto,
   })
   @ApiBadRequestResponse({
     type: ErrorResponseDto,
@@ -61,8 +61,7 @@ export class AuthController {
     type: MobileSignInDto,
   })
   @ApiCreatedResponse({
-    type: SignInReturnDto,
-    description: 'OTP will be sent to the phone number',
+    type: AuthReturnDto,
   })
   @ApiNotFoundResponse({
     type: ErrorResponseDto,
@@ -133,8 +132,7 @@ export class AuthController {
     type: SocialSignUpDto,
   })
   @ApiCreatedResponse({
-    type: SignupReturnDto,
-    description: 'OTP will be sent to the phone number',
+    type: AuthReturnDto,
   })
   @ApiUnprocessableEntityResponse({
     type: ErrorResponseDto,
@@ -164,29 +162,29 @@ export class AuthController {
     return await this.authService.socialSignIn(socialSignIn);
   }
 
-  @ApiBody({
-    type: PhoneNumberDto,
-  })
-  @ApiCreatedResponse({
-    type: SignInReturnDto,
-    description: 'OTP will be sent to the phone number',
-  })
-  @ApiNotFoundResponse({
-    type: ErrorResponseDto,
-  })
-  @ApiBadRequestResponse({
-    type: ErrorResponseDto,
-  })
-  @ApiTags('Auth: Request to connect phone number with social')
-  @Post('request/connect-phone-social')
-  async connectPhoneSocial(@Body() { phoneNumber }: PhoneNumberDto) {
-    return await this.authService.requestConnectPhoneNumberWithSocial(
-      phoneNumber,
-    );
-  }
+  // @ApiBody({
+  //   type: PhoneNumberDto,
+  // })
+  // @ApiCreatedResponse({
+  //   type: SignInReturnDto,
+  //   description: 'OTP will be sent to the phone number',
+  // })
+  // @ApiNotFoundResponse({
+  //   type: ErrorResponseDto,
+  // })
+  // @ApiBadRequestResponse({
+  //   type: ErrorResponseDto,
+  // })
+  // @ApiTags('Auth: Request to connect phone number with social')
+  // @Post('request/connect-phone-social')
+  // async connectPhoneSocial(@Body() { phoneNumber }: PhoneNumberDto) {
+  //   return await this.authService.requestConnectPhoneNumberWithSocial(
+  //     phoneNumber,
+  //   );
+  // }
 
   @ApiBody({
-    type: VerifyConnectSocialOtpDto,
+    type: ConnectSocialDto,
   })
   @ApiCreatedResponse({
     type: AuthReturnDto,
@@ -194,14 +192,10 @@ export class AuthController {
   @ApiUnprocessableEntityResponse({
     type: ErrorResponseDto,
   })
-  @ApiTags('Auth: Connect Social Verification')
-  @Post('verify/connect-social-otp')
-  async verifyConnectSocialOtp1(
-    @Body() verifyConnectSocialOtp: VerifyConnectSocialOtpDto,
-  ) {
-    return await this.authService.verifyConnectSocialOTP(
-      verifyConnectSocialOtp,
-    );
+  @ApiTags('Auth: Connect Social')
+  @Post('connect-social')
+  async connectSocial(@Body() connectSocial: ConnectSocialDto) {
+    return await this.authService.connectSocial(connectSocial);
   }
 
   ///////////////////////////////
@@ -221,41 +215,41 @@ export class AuthController {
     return await this.authService.refreshToken(refreshToken);
   }
 
-  @ApiBody({
-    type: VerifyOtpDto,
-  })
-  @ApiCreatedResponse({
-    type: AuthReturnDto,
-  })
-  @ApiUnprocessableEntityResponse({
-    type: ErrorResponseDto,
-  })
-  @ApiTags('Auth: Signup OTP Verification')
-  @Post('verify/signup-otp')
-  async verifySignupOtp1(@Body() verifyOtpData: VerifyOtpDto) {
-    return await this.authService.verifySignupOTP(
-      verifyOtpData.otp,
-      verifyOtpData.mobileNumber,
-    );
-  }
+  // @ApiBody({
+  //   type: VerifyOtpDto,
+  // })
+  // @ApiCreatedResponse({
+  //   type: AuthReturnDto,
+  // })
+  // @ApiUnprocessableEntityResponse({
+  //   type: ErrorResponseDto,
+  // })
+  // @ApiTags('Auth: Signup OTP Verification')
+  // @Post('verify/signup-otp')
+  // async verifySignupOtp1(@Body() verifyOtpData: VerifyOtpDto) {
+  //   return await this.authService.verifySignupOTP(
+  //     verifyOtpData.otp,
+  //     verifyOtpData.mobileNumber,
+  //   );
+  // }
 
-  @ApiBody({
-    type: VerifyOtpDto,
-  })
-  @ApiCreatedResponse({
-    type: AuthReturnDto,
-  })
-  @ApiUnprocessableEntityResponse({
-    type: ErrorResponseDto,
-  })
-  @ApiTags('Auth: Signin OTP Verification')
-  @Post('verify/signin-otp')
-  async verifySigninOtp1(@Body() verifyOtpData: VerifyOtpDto) {
-    return await this.authService.verifySigninOTP(
-      verifyOtpData.otp,
-      verifyOtpData.mobileNumber,
-    );
-  }
+  // @ApiBody({
+  //   type: VerifyOtpDto,
+  // })
+  // @ApiCreatedResponse({
+  //   type: AuthReturnDto,
+  // })
+  // @ApiUnprocessableEntityResponse({
+  //   type: ErrorResponseDto,
+  // })
+  // @ApiTags('Auth: Signin OTP Verification')
+  // @Post('verify/signin-otp')
+  // async verifySigninOtp1(@Body() verifyOtpData: VerifyOtpDto) {
+  //   return await this.authService.verifySigninOTP(
+  //     verifyOtpData.otp,
+  //     verifyOtpData.mobileNumber,
+  //   );
+  // }
 
   ////////////////////////
 

@@ -25,6 +25,9 @@ import {
 } from '@nestjs/swagger';
 import { ErrorResponseDto } from 'src/dtos/error-response.dto';
 import { StageDetailsReturnDto } from './dtos/stage-details-return.dto';
+import { FunnelIdAndStageIdAndTacticIdDto } from './dtos/funnelId-and-stageId-and-tacticId.dto';
+import { StageTacticWithStepsReturnDto } from './dtos/stage-tactic-with-steps-return.dto';
+import { TacticStepIdDto } from 'src/tactic/dtos/tactic-step-id.dto';
 
 @Controller({ path: 'funnel/:funnelId/stage', version: '1' })
 export class StageController {
@@ -55,6 +58,39 @@ export class StageController {
     return await this.stageService.getOne(
       params.stageId,
       theFunnel.userId,
+      userId,
+    );
+  }
+
+  @ApiParam({
+    name: 'funnelId',
+  })
+  @ApiParam({
+    name: 'stageId',
+  })
+  @ApiParam({
+    name: 'tacticId',
+  })
+  @ApiCreatedResponse({
+    type: StageTacticWithStepsReturnDto,
+  })
+  @ApiForbiddenResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags("Funnel's Stage:Get One Stage Tactic")
+  //
+  @Get(':stageId/tactic/:tacticId')
+  @UseGuards(AuthGuard)
+  async getStageTactic(
+    @Param() params: FunnelIdAndStageIdAndTacticIdDto,
+    @UserId() userId: number,
+  ) {
+    let theFunnel = await this.funnelService.getOne(params.funnelId, userId);
+    return await this.stageService.getStageTactic(
+      params.stageId,
+      theFunnel.userId,
+      params.tacticId,
       userId,
     );
   }
@@ -118,6 +154,68 @@ export class StageController {
       params.funnelId,
       params.stageId,
       body.tacticId,
+      userId,
+    );
+  }
+
+  @ApiParam({
+    name: 'funnelId',
+  })
+  @ApiParam({
+    name: 'stageId',
+  })
+  @ApiBody({ type: TacticIdDto })
+  @ApiCreatedResponse({ status: 200 })
+  @ApiForbiddenResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags("Funnel's Stage: Checkbox A Tactic")
+  //
+  @Post(':stageId/checkbox-tactic')
+  @UseGuards(AuthGuard)
+  async checkboxTactic(
+    @Param() params: FunnelIdAndStageIdDto,
+    @Body() body: TacticIdDto,
+    @UserId() userId: number,
+  ) {
+    return await this.stageService.checkboxTactic(
+      params.funnelId,
+      params.stageId,
+      body.tacticId,
+      userId,
+    );
+  }
+
+  @ApiParam({
+    name: 'funnelId',
+  })
+  @ApiParam({
+    name: 'stageId',
+  })
+  @ApiParam({
+    name: 'tacticId',
+  })
+  @ApiBody({ type: TacticStepIdDto })
+  @ApiCreatedResponse({ status: 200 })
+  @ApiForbiddenResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags("Funnel's Stage: Checkbox A Tactic Step")
+  //
+  @Post(':stageId/:tacticId/checkbox-tactic-step')
+  @UseGuards(AuthGuard)
+  async checkboxTacticStep(
+    @Param() params: FunnelIdAndStageIdAndTacticIdDto,
+    @Body() body: TacticStepIdDto,
+    @UserId() userId: number,
+  ) {
+    return await this.stageService.checkboxTacticStep(
+      params.funnelId,
+      params.stageId,
+      params.tacticId,
+      body.tacticStepId,
       userId,
     );
   }

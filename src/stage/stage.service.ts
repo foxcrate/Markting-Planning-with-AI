@@ -12,7 +12,7 @@ import { TacticIdAndOrderDto } from './dtos/tacticId-and-order.dto';
 import { FunnelService } from 'src/funnel/funnel.service';
 import { TacticService } from 'src/tactic/tactic.service';
 import { StageDetailsReturnDto } from './dtos/stage-details-return.dto';
-import { TacticCreateDto } from 'src/tactic/dtos/tactic-create.dto';
+import { StageTacticWithStepsReturnDto } from './dtos/stage-tactic-with-steps-return.dto';
 
 @Injectable()
 export class StageService {
@@ -31,6 +31,18 @@ export class StageService {
   ): Promise<StageDetailsReturnDto> {
     await this.isOwner(stageId, funnelUserId, userId);
     return await this.stageRepository.findById(stageId);
+  }
+
+  async getStageTactic(
+    stageId: number,
+    funnelUserId: number,
+    tacticId: number,
+    userId: number,
+  ): Promise<StageTacticWithStepsReturnDto> {
+    await this.isOwner(stageId, funnelUserId, userId);
+    // validate the tactic is an instance tactic
+    await this.stageRepository.validateTacticBelongToStage(stageId, tacticId);
+    return await this.stageRepository.findStageTacticById(tacticId);
   }
 
   async updateStageTacticsOrder(
@@ -79,6 +91,43 @@ export class StageService {
     // add stage tactic relationship
     await this.stageRepository.addTacticToStage(stageId, createdTactic.id, 0);
     return await this.stageRepository.findById(stageId);
+  }
+
+  async checkboxTactic(
+    funnelId: number,
+    stageId: number,
+    tacticId: number,
+    userId: number,
+  ) {
+    let theFunnel = await this.funnelService.getOne(funnelId, userId);
+    await this.isOwner(stageId, theFunnel.userId, userId);
+    // let theTactic = await this.tacticService.getOne(tacticId, userId);
+
+    // validate the tactic is an instance tactic
+    await this.stageRepository.validateTacticBelongToStage(stageId, tacticId);
+    return await this.stageRepository.checkboxTactic(tacticId);
+    // return await this.stageRepository.findById(stageId);
+  }
+
+  async checkboxTacticStep(
+    funnelId: number,
+    stageId: number,
+    tacticId: number,
+    tacticStepId: number,
+    userId: number,
+  ) {
+    let theFunnel = await this.funnelService.getOne(funnelId, userId);
+    await this.isOwner(stageId, theFunnel.userId, userId);
+    // let theTactic = await this.tacticService.getOne(tacticId, userId);
+
+    // validate the tactic is an instance tactic
+    await this.stageRepository.validateTacticBelongToStage(stageId, tacticId);
+    await this.stageRepository.validateTacticStepBelongToTactic(
+      tacticId,
+      tacticStepId,
+    );
+    return await this.stageRepository.checkboxTacticStep(tacticStepId);
+    // return await this.stageRepository.findById(stageId);
   }
 
   // async addNewTacticToStage(

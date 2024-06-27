@@ -31,6 +31,9 @@ export class TacticStepEntity {
   @Column()
   theOrder: number;
 
+  @Column({ type: 'boolean', default: false })
+  checked: boolean;
+
   @ManyToOne(() => TacticEntity, (tactic) => tactic.tacticSteps, {
     cascade: true,
     onDelete: 'CASCADE',

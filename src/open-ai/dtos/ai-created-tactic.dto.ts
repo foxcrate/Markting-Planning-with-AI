@@ -4,6 +4,9 @@ import { AiCreatedTacticStepDto } from './ai-created-tactic-step.dto';
 
 export class AiCreatedTacticDto {
   @ApiProperty()
+  prompt: string;
+
+  @ApiProperty()
   name: string;
 
   @ApiProperty()

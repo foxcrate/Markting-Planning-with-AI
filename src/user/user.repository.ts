@@ -90,14 +90,14 @@ export class UserRepository {
     return await this.findById(userId);
   }
 
-  async verifyPhoneNumber(userId: number) {
-    const query = `
-        UPDATE users
-        SET phoneVerified = true
-        WHERE id = ?
-      `;
-    await this.db.query(query, [userId]);
-  }
+  // async verifyPhoneNumber(userId: number) {
+  //   const query = `
+  //       UPDATE users
+  //       SET phoneVerified = true
+  //       WHERE id = ?
+  //     `;
+  //   await this.db.query(query, [userId]);
+  // }
 
   async updateEmail(email: string, userId: number) {
     const query = `
@@ -173,7 +173,6 @@ export class UserRepository {
       users.email,
       users.credits,
       users.profilePicture,
-      users.phoneVerified,
       users.phoneNumber,
       users.googleId,
       users.facebookId,

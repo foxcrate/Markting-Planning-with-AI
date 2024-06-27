@@ -25,4 +25,9 @@ export class AppController {
   getHello(): { message: string } {
     return this.appService.getHello();
   }
+
+  @Get('test-firebase')
+  test() {
+    return this.appService.testFirebase();
+  }
 }

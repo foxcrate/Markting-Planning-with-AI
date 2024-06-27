@@ -8,6 +8,7 @@ import { Pool } from 'mariadb';
 import { GlobalStageReturnDto } from 'src/global-stage/dtos/global-stage-return.dto';
 import { TacticIdAndOrderDto } from './dtos/tacticId-and-order.dto';
 import { StageDetailsReturnDto } from './dtos/stage-details-return.dto';
+import { StageTacticWithStepsReturnDto } from './dtos/stage-tactic-with-steps-return.dto';
 
 @Injectable()
 export class StageRepository {
@@ -28,6 +29,7 @@ export class StageRepository {
           'id', tactics.id,
           'name', tactics.name,
           'description', tactics.description,
+          'checked', tactics.checked,
           'theOrder', tactics_stages.theOrder
       )
     )
@@ -47,6 +49,70 @@ export class StageRepository {
     // });
 
     return theStage;
+  }
+
+  async findStageTacticById(
+    id: number,
+  ): Promise<StageTacticWithStepsReturnDto> {
+    const query = `
+      SELECT
+      tactics.id,
+      tactics.name,
+      tactics.description,
+      tactics.kpiName,
+      tactics.kpiUnit,
+      tactics.kpiMeasuringFrequency,
+      tactics.checked,
+      tactics.userId,
+      (
+        SELECT theOrder
+        FROM tactics_stages
+        WHERE tacticId = tactics.id
+      )AS theOrder,
+      CASE WHEN COUNT(users.id) = 0 THEN null
+      ELSE
+      JSON_OBJECT(
+        'id',users.id,
+        'firstName', users.firstName,
+        'lastName', users.lastName,
+        'profilePicture', users.profilePicture
+      )
+      END AS user,
+      CASE WHEN COUNT(global_stages.id) = 0 THEN null
+      ELSE
+      JSON_OBJECT(
+        'id',global_stages.id,
+        'name', global_stages.name,
+        'description', global_stages.description
+      )
+      END AS globalStage,
+      CASE WHEN COUNT(tactic_step.id) = 0 THEN null
+      ELSE
+      JSON_ARRAYAGG(JSON_OBJECT(
+        'id',tactic_step.id,
+        'name', tactic_step.name,
+        'description', tactic_step.description,
+        'attachment', tactic_step.attachment,
+        'checked', tactic_step.checked,
+        'theOrder', tactic_step.theOrder
+        ))
+      END AS steps
+      FROM tactics
+      LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
+      LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
+      LEFT JOIN users ON users.id = tactics.userId
+      WHERE tactics.id = ?
+      GROUP BY tactics.id;
+    `;
+
+    let [theStageTactic] = await this.db.query(query, [id]);
+
+    // // sort stage's tactics by order
+    // theStage.tactics.sort((a, b) => {
+    //   return a.theOrder - b.theOrder;
+    // });
+
+    return theStageTactic;
   }
 
   async addStagesToFunnel(
@@ -143,7 +209,7 @@ export class StageRepository {
     // get all stage tactics
     let stageTacticsIds = await this.getAllStageTacticsIds(stageId);
 
-    if (!stageTacticsIds.includes(tacticsId)) {
+    if (!stageTacticsIds.includes(Number(tacticsId))) {
       throw new UnprocessableEntityException('Tactic does not belong to stage');
     }
     return true;
@@ -160,6 +226,62 @@ export class StageRepository {
     if (!this.validateArrays(stageTacticsIds, tacticsIdsArray)) {
       throw new UnprocessableEntityException('Tactic does not belong to stage');
     }
+    return true;
+  }
+
+  async validateTacticStepBelongToTactic(
+    tacticId: number,
+    tacticStepId: number,
+  ) {
+    // get all tactic steps
+    let tacticStepsIds = await this.getAllTacticStepsIds(tacticId);
+
+    if (!tacticStepsIds.includes(Number(tacticStepId))) {
+      throw new UnprocessableEntityException(
+        'TacticStep does not belong to tactic',
+      );
+    }
+    return true;
+  }
+
+  async getAllTacticStepsIds(tacticId: number): Promise<number[]> {
+    let [tacticStepsIds] = await this.db.query(
+      `
+      SELECT
+      CASE WHEN COUNT(tactic_step.id) = 0 THEN JSON_ARRAY()
+      ELSE
+      JSON_ARRAYAGG(tactic_step.id)
+      END AS tacticStepIds
+      FROM
+      tactic_step
+      WHERE tacticId = ?
+      `,
+      [tacticId],
+    );
+    return tacticStepsIds.tacticStepIds;
+  }
+
+  async checkboxTactic(tacticId: number) {
+    var query = `
+        UPDATE tactics
+        SET tactics.checked = IF(tactics.checked = 0, 1, 0)
+        WHERE id = ?
+      `;
+
+    await this.db.query(query, [tacticId]);
+
+    return true;
+  }
+
+  async checkboxTacticStep(tacticStepId: number) {
+    var query = `
+        UPDATE tactic_step
+        SET tactic_step.checked = IF(tactic_step.checked = 0, 1, 0)
+        WHERE id = ?
+      `;
+
+    await this.db.query(query, [tacticStepId]);
+
     return true;
   }
 

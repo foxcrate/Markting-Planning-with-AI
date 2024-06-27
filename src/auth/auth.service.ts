@@ -19,11 +19,8 @@ import { MobileSignInDto } from './dtos/mobile-signin.dto';
 import { MobileSignUpDto } from './dtos/mobile-signup.dto';
 import { UserRoles } from 'src/enums/user-roles.enum';
 import { OtpTypes } from 'src/enums/otp-types.enum';
-import { VerifyConnectSocialOtpDto } from './dtos/verify-connect-social-otp.dto';
+import { ConnectSocialDto } from './dtos/connect-social.dto';
 import { UserService } from 'src/user/user.service';
-import { SignupReturnDto } from './dtos/signup-return.dto';
-import { SignInReturnDto } from './dtos/signin-return.dto';
-import { RefreshTokenDto } from './dtos/refresh-token.dto';
 import { RefreshTokenReturnDto } from './dtos/refresh-token-return.dto';
 import { SendEmailReturnDto } from './dtos/send-email-return-otp.dto';
 
@@ -106,7 +103,8 @@ export class AuthService {
 
   /////////////////// Mobile Auth //////////////////////////
 
-  async mobileSignIn(signIn: MobileSignInDto): Promise<SignInReturnDto> {
+  async mobileSignIn(signIn: MobileSignInDto): Promise<AuthReturnDto> {
+    // return await this.otpService.verifyFirebaseOTP(signIn.phoneNumber);
     let theUser = await this.userRepository.findUserByPhoneNumber(
       signIn.phoneNumber,
     );
@@ -117,14 +115,28 @@ export class AuthService {
     // if (!theUser.phoneVerified) {
     //   throw new BadRequestException('Phone Number not verified');
     // }
-    await this.otpService.sendMobileOtp(signIn.phoneNumber, OtpTypes.SIGNIN);
+    // await this.otpService.sendMobileOtp(signIn.phoneNumber, OtpTypes.SIGNIN);
+
+    await this.otpService.verifyFirebaseOTP(signIn.phoneNumber);
+
+    // return {
+    //   message: 'Please check your mobile for an otp',
+    // };
+
+    const { password, ...restProperties } = theUser;
+    let user = {
+      ...restProperties,
+      userOnboarded: await this.userService.userOnboarded(restProperties.id),
+    };
 
     return {
-      message: 'Please check your mobile for an otp',
+      user: user,
+      token: this.createNormalToken(user),
+      refreshToken: this.createRefreshToken(user),
     };
   }
 
-  async mobileSignUp(signUp: MobileSignUpDto): Promise<SignupReturnDto> {
+  async mobileSignUp(signUp: MobileSignUpDto): Promise<AuthReturnDto> {
     const existingUser = await this.userRepository.findUserByPhoneNumber(
       signUp.phoneNumber,
     );
@@ -132,36 +144,15 @@ export class AuthService {
       throw new BadRequestException('phone number already exists');
     }
 
+    await this.otpService.verifyFirebaseOTP(signUp.phoneNumber);
+
     const createdUser = await this.userRepository.create({
       ...signUp,
     });
 
-    await this.otpService.sendMobileOtp(signUp.phoneNumber, OtpTypes.SIGNUP);
+    // await this.otpService.sendMobileOtp(signUp.phoneNumber, OtpTypes.SIGNUP);
 
-    return {
-      user: createdUser,
-      message: 'Please check your mobile for signup otp verification',
-    };
-  }
-
-  async verifySignupOTP(
-    otp: string,
-    mobileNumber: string,
-  ): Promise<AuthReturnDto> {
-    const existingUser =
-      await this.userRepository.findUserByPhoneNumber(mobileNumber);
-    if (!existingUser) {
-      throw new UnprocessableEntityException(`phone number doesn't exists`);
-    }
-    await this.otpService.verifyOTP(
-      existingUser.phoneNumber,
-      otp,
-      OtpTypes.SIGNUP,
-    );
-
-    await this.userRepository.verifyPhoneNumber(existingUser.id);
-
-    const { password, ...restProperties } = existingUser;
+    const { password, ...restProperties } = createdUser;
     // let user = restProperties;
     let user = {
       ...restProperties,
@@ -174,34 +165,64 @@ export class AuthService {
     };
   }
 
-  async verifySigninOTP(
-    otp: string,
-    mobileNumber: string,
-  ): Promise<AuthReturnDto> {
-    const existingUser =
-      await this.userRepository.findUserByPhoneNumber(mobileNumber);
-    if (!existingUser) {
-      throw new UnprocessableEntityException(`phone number doesn't exists`);
-    }
-    await this.otpService.verifyOTP(
-      existingUser.phoneNumber,
-      otp,
-      OtpTypes.SIGNIN,
-    );
+  // async verifySignupOTP(
+  //   otp: string,
+  //   mobileNumber: string,
+  // ): Promise<AuthReturnDto> {
+  //   const existingUser =
+  //     await this.userRepository.findUserByPhoneNumber(mobileNumber);
+  //   if (!existingUser) {
+  //     throw new UnprocessableEntityException(`phone number doesn't exists`);
+  //   }
+  //   await this.otpService.verifyOTP(
+  //     existingUser.phoneNumber,
+  //     otp,
+  //     OtpTypes.SIGNUP,
+  //   );
 
-    await this.userRepository.verifyPhoneNumber(existingUser.id);
+  //   await this.userRepository.verifyPhoneNumber(existingUser.id);
 
-    const { password, ...restProperties } = existingUser;
-    let user = {
-      ...restProperties,
-      userOnboarded: await this.userService.userOnboarded(restProperties.id),
-    };
-    return {
-      user: user,
-      token: this.createNormalToken(user),
-      refreshToken: this.createRefreshToken(user),
-    };
-  }
+  //   const { password, ...restProperties } = existingUser;
+  //   // let user = restProperties;
+  //   let user = {
+  //     ...restProperties,
+  //     userOnboarded: await this.userService.userOnboarded(restProperties.id),
+  //   };
+  //   return {
+  //     user: user,
+  //     token: this.createNormalToken(user),
+  //     refreshToken: this.createRefreshToken(user),
+  //   };
+  // }
+
+  // async verifySigninOTP(
+  //   otp: string,
+  //   mobileNumber: string,
+  // ): Promise<AuthReturnDto> {
+  //   const existingUser =
+  //     await this.userRepository.findUserByPhoneNumber(mobileNumber);
+  //   if (!existingUser) {
+  //     throw new UnprocessableEntityException(`phone number doesn't exists`);
+  //   }
+  //   await this.otpService.verifyOTP(
+  //     existingUser.phoneNumber,
+  //     otp,
+  //     OtpTypes.SIGNIN,
+  //   );
+
+  //   await this.userRepository.verifyPhoneNumber(existingUser.id);
+
+  //   const { password, ...restProperties } = existingUser;
+  //   let user = {
+  //     ...restProperties,
+  //     userOnboarded: await this.userService.userOnboarded(restProperties.id),
+  //   };
+  //   return {
+  //     user: user,
+  //     token: this.createNormalToken(user),
+  //     refreshToken: this.createRefreshToken(user),
+  //   };
+  // }
 
   async checkSavedPhone(phoneNumber: string): Promise<boolean> {
     let foundedUser =
@@ -284,6 +305,8 @@ export class AuthService {
       }
     }
 
+    await this.otpService.verifyFirebaseOTP(socialSignUp.phoneNumber);
+
     //check existing phone number
     let userWithSamePhone = await this.userRepository.findUserByPhoneNumber(
       socialSignUp.phoneNumber,
@@ -312,10 +335,10 @@ export class AuthService {
       facebookId: socialSignUp.facebookId,
     });
 
-    await this.otpService.sendMobileOtp(
-      socialSignUp.phoneNumber,
-      OtpTypes.SIGNUP,
-    );
+    // await this.otpService.sendMobileOtp(
+    //   socialSignUp.phoneNumber,
+    //   OtpTypes.SIGNUP,
+    // );
 
     let newUser = {
       ...createdUser,
@@ -364,61 +387,58 @@ export class AuthService {
     };
   }
 
-  async requestConnectPhoneNumberWithSocial(
-    phoneNumber: string,
-  ): Promise<SignInReturnDto> {
-    let theUser = await this.userRepository.findUserByPhoneNumber(phoneNumber);
+  // async requestConnectPhoneNumberWithSocial(
+  //   phoneNumber: string,
+  // ): Promise<SignInReturnDto> {
+  //   let theUser = await this.userRepository.findUserByPhoneNumber(phoneNumber);
 
-    if (!theUser) {
-      throw new NotFoundException('User not found');
-    }
-    if (!theUser.phoneVerified) {
-      throw new BadRequestException('Phone Number not verified');
-    }
-    await this.otpService.sendMobileOtp(phoneNumber, OtpTypes.CONNECT_SOCIAL);
+  //   if (!theUser) {
+  //     throw new NotFoundException('User not found');
+  //   }
+  //   // if (!theUser.phoneVerified) {
+  //   //   throw new BadRequestException('Phone Number not verified');
+  //   // }
 
-    return {
-      message: 'Please check your mobile for an otp',
-    };
-  }
+  //   await this.otpService.sendMobileOtp(phoneNumber, OtpTypes.CONNECT_SOCIAL);
 
-  async verifyConnectSocialOTP(
-    verifyConnectSocialOtp: VerifyConnectSocialOtpDto,
-  ): Promise<AuthReturnDto> {
-    if (
-      !verifyConnectSocialOtp.facebookId &&
-      !verifyConnectSocialOtp.googleId
-    ) {
+  //   return {
+  //     message: 'Please check your mobile for an otp',
+  //   };
+  // }
+
+  async connectSocial(connectSocial: ConnectSocialDto): Promise<AuthReturnDto> {
+    if (!connectSocial.facebookId && !connectSocial.googleId) {
       throw new UnprocessableEntityException(
         'Please provide a social id (facebookId or googleId)',
       );
     }
 
-    if (verifyConnectSocialOtp.facebookId && verifyConnectSocialOtp.googleId) {
+    if (connectSocial.facebookId && connectSocial.googleId) {
       throw new UnprocessableEntityException(
         'Please provide either facebookId or googleId',
       );
     }
 
-    // verifyConnectSocialOtp.
+    // connectSocial.
     const existingUser = await this.userRepository.findUserByPhoneNumber(
-      verifyConnectSocialOtp.mobileNumber,
+      connectSocial.mobileNumber,
     );
     if (!existingUser) {
       throw new UnprocessableEntityException(`phone number doesn't exists`);
     }
-    await this.otpService.verifyOTP(
-      existingUser.phoneNumber,
-      verifyConnectSocialOtp.otp,
-      OtpTypes.CONNECT_SOCIAL,
-    );
+    // await this.otpService.verifyOTP(
+    //   existingUser.phoneNumber,
+    //   connectSocial.otp,
+    //   OtpTypes.CONNECT_SOCIAL,
+    // );
+    await this.otpService.verifyFirebaseOTP(existingUser.phoneNumber);
 
     await this.userRepository.updateSocialMedia(
-      verifyConnectSocialOtp.firstName,
-      verifyConnectSocialOtp.lastName,
-      verifyConnectSocialOtp.email,
-      verifyConnectSocialOtp.googleId,
-      verifyConnectSocialOtp.facebookId,
+      connectSocial.firstName,
+      connectSocial.lastName,
+      connectSocial.email,
+      connectSocial.googleId,
+      connectSocial.facebookId,
       existingUser.id,
     );
 

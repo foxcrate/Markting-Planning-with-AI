@@ -35,8 +35,8 @@ export class UserEntity {
   @Column({ default: 0 })
   credits: number;
 
-  @Column({ type: 'boolean', default: false })
-  phoneVerified: boolean;
+  // @Column({ type: 'boolean', default: false })
+  // phoneVerified: boolean;
 
   @Column({ nullable: true })
   forgetPasswordOtp: string;
