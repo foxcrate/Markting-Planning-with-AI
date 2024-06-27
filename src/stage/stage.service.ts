@@ -79,6 +79,7 @@ export class StageService {
       kpiName: theTactic.kpiName,
       kpiUnit: theTactic.kpiUnit,
       kpiMeasuringFrequency: theTactic.kpiMeasuringFrequency,
+      kpiValue: theTactic.kpiValue,
       private: theTactic.private,
       globalStageId: theTactic.globalStage.id,
       steps: theTactic.steps,

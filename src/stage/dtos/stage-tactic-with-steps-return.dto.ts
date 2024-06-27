@@ -29,6 +29,9 @@ export class StageTacticWithStepsReturnDto {
   kpiMeasuringFrequency: KpiMeasuringFrequencyEnum;
 
   @ApiProperty()
+  kpiValue: string;
+
+  @ApiProperty()
   theOrder: number;
 
   @ApiProperty()

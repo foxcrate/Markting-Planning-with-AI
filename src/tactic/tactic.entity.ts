@@ -36,6 +36,9 @@ export class TacticEntity {
   })
   kpiMeasuringFrequency: KpiMeasuringFrequencyEnum | null;
 
+  @Column({ nullable: true })
+  kpiValue: string;
+
   @Column({ type: 'longtext' })
   description: string;
 

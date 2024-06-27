@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { FunnelService } from './funnel.service';
@@ -19,12 +20,14 @@ import {
   ApiBody,
   ApiCreatedResponse,
   ApiParam,
+  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
 import { ErrorResponseDto } from 'src/dtos/error-response.dto';
 import { FunnelReturnDto } from './dtos/funnel-return.dto';
+import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 
 @Controller({ path: 'funnel', version: '1' })
 export class FunnelController {
@@ -49,6 +52,7 @@ export class FunnelController {
   }
 
   //get all funnels
+  @ApiQuery({ name: 'name', required: false })
   @ApiCreatedResponse({
     type: FunnelReturnDto,
     isArray: true,
@@ -60,8 +64,8 @@ export class FunnelController {
   @ApiTags('Funnel: Get All')
   @Get()
   @UseGuards(AuthGuard)
-  async getAll(@UserId() userId: number) {
-    return await this.funnelService.getAll(userId);
+  async getAll(@Query() filter: GetAllFilterDto, @UserId() userId: number) {
+    return await this.funnelService.getAll(filter, userId);
   }
 
   //get one funnel

@@ -27,6 +27,7 @@ export class TacticRepository {
       tacticCreateBody.kpiMeasuringFrequency
         ? tacticCreateBody.kpiMeasuringFrequency
         : null,
+      tacticCreateBody.kpiValue ? tacticCreateBody.kpiValue : null,
       tacticCreateBody.private ? tacticCreateBody.private : false,
       tacticCreateBody.globalStageId,
       userId,
@@ -112,6 +113,7 @@ export class TacticRepository {
     tactics.kpiName,
     tactics.kpiUnit,
     tactics.kpiMeasuringFrequency,
+    tactics.kpiValue,
     tactics.private,
     tactics.userId,
     CASE WHEN COUNT(users.id) = 0 THEN null
@@ -191,6 +193,7 @@ export class TacticRepository {
       kpiName = IFNULL(?,tactics.kpiName),
       kpiUnit = IFNULL(?,tactics.kpiUnit),
       kpiMeasuringFrequency = IFNULL(?,tactics.kpiMeasuringFrequency),
+      kpiValue = IFNULL(?,tactics.kpiValue),
       private = IFNULL(?,tactics.private),
       globalStageId = IFNULL(?,tactics.globalStageId)
       WHERE id = ?
@@ -201,6 +204,7 @@ export class TacticRepository {
       updateBody.kpiName,
       updateBody.kpiUnit,
       updateBody.kpiMeasuringFrequency,
+      updateBody.kpiValue,
       updateBody.private,
       updateBody.globalStageId,
       tacticId,
@@ -224,6 +228,7 @@ export class TacticRepository {
       tactics.kpiName,
       tactics.kpiUnit,
       tactics.kpiMeasuringFrequency,
+      tactics.kpiValue,
       tactics.private,
       tactics.userId,
       CASE WHEN COUNT(users.id) = 0 THEN null
@@ -274,6 +279,7 @@ export class TacticRepository {
     tactics.kpiName,
     tactics.kpiUnit,
     tactics.kpiMeasuringFrequency,
+    tactics.kpiValue,
     tactics.private,
     tactics.userId,
     CASE WHEN COUNT(users.id) = 0 THEN null

@@ -62,6 +62,7 @@ export class StageRepository {
       tactics.kpiName,
       tactics.kpiUnit,
       tactics.kpiMeasuringFrequency,
+      tactics.kpiValue,
       tactics.checked,
       tactics.userId,
       (

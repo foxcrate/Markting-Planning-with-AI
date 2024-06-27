@@ -42,6 +42,11 @@ export class TacticUpdateDto {
   kpiMeasuringFrequency: KpiMeasuringFrequencyEnum;
 
   @ApiProperty()
+  @IsOptional()
+  @IsString()
+  kpiValue: string;
+
+  @ApiProperty()
   @IsBoolean()
   @IsOptional()
   private: boolean;

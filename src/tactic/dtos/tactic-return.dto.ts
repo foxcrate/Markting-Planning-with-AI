@@ -20,6 +20,8 @@ export class TacticReturnDto {
   })
   kpiMeasuringFrequency: KpiMeasuringFrequencyEnum;
   @ApiProperty()
+  kpiValue: string;
+  @ApiProperty()
   private: boolean;
   @ApiProperty()
   userId: number;

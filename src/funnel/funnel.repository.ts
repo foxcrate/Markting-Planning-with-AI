@@ -8,6 +8,7 @@ import { FunnelReturnDto } from './dtos/funnel-return.dto';
 import { FunnelUpdateDto } from './dtos/funnel-update.dto';
 import { DB_PROVIDER } from 'src/db/constants';
 import { Pool } from 'mariadb';
+import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 
 @Injectable()
 export class FunnelRepository {
@@ -88,8 +89,11 @@ export class FunnelRepository {
   }
 
   //find all funnels
-  async findAll(userId: number): Promise<FunnelReturnDto[]> {
-    const query = `
+  async findAll(
+    filterOptions: GetAllFilterDto,
+    userId: number,
+  ): Promise<FunnelReturnDto[]> {
+    const queryStart = `
       SELECT funnels.id,funnels.name,funnels.description,funnels.userId,
       CASE WHEN COUNT(stages.id) = 0 THEN null
       ELSE
@@ -103,9 +107,20 @@ export class FunnelRepository {
       FROM funnels
       LEFT JOIN stages ON stages.funnelId = funnels.id
       WHERE funnels.userId = ?
-      GROUP BY funnels.id
     `;
-    return await this.db.query(query, [userId]);
+    // return await this.db.query(query, [userId]);
+
+    let filter = ``;
+    if (filterOptions.name) {
+      filter = filter + ` AND funnels.name LIKE '%${filterOptions.name}%' `;
+    }
+
+    let queryEnd = `GROUP BY funnels.id`;
+
+    // console.log(queryStart + filter + queryEnd);
+    // console.log('---------------------------------');
+
+    return await this.db.query(queryStart + filter + queryEnd, [userId]);
   }
 
   async findByName(name: string): Promise<FunnelReturnDto> {

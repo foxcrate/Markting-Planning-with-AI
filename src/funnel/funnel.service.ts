@@ -10,6 +10,7 @@ import { FunnelCreateDto } from './dtos/funnel-create.dto';
 import { FunnelUpdateDto } from './dtos/funnel-update.dto';
 import { StageService } from 'src/stage/stage.service';
 import { FunnelReturnDto } from './dtos/funnel-return.dto';
+import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 
 @Injectable()
 export class FunnelService {
@@ -46,8 +47,8 @@ export class FunnelService {
   }
 
   //get all funnels
-  async getAll(userId: number) {
-    return await this.funnelRepository.findAll(userId);
+  async getAll(filter: GetAllFilterDto, userId: number) {
+    return await this.funnelRepository.findAll(filter, userId);
   }
 
   async delete(funnelId: number, userId: number) {
