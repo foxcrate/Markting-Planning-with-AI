@@ -8,7 +8,7 @@ export class ConnectSocialDto {
   firstName: string;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   lastName: string;
 

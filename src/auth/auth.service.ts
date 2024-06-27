@@ -340,14 +340,26 @@ export class AuthService {
     //   OtpTypes.SIGNUP,
     // );
 
-    let newUser = {
-      ...createdUser,
-      userOnboarded: await this.userService.userOnboarded(createdUser.id),
-    };
+    // let newUser = {
+    //   ...createdUser,
+    //   userOnboarded: await this.userService.userOnboarded(createdUser.id),
+    // };
 
+    // return {
+    //   user: newUser,
+    //   message: 'Please check your mobile for otp verification',
+    // };
+
+    const { password, ...restProperties } = createdUser;
+    // let user = restProperties;
+    let user = {
+      ...restProperties,
+      userOnboarded: await this.userService.userOnboarded(restProperties.id),
+    };
     return {
-      user: newUser,
-      message: 'Please check your mobile for otp verification',
+      user: user,
+      token: this.createNormalToken(user),
+      refreshToken: this.createRefreshToken(user),
     };
   }
 
