@@ -17,7 +17,7 @@ export class TacticRepository {
     userId: number,
   ): Promise<TacticReturnDto> {
     const query = `
-    INSERT INTO tactics (name, description, kpiName, kpiUnit, kpiMeasuringFrequency,private,globalStageId,userId,instance) VALUES (?,?,?,?,?,?,?,?,?)
+    INSERT INTO tactics (name, description, kpiName, kpiUnit, kpiMeasuringFrequency,kpiValue,private,globalStageId,userId,instance) VALUES (?,?,?,?,?,?,?,?,?,?)
   `;
     const params = [
       tacticCreateBody.name,
