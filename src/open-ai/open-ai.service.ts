@@ -26,6 +26,7 @@ import { SenderRole } from 'src/enums/sender-role.enum';
 import { MessageService } from 'src/message/message.service';
 import { AiChatResponseDto } from './dtos/ai-chat-response.dto';
 import { UserService } from 'src/user/user.service';
+import { GlobalStageService } from 'src/global-stage/global-stage.service';
 
 @Injectable()
 export class OpenAiService implements OnModuleInit {
@@ -34,6 +35,7 @@ export class OpenAiService implements OnModuleInit {
     private funnelService: FunnelService,
     private threadService: ThreadService,
     private messageService: MessageService,
+    private globalStageService: GlobalStageService,
     private userService: UserService,
     private stageService: StageService,
     @Inject(forwardRef(() => TemplateService))
@@ -106,6 +108,8 @@ export class OpenAiService implements OnModuleInit {
       userId,
     );
 
+    // console.log(JSON.stringify(serializedUserDataObject));
+
     //get user data
     let theUser = await this.userService.getUserData(userId);
 
@@ -113,10 +117,6 @@ export class OpenAiService implements OnModuleInit {
       user_data: { user_name: theUser.firstName + ' ' + theUser.lastName },
       ...serializedUserDataObject,
     };
-
-    // console.log({
-    //   newSerializedUserDataObject,
-    // });
 
     return await this.chatAssistant(
       this.configService.getOrThrow('CHAT_ASSISTANT_ID'),
@@ -197,13 +197,17 @@ export class OpenAiService implements OnModuleInit {
     }
 
     let theFunnel: any;
+    let theFunnelStages: any;
     if (!funnelId) {
       theFunnel = {
         name: null,
         description: null,
       };
+      theFunnelStages = null;
     } else {
       theFunnel = await this.funnelService.getOne(funnelId, userId);
+
+      theFunnelStages = await this.globalStageService.getAll();
     }
 
     let theStage: any;
@@ -226,6 +230,7 @@ export class OpenAiService implements OnModuleInit {
       funnel_data: {
         name: theFunnel.name,
         description: theFunnel.description,
+        funnel_stages: theFunnelStages,
       },
       stage_data: {
         name: theStage.name,

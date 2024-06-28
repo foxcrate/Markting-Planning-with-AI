@@ -9,6 +9,7 @@ import { TacticModule } from 'src/tactic/tactic.module';
 import { StageModule } from 'src/stage/stage.module';
 import { TemplateModule } from 'src/template/template.module';
 import { UserModule } from 'src/user/user.module';
+import { GlobalStageModule } from 'src/global-stage/global-stage.module';
 
 @Module({
   controllers: [OpenAiController],
@@ -23,6 +24,7 @@ import { UserModule } from 'src/user/user.module';
     StageModule,
     TacticModule,
     UserModule,
+    GlobalStageModule,
   ],
 })
 export class OpenAiModule {}
