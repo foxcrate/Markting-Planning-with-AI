@@ -15,8 +15,9 @@ export class AppService {
 
   async testFirebase() {
     try {
-      const user = await admin.auth().getUserByPhoneNumber('+201094016702');
-      console.log({ user });
+      let id = '+201550307033';
+      const user = await admin.auth().getUser(id);
+      console.log(user.phoneNumber);
     } catch (error: any) {
       console.log(error);
 

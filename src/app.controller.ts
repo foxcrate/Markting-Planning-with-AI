@@ -1,6 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { MessageReturnDto } from './dtos/message-return.dto';
 import {
   ApiCreatedResponse,
   ApiInternalServerErrorResponse,

@@ -91,7 +91,8 @@ export class OtpService {
   }
 
   private createOtp() {
-    let otp = Math.floor(Math.random() * 1000000);
+    // let otp = Math.floor(Math.random() * 1000000);
+    let otp = Math.floor(100000 + Math.random() * 900000);
     return String(otp);
   }
 }
