@@ -45,7 +45,7 @@ export class UserService {
       throw new UnprocessableEntityException(`new phone number already exists`);
     }
 
-    await this.otpService.verifyFirebaseOTP(phoneNumber);
+    await this.otpService.verifyFirebaseOTP(newPhoneNumber);
 
     await this.userRepository.updatePhoneNumber(newPhoneNumber, userId);
 
