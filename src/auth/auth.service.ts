@@ -129,6 +129,8 @@ export class AuthService {
       userOnboarded: await this.userService.userOnboarded(restProperties.id),
     };
 
+    console.log('mobileSignin,user', user);
+
     return {
       user: user,
       token: this.createNormalToken(user),
@@ -391,6 +393,8 @@ export class AuthService {
       ...restProperties,
       userOnboarded: await this.userService.userOnboarded(restProperties.id),
     };
+
+    console.log('socialSignIn User', newUser);
 
     return {
       user: newUser,
