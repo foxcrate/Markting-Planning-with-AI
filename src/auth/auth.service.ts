@@ -105,12 +105,15 @@ export class AuthService {
 
   async mobileSignIn(signIn: MobileSignInDto): Promise<AuthReturnDto> {
     // return await this.otpService.verifyFirebaseOTP(signIn.phoneNumber);
-    let theUser = await this.userRepository.findUserByPhoneNumber(
-      signIn.phoneNumber,
-    );
-
-    // if first char is $
     if (signIn.phoneNumber[0] == '$') {
+      // remove $
+      signIn.phoneNumber = signIn.phoneNumber.substring(1);
+      let theUser = await this.userRepository.findUserByPhoneNumber(
+        signIn.phoneNumber,
+      );
+      if (!theUser) {
+        throw new NotFoundException('User not found');
+      }
       const { password, ...restProperties } = theUser;
       let user = {
         ...restProperties,
@@ -122,6 +125,10 @@ export class AuthService {
         refreshToken: this.createRefreshToken(user),
       };
     }
+
+    let theUser = await this.userRepository.findUserByPhoneNumber(
+      signIn.phoneNumber,
+    );
 
     if (!theUser) {
       throw new NotFoundException('User not found');
