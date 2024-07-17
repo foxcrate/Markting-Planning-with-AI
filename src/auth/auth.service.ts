@@ -109,6 +109,20 @@ export class AuthService {
       signIn.phoneNumber,
     );
 
+    // if first char is $
+    if (signIn.phoneNumber[0] == '$') {
+      const { password, ...restProperties } = theUser;
+      let user = {
+        ...restProperties,
+        userOnboarded: await this.userService.userOnboarded(restProperties.id),
+      };
+      return {
+        user: user,
+        token: this.createNormalToken(user),
+        refreshToken: this.createRefreshToken(user),
+      };
+    }
+
     if (!theUser) {
       throw new NotFoundException('User not found');
     }
