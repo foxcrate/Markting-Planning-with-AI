@@ -460,8 +460,13 @@ export class AuthService {
 
     const { password, ...restProperties } = existingUser;
     let user = restProperties;
+
+    let newUser = {
+      ...restProperties,
+      userOnboarded: await this.userService.userOnboarded(restProperties.id),
+    };
     return {
-      user: user,
+      user: newUser,
       token: this.createNormalToken(user),
       refreshToken: this.createRefreshToken(user),
     };

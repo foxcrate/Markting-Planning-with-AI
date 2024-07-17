@@ -9,6 +9,7 @@ import { GlobalStageReturnDto } from 'src/global-stage/dtos/global-stage-return.
 import { TacticIdAndOrderDto } from './dtos/tacticId-and-order.dto';
 import { StageDetailsReturnDto } from './dtos/stage-details-return.dto';
 import { StageTacticWithStepsReturnDto } from './dtos/stage-tactic-with-steps-return.dto';
+import { StageTacticDto } from './dtos/stage-tactic.dto';
 
 @Injectable()
 export class StageRepository {
@@ -186,6 +187,20 @@ export class StageRepository {
       [stageId],
     );
     return stageTacticsIds.tacticIds;
+  }
+
+  async getStageTacticsNumber(stageId: number): Promise<number> {
+    let [stageTacticsNumber] = await this.db.query(
+      `
+      SELECT
+     COUNT(tactics_stages.id) AS tacticsNumber
+      FROM
+      tactics_stages
+      WHERE stageId = ?
+      `,
+      [stageId],
+    );
+    return stageTacticsNumber.tacticsNumber;
   }
 
   async updateStageTacticsOrder(

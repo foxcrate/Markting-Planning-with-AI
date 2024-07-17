@@ -68,6 +68,10 @@ export class StageService {
     tacticId: number,
     userId: number,
   ) {
+    // let stageTacticsNumber2 = await this.findStageTacticsNumber(stageId);
+    // console.log('stageTacticsNumber2:', stageTacticsNumber2);
+
+    // return true;
     let theFunnel = await this.funnelService.getOne(funnelId, userId);
     await this.stageRepository.isOwner(stageId, theFunnel.userId, userId);
     let theTactic = await this.tacticService.getOne(tacticId, userId);
@@ -85,13 +89,34 @@ export class StageService {
       steps: theTactic.steps,
       instance: true,
     };
+
     let createdTactic = await this.tacticService.create(
       tacticCreateObject,
       userId,
     );
+
+    let stageTacticsNumber = await this.findStageTacticsNumber(stageId);
+    // console.log('stageTacticsNumber:', stageTacticsNumber);
+
     // add stage tactic relationship
-    await this.stageRepository.addTacticToStage(stageId, createdTactic.id, 0);
+    await this.stageRepository.addTacticToStage(
+      stageId,
+      createdTactic.id,
+      stageTacticsNumber + 1,
+    );
     return await this.stageRepository.findById(stageId);
+  }
+
+  async findStageTacticsNumber(stageId: number): Promise<number> {
+    let tacticsNumber: number =
+      await this.stageRepository.getStageTacticsNumber(stageId);
+
+    // let allStageTacticsOrders = allStageTactics.map((tactic) => {
+    //   return tactic.theOrder;
+    // });
+
+    // let largestOrder = Math.max(...allStageTacticsOrders);
+    return tacticsNumber;
   }
 
   async checkboxTactic(
