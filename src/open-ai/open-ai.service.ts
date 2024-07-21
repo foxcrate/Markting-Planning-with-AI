@@ -134,11 +134,17 @@ export class OpenAiService implements OnModuleInit {
     threadId: number,
     threadOpenAiId: string,
   ): Promise<AiChatResponseDto> {
-    //start the assistant with the thread and run instructions
+    //add "(reply to me in html format)" after the message
+
+    message = message + ' (reply to me in html format)';
+
     await this.instance.beta.threads.messages.create(threadOpenAiId, {
       role: 'user',
       content: message,
     });
+
+    //start the assistant with the thread and run instructions
+
     let run = await this.instance.beta.threads.runs.create(threadOpenAiId, {
       assistant_id: openaiAssistantId,
       additional_instructions: JSON.stringify(runInstructions),
