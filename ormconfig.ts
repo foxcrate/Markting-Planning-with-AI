@@ -12,6 +12,7 @@ import { GlobalStageEntity } from './src/global-stage/global-stage.entity';
 import { TacticEntity } from './src/tactic/tactic.entity';
 import { TacticStepEntity } from './src/tactic/tactic-step.entity';
 import { TacticsStagesEntity } from './src/stage/tactics-stages.entity';
+import { KpiEntity } from 'src/kpi/kpi.entity';
 require('dotenv').config({
   path: `${process.env.NODE_ENV ? process.env.NODE_ENV : ''}.env`,
 });
@@ -37,6 +38,7 @@ export const typeOrmDbConfig: TypeOrmModuleOptions = {
     TacticEntity,
     TacticStepEntity,
     TacticsStagesEntity,
+    KpiEntity,
   ],
   //migrations: [__dirname + '/migrations/**/*'],
   //migrationsTableName: 'migrations',

@@ -28,6 +28,7 @@ import {
 import { ErrorResponseDto } from 'src/dtos/error-response.dto';
 import { FunnelReturnDto } from './dtos/funnel-return.dto';
 import { GetAllFilterDto } from './dtos/get-all-filter.dto';
+import { FunnelDetailsReturnDto } from './dtos/funnel-details-return.dto';
 
 @Controller({ path: 'funnel', version: '1' })
 export class FunnelController {
@@ -73,7 +74,7 @@ export class FunnelController {
     name: 'funnelId',
   })
   @ApiCreatedResponse({
-    type: FunnelReturnDto,
+    type: FunnelDetailsReturnDto,
   })
   @ApiUnprocessableEntityResponse({
     type: ErrorResponseDto,

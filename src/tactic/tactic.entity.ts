@@ -12,7 +12,7 @@ import {
 import { TacticStepEntity } from './tactic-step.entity';
 import { TacticsStagesEntity } from '../stage/tactics-stages.entity';
 import { UserEntity } from '../user/user.entity';
-import { KpiMeasuringFrequencyEnum } from 'src/enums/kpi-measuring-frequency.enum';
+import { KpiEntity } from 'src/kpi/kpi.entity';
 
 @Entity({ name: 'tactics' })
 export class TacticEntity {
@@ -21,23 +21,6 @@ export class TacticEntity {
 
   @Column()
   name: string;
-
-  @Column({ nullable: true })
-  kpiName: string;
-
-  @Column({ nullable: true })
-  kpiUnit: string;
-
-  @Column({
-    type: 'enum',
-    enum: KpiMeasuringFrequencyEnum,
-    nullable: true,
-    default: null,
-  })
-  kpiMeasuringFrequency: KpiMeasuringFrequencyEnum | null;
-
-  @Column({ nullable: true })
-  kpiValue: string;
 
   @Column({ type: 'longtext' })
   description: string;
@@ -50,6 +33,10 @@ export class TacticEntity {
 
   @Column({ type: 'boolean', default: false })
   checked: boolean;
+
+  @OneToMany(() => KpiEntity, (kpi) => kpi.tactic)
+  @JoinColumn()
+  kpis: KpiEntity[];
 
   @ManyToOne(() => GlobalStageEntity, (globalStage) => globalStage.tactics, {
     cascade: true,

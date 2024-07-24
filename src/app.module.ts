@@ -20,6 +20,7 @@ import { TacticModule } from './tactic/tactic.module';
 import { FileModule } from './file/file.module';
 import { MariadbModule } from './db/mariadb.module';
 import { StageModule } from './stage/stage.module';
+import { KpiModule } from './kpi/kpi.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -50,6 +51,7 @@ import { StageModule } from './stage/stage.module';
     GlobalStageModule,
     TacticModule,
     StageModule,
+    KpiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

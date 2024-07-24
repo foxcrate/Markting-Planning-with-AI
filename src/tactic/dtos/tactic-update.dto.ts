@@ -2,15 +2,14 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsBoolean,
-  IsEnum,
   IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
 import { TacticStepCreateDto } from './tactic-step-create.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { KpiMeasuringFrequencyEnum } from 'src/enums/kpi-measuring-frequency.enum';
 import { Type } from 'class-transformer';
+import { KpiCreateDto } from 'src/kpi/dtos/create.dto';
 
 export class TacticUpdateDto {
   @ApiProperty()
@@ -23,28 +22,16 @@ export class TacticUpdateDto {
   @IsString()
   description: string;
 
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  kpiName: string;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  kpiUnit: string;
-
   @ApiProperty({
-    enum: KpiMeasuringFrequencyEnum,
-    required: false,
+    type: KpiCreateDto,
+    isArray: true,
   })
+  @IsArray()
   @IsOptional()
-  @IsEnum(KpiMeasuringFrequencyEnum)
-  kpiMeasuringFrequency: KpiMeasuringFrequencyEnum;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  kpiValue: string;
+  @ArrayNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => KpiCreateDto)
+  kpis: KpiCreateDto[];
 
   @ApiProperty()
   @IsBoolean()

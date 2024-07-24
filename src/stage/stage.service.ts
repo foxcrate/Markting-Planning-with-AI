@@ -68,22 +68,16 @@ export class StageService {
     tacticId: number,
     userId: number,
   ) {
-    // let stageTacticsNumber2 = await this.findStageTacticsNumber(stageId);
-    // console.log('stageTacticsNumber2:', stageTacticsNumber2);
-
-    // return true;
     let theFunnel = await this.funnelService.getOne(funnelId, userId);
     await this.stageRepository.isOwner(stageId, theFunnel.userId, userId);
     let theTactic = await this.tacticService.getOne(tacticId, userId);
 
     // create new tactic record
+
     let tacticCreateObject = {
       name: theTactic.name,
       description: theTactic.description,
-      kpiName: theTactic.kpiName,
-      kpiUnit: theTactic.kpiUnit,
-      kpiMeasuringFrequency: theTactic.kpiMeasuringFrequency,
-      kpiValue: theTactic.kpiValue,
+      kpis: theTactic.kpis,
       private: theTactic.private,
       globalStageId: theTactic.globalStage.id,
       steps: theTactic.steps,
@@ -96,9 +90,9 @@ export class StageService {
     );
 
     let stageTacticsNumber = await this.findStageTacticsNumber(stageId);
-    // console.log('stageTacticsNumber:', stageTacticsNumber);
 
     // add stage tactic relationship
+
     await this.stageRepository.addTacticToStage(
       stageId,
       createdTactic.id,

@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { StageTacticDto } from './stage-tactic.dto';
 
 export class StageReturnDto {
   @ApiProperty()
@@ -13,9 +12,6 @@ export class StageReturnDto {
 
   @ApiProperty()
   theOrder: number;
-
-  @ApiProperty({ type: StageTacticDto, isArray: true })
-  tactics: StageTacticDto[];
 
   @ApiProperty()
   funnelId: number;

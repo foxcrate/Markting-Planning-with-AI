@@ -9,7 +9,6 @@ import { GlobalStageReturnDto } from 'src/global-stage/dtos/global-stage-return.
 import { TacticIdAndOrderDto } from './dtos/tacticId-and-order.dto';
 import { StageDetailsReturnDto } from './dtos/stage-details-return.dto';
 import { StageTacticWithStepsReturnDto } from './dtos/stage-tactic-with-steps-return.dto';
-import { StageTacticDto } from './dtos/stage-tactic.dto';
 
 @Injectable()
 export class StageRepository {
@@ -60,10 +59,6 @@ export class StageRepository {
       tactics.id,
       tactics.name,
       tactics.description,
-      tactics.kpiName,
-      tactics.kpiUnit,
-      tactics.kpiMeasuringFrequency,
-      tactics.kpiValue,
       tactics.checked,
       tactics.userId,
       (
@@ -98,10 +93,20 @@ export class StageRepository {
         'checked', tactic_step.checked,
         'theOrder', tactic_step.theOrder
         ))
-      END AS steps
+      END AS steps,
+      CASE WHEN COUNT(kpis.id) = 0 THEN null
+      ELSE
+      JSON_ARRAYAGG(JSON_OBJECT(
+        'id',kpis.id,
+        'name', kpis.name,
+        'unit', kpis.unit,
+        'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency
+        ))
+      END AS kpis
       FROM tactics
       LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
       LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
+      LEFT JOIN kpis ON kpis.tacticId = tactics.id
       LEFT JOIN users ON users.id = tactics.userId
       WHERE tactics.id = ?
       GROUP BY tactics.id;

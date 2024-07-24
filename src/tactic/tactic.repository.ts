@@ -7,6 +7,7 @@ import { DB_PROVIDER } from 'src/db/constants';
 import { Pool } from 'mariadb';
 import { GetMineFilterDto } from './dtos/get-mine-filter.dto';
 import { GetAllFilterDto } from './dtos/get-all-filter.dto';
+import { KpiCreateDto } from 'src/kpi/dtos/create.dto';
 
 @Injectable()
 export class TacticRepository {
@@ -17,17 +18,11 @@ export class TacticRepository {
     userId: number,
   ): Promise<TacticReturnDto> {
     const query = `
-    INSERT INTO tactics (name, description, kpiName, kpiUnit, kpiMeasuringFrequency,kpiValue,private,globalStageId,userId,instance) VALUES (?,?,?,?,?,?,?,?,?,?)
+    INSERT INTO tactics (name, description,private,globalStageId,userId,instance) VALUES (?,?,?,?,?,?)
   `;
     const params = [
       tacticCreateBody.name,
       tacticCreateBody.description,
-      tacticCreateBody.kpiName ? tacticCreateBody.kpiName : null,
-      tacticCreateBody.kpiUnit ? tacticCreateBody.kpiUnit : null,
-      tacticCreateBody.kpiMeasuringFrequency
-        ? tacticCreateBody.kpiMeasuringFrequency
-        : null,
-      tacticCreateBody.kpiValue ? tacticCreateBody.kpiValue : null,
       tacticCreateBody.private ? tacticCreateBody.private : false,
       tacticCreateBody.globalStageId,
       userId,
@@ -36,11 +31,32 @@ export class TacticRepository {
 
     let { insertId } = await this.db.query(query, params);
 
+    if (tacticCreateBody.kpis && tacticCreateBody.kpis.length > 0) {
+      await this.addKpis(Number(insertId), tacticCreateBody.kpis);
+    }
+
     if (tacticCreateBody.steps && tacticCreateBody.steps.length > 0) {
       await this.addSteps(Number(insertId), tacticCreateBody.steps);
     }
 
     return await this.findById(Number(insertId));
+  }
+
+  async addKpis(tacticId: number, kpis: KpiCreateDto[]) {
+    let kpisArray = [];
+    for (let i = 0; i < kpis.length; i++) {
+      kpisArray.push([
+        tacticId,
+        kpis[i].name,
+        kpis[i].unit,
+        kpis[i].kpiMeasuringFrequency,
+      ]);
+    }
+
+    await this.db.batch(
+      `INSERT INTO kpis (tacticId,name,unit,kpiMeasuringFrequency) VALUES (?,?,?,?)`,
+      kpisArray,
+    );
   }
 
   async addSteps(tacticId: number, steps: TacticStepCreateDto[]) {
@@ -63,6 +79,14 @@ export class TacticRepository {
   async deletePastSteps(tacticId: number) {
     const query = `
       DELETE FROM tactic_step
+      WHERE tacticId = ?
+    `;
+    await this.db.query(query, [tacticId]);
+  }
+
+  async deletePastKpis(tacticId: number) {
+    const query = `
+      DELETE FROM kpis
       WHERE tacticId = ?
     `;
     await this.db.query(query, [tacticId]);
@@ -110,10 +134,6 @@ export class TacticRepository {
     SELECT tactics.id,
     tactics.name,
     tactics.description,
-    tactics.kpiName,
-    tactics.kpiUnit,
-    tactics.kpiMeasuringFrequency,
-    tactics.kpiValue,
     tactics.private,
     tactics.userId,
     CASE WHEN COUNT(users.id) = 0 THEN null
@@ -143,7 +163,6 @@ export class TacticRepository {
       'theOrder', tactic_step.theOrder
       ))
     END AS steps,
-
     (
       SELECT
       stages
@@ -151,11 +170,20 @@ export class TacticRepository {
       this_tactics_stages
       where this_tactics_stages.tacticId = tactics.id
     )
-    AS stages
-
+    AS stages,
+   CASE WHEN COUNT(kpis.id) = 0 THEN null
+    ELSE
+    JSON_ARRAYAGG(JSON_OBJECT(
+      'id',kpis.id,
+      'name', kpis.name,
+      'unit', kpis.unit,
+      'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency
+      ))
+    END AS kpis
     FROM tactics
     LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
     LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
+    LEFT JOIN kpis ON kpis.tacticId = tactics.id
     LEFT JOIN users ON users.id = tactics.userId
     WHERE tactics.userId = ?
     AND
@@ -185,15 +213,12 @@ export class TacticRepository {
     tacticId: number,
   ): Promise<TacticReturnDto> {
     // updateBody.stages[0].
+    console.log(updateBody);
     const query = `
       UPDATE tactics
       SET
       name = IFNULL(?,tactics.name),
       description = IFNULL(?,tactics.description),
-      kpiName = IFNULL(?,tactics.kpiName),
-      kpiUnit = IFNULL(?,tactics.kpiUnit),
-      kpiMeasuringFrequency = IFNULL(?,tactics.kpiMeasuringFrequency),
-      kpiValue = IFNULL(?,tactics.kpiValue),
       private = IFNULL(?,tactics.private),
       globalStageId = IFNULL(?,tactics.globalStageId)
       WHERE id = ?
@@ -201,20 +226,23 @@ export class TacticRepository {
     await this.db.query(query, [
       updateBody.name,
       updateBody.description,
-      updateBody.kpiName,
-      updateBody.kpiUnit,
-      updateBody.kpiMeasuringFrequency,
-      updateBody.kpiValue,
       updateBody.private,
       updateBody.globalStageId,
       tacticId,
     ]);
 
-    if (updateBody.steps.length == 0) {
+    if (updateBody.steps && updateBody.steps.length == 0) {
       await this.deletePastSteps(tacticId);
     } else if (updateBody.steps && updateBody.steps.length > 0) {
       await this.deletePastSteps(tacticId);
       await this.addSteps(tacticId, updateBody.steps);
+    }
+
+    if (updateBody.kpis && updateBody.kpis.length == 0) {
+      await this.deletePastKpis(tacticId);
+    } else if (updateBody.kpis && updateBody.kpis.length > 0) {
+      await this.deletePastKpis(tacticId);
+      await this.addKpis(tacticId, updateBody.kpis);
     }
 
     return await this.findById(tacticId);
@@ -225,10 +253,6 @@ export class TacticRepository {
       SELECT tactics.id,
       tactics.name,
       tactics.description,
-      tactics.kpiName,
-      tactics.kpiUnit,
-      tactics.kpiMeasuringFrequency,
-      tactics.kpiValue,
       tactics.private,
       tactics.userId,
       CASE WHEN COUNT(users.id) = 0 THEN null
@@ -257,10 +281,20 @@ export class TacticRepository {
         'attachment', tactic_step.attachment,
         'theOrder', tactic_step.theOrder
         ))
-      END AS steps
+      END AS steps,
+    CASE WHEN COUNT(kpis.id) = 0 THEN null
+    ELSE
+    JSON_ARRAYAGG(JSON_OBJECT(
+      'id',kpis.id,
+      'name', kpis.name,
+      'unit', kpis.unit,
+      'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency
+      ))
+    END AS kpis
       FROM tactics
       LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
       LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
+      LEFT JOIN kpis ON kpis.tacticId = tactics.id
       LEFT JOIN users ON users.id = tactics.userId
       WHERE tactics.id = ?
       GROUP BY tactics.id;
@@ -276,10 +310,6 @@ export class TacticRepository {
     SELECT tactics.id,
     tactics.name,
     tactics.description,
-    tactics.kpiName,
-    tactics.kpiUnit,
-    tactics.kpiMeasuringFrequency,
-    tactics.kpiValue,
     tactics.private,
     tactics.userId,
     CASE WHEN COUNT(users.id) = 0 THEN null
@@ -308,11 +338,20 @@ export class TacticRepository {
       'attachment', tactic_step.attachment,
       'theOrder', tactic_step.theOrder
       ))
-    END AS steps
-
+    END AS steps,
+    CASE WHEN COUNT(kpis.id) = 0 THEN null
+    ELSE
+    JSON_ARRAYAGG(JSON_OBJECT(
+      'id',kpis.id,
+      'name', kpis.name,
+      'unit', kpis.unit,
+      'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency
+      ))
+    END AS kpis
     FROM tactics
     LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
     LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
+    LEFT JOIN kpis ON kpis.tacticId = tactics.id
     LEFT JOIN users ON users.id = tactics.userId
     WHERE tactics.private = false 
     AND

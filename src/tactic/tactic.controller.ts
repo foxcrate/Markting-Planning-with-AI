@@ -34,7 +34,11 @@ import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 export class TacticController {
   constructor(private readonly tacticService: TacticService) {}
 
-  @ApiBody({ type: TacticCreateDto })
+  @ApiBody({
+    type: TacticCreateDto,
+    description:
+      'KpiMeasuringFrequency enum: [ daily, weekly, biWeekly, monthly, quarterly, annually ]',
+  })
   @ApiCreatedResponse({
     type: TacticReturnDto,
   })
