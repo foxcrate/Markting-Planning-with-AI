@@ -4,15 +4,12 @@ import { KpiMeasuringFrequencyEnum } from 'src/enums/kpi-measuring-frequency.enu
 
 export class KpiReturnDto {
   @ApiProperty()
-  @IsString()
   id: number;
 
   @ApiProperty()
-  @IsString()
   name: string;
 
   @ApiProperty()
-  @IsString()
   unit: string;
 
   @ApiProperty({
@@ -21,4 +18,7 @@ export class KpiReturnDto {
   })
   @IsEnum(KpiMeasuringFrequencyEnum)
   kpiMeasuringFrequency: KpiMeasuringFrequencyEnum;
+
+  @ApiProperty()
+  tacticId: number;
 }

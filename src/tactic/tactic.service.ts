@@ -9,10 +9,17 @@ import { TacticUpdateDto } from './dtos/tactic-update.dto';
 import { TacticReturnDto } from './dtos/tactic-return.dto';
 import { GetMineFilterDto } from './dtos/get-mine-filter.dto';
 import { GetAllFilterDto } from './dtos/get-all-filter.dto';
+import { TacticKpiEntryCreateDto } from './dtos/tactic-kpi-entry-create.dto';
+import { KpiService } from 'src/kpi/kpi.service';
+import { TacticKpiEntryUpdateDto } from './dtos/tactic-kpi-entry-update.dto';
+import { TacticKpiEntryDeleteDto } from './dtos/tactic-kpi-entry-delete.dto';
 
 @Injectable()
 export class TacticService {
-  constructor(private readonly tacticRepository: TacticRepository) {}
+  constructor(
+    private readonly tacticRepository: TacticRepository,
+    private readonly kpiService: KpiService,
+  ) {}
   async create(
     tacticCreateBody: TacticCreateDto,
     userId: number,
@@ -59,35 +66,87 @@ export class TacticService {
     return deletedTactic;
   }
 
-  // async addTacticToStage(
-  //   tacticId: number,
-  //   stageId: number,
-  //   userId: number,
-  // ): Promise<TacticReturnDto> {
-  //   await this.isOwner(tacticId, userId);
-  //   await this.tacticRepository.addToStage(tacticId, stageId, 0);
-  //   return await this.tacticRepository.findById(tacticId);
-  // }
+  async createKpiEntry(
+    userId: number,
+    tacticId: number,
+    kpiId: number,
+    tacticKpiEntryBody: TacticKpiEntryCreateDto,
+  ): Promise<TacticReturnDto> {
+    await this.isOwner(tacticId, userId);
 
-  // async addAssistantTacticsToStage(
-  //   stageId: number,
-  //   tactics: any[],
-  // ): Promise<any> {
-  //   // await this.isOwner(tacticId, userId);
-  //   // create tactics
-  //   await this.tacticRepository.createTactics(tactics, stageId);
-  // }
+    let theTactic = await this.tacticRepository.findById(tacticId);
 
-  //remove tactic from stage
-  // async removeTacticFromStage(
-  //   tacticId: number,
-  //   stageId: number,
-  //   userId: number,
-  // ): Promise<TacticReturnDto> {
-  //   await this.isOwner(tacticId, userId);
-  //   await this.tacticRepository.removeFromStage(tacticId, stageId);
-  //   return await this.tacticRepository.findById(tacticId);
-  // }
+    if (theTactic.private === false) {
+      throw new UnprocessableEntityException(
+        "Public tactic don't have kpi entries",
+      );
+    }
+
+    await this.validateKpiBelongToTactic(tacticId, kpiId);
+
+    await this.kpiService.createKpiEntry(kpiId, tacticKpiEntryBody);
+
+    return await this.tacticRepository.findById(tacticId);
+  }
+
+  async updateKpiEntry(
+    userId: number,
+    tacticId: number,
+    kpiId: number,
+    tacticKpiEntryBody: TacticKpiEntryUpdateDto,
+  ): Promise<TacticReturnDto> {
+    await this.isOwner(tacticId, userId);
+
+    let theTactic = await this.tacticRepository.findById(tacticId);
+
+    if (theTactic.private === false) {
+      throw new UnprocessableEntityException(
+        "Public tactic don't have kpi entries",
+      );
+    }
+
+    await this.validateKpiBelongToTactic(tacticId, kpiId);
+
+    await this.validateKpiEntryBelongToKpi(
+      kpiId,
+      tacticKpiEntryBody.kpiEntryId,
+    );
+
+    await this.kpiService.updateKpiEntry(
+      tacticKpiEntryBody.kpiEntryId,
+      tacticKpiEntryBody,
+    );
+
+    return await this.tacticRepository.findById(tacticId);
+  }
+
+  async deleteKpiEntry(
+    userId: number,
+    tacticId: number,
+    kpiId: number,
+    tacticKpiEntryBody: TacticKpiEntryDeleteDto,
+  ): Promise<TacticReturnDto> {
+    await this.isOwner(tacticId, userId);
+
+    let theTactic = await this.tacticRepository.findById(tacticId);
+
+    if (theTactic.private === false) {
+      throw new UnprocessableEntityException(
+        "Public tactic don't have kpi entries",
+      );
+    }
+
+    await this.validateKpiBelongToTactic(tacticId, kpiId);
+
+    await this.validateKpiEntryBelongToKpi(
+      kpiId,
+      tacticKpiEntryBody.kpiEntryId,
+    );
+
+    await this.kpiService.deleteKpiEntry(tacticKpiEntryBody.kpiEntryId);
+
+    return await this.tacticRepository.findById(tacticId);
+  }
 
   //authenticate tactic owner
 
@@ -103,6 +162,37 @@ export class TacticService {
     }
     if (tactic.userId !== userId) {
       throw new ForbiddenException('You are not the owner of this tactic');
+    }
+  }
+
+  async validateKpiBelongToTactic(tacticId: number, kpiId: number) {
+    const tactic = await this.tacticRepository.findById(tacticId);
+
+    if (!tactic) {
+      throw new UnprocessableEntityException('Tactic not found');
+    }
+    const kpi = await this.kpiService.getOne(kpiId);
+    if (!kpi) {
+      throw new UnprocessableEntityException('Kpi not found');
+    }
+    if (kpi.tacticId !== tactic.id) {
+      throw new UnprocessableEntityException('Kpi not belong to tactic');
+    }
+  }
+
+  async validateKpiEntryBelongToKpi(kpiId: number, kpiEntryId: number) {
+    const kpi = await this.kpiService.getOne(kpiId);
+    if (!kpi) {
+      throw new UnprocessableEntityException('Kpi not found');
+    }
+
+    const kpiEntry = await this.kpiService.getOneKpiEntry(kpiEntryId);
+    if (!kpi) {
+      throw new UnprocessableEntityException('KpiEntry not found');
+    }
+
+    if (kpi.id !== kpiEntry.kpiId) {
+      throw new UnprocessableEntityException('KpiEntry not belong to kpi');
     }
   }
 }

@@ -288,7 +288,17 @@ export class TacticRepository {
       'id',kpis.id,
       'name', kpis.name,
       'unit', kpis.unit,
-      'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency
+      'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency,
+      'kpiEntries', (
+        SELECT
+        JSON_ARRAYAGG(JSON_OBJECT(
+          'id',kpi_entry.id,
+          'value', kpi_entry.value,
+          'date', kpi_entry.date
+        ))
+        FROM kpi_entry
+        WHERE kpi_entry.kpiId = kpis.id
+      )
       ))
     END AS kpis
       FROM tactics

@@ -29,6 +29,10 @@ import { TacticReturnDto } from './dtos/tactic-return.dto';
 import { ErrorResponseDto } from 'src/dtos/error-response.dto';
 import { GlobalStagesEnum } from 'src/enums/global-stages.enum';
 import { GetAllFilterDto } from './dtos/get-all-filter.dto';
+import { TacticKpiEntryCreateDto } from './dtos/tactic-kpi-entry-create.dto';
+import { TacticKpiIdDto } from './dtos/tactic-kpi-id.dto';
+import { TacticKpiEntryUpdateDto } from './dtos/tactic-kpi-entry-update.dto';
+import { TacticKpiEntryDeleteDto } from './dtos/tactic-kpi-entry-delete.dto';
 
 @Controller({ path: 'tactic', version: '1' })
 export class TacticController {
@@ -98,6 +102,105 @@ export class TacticController {
       tacticUpdateBody,
       paramsId.tacticId,
       userId,
+    );
+  }
+
+  @ApiParam({
+    name: 'tacticId',
+    required: false,
+  })
+  @ApiParam({
+    name: 'kpiId',
+    required: false,
+  })
+  @ApiBody({ type: TacticKpiEntryCreateDto })
+  @ApiCreatedResponse({
+    type: TacticReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Tactic: Kpi Entry: Create')
+  //
+  @Post('/:tacticId/kpi-entry/:kpiId')
+  @UseGuards(AuthGuard)
+  async kpiEntryCrate(
+    @Body() tacticKpiEntryBody: TacticKpiEntryCreateDto,
+    @Param() paramsId: TacticKpiIdDto,
+    @UserId() userId: number,
+  ) {
+    return await this.tacticService.createKpiEntry(
+      userId,
+      paramsId.tacticId,
+      paramsId.kpiId,
+      tacticKpiEntryBody,
+    );
+  }
+
+  @ApiParam({
+    name: 'tacticId',
+    required: false,
+  })
+  @ApiParam({
+    name: 'kpiId',
+    required: false,
+  })
+  @ApiBody({ type: TacticKpiEntryUpdateDto })
+  @ApiCreatedResponse({
+    type: TacticReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Tactic: Kpi Entry: Update')
+  //
+  @Put('/:tacticId/kpi-entry/:kpiId')
+  @UseGuards(AuthGuard)
+  async kpiEntryUpdate(
+    @Body() tacticKpiEntryBody: TacticKpiEntryUpdateDto,
+    @Param() paramsId: TacticKpiIdDto,
+    @UserId() userId: number,
+  ) {
+    return await this.tacticService.updateKpiEntry(
+      userId,
+      paramsId.tacticId,
+      paramsId.kpiId,
+      tacticKpiEntryBody,
+    );
+  }
+
+  @ApiParam({
+    name: 'tacticId',
+    required: false,
+  })
+  @ApiParam({
+    name: 'kpiId',
+    required: false,
+  })
+  @ApiBody({ type: TacticKpiEntryDeleteDto })
+  @ApiCreatedResponse({
+    type: TacticReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Tactic: Kpi Entry: Delete')
+  //
+  @Delete('/:tacticId/kpi-entry/:kpiId')
+  @UseGuards(AuthGuard)
+  async kpiDelete(
+    @Body() tacticKpiEntryBody: TacticKpiEntryDeleteDto,
+    @Param() paramsId: TacticKpiIdDto,
+    @UserId() userId: number,
+  ) {
+    return await this.tacticService.deleteKpiEntry(
+      userId,
+      paramsId.tacticId,
+      paramsId.kpiId,
+      tacticKpiEntryBody,
     );
   }
 

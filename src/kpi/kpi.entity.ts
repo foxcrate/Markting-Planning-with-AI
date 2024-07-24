@@ -5,9 +5,12 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  OneToMany,
+  JoinColumn,
 } from 'typeorm';
 import { KpiMeasuringFrequencyEnum } from 'src/enums/kpi-measuring-frequency.enum';
 import { TacticEntity } from 'src/tactic/tactic.entity';
+import { KpiEntryEntity } from 'src/kpi/kpi-entry.entity';
 
 @Entity({ name: 'kpis' })
 export class KpiEntity {
@@ -33,6 +36,10 @@ export class KpiEntity {
     onDelete: 'CASCADE',
   })
   tactic: TacticEntity;
+
+  @OneToMany(() => KpiEntryEntity, (kpiEntry) => kpiEntry.kpi)
+  @JoinColumn()
+  kpiEntries: KpiEntryEntity[];
 
   @CreateDateColumn()
   createdAt: Date;
