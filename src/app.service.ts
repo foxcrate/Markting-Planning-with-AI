@@ -1,15 +1,18 @@
 import {
+  Inject,
   Injectable,
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { MessageReturnDto } from './dtos/message-return.dto';
 import * as admin from 'firebase-admin';
+import { DB_PROVIDER } from 'src/db/constants';
+import { Pool } from 'mariadb';
 import * as xlsx from 'xlsx';
 
 @Injectable()
 export class AppService {
-  constructor() {}
+  constructor(@Inject(DB_PROVIDER) private db: Pool) {}
   getHello(): MessageReturnDto {
     return { message: 'Hello To Crespo!' };
   }
@@ -40,12 +43,72 @@ export class AppService {
         .replace(/\)/g, ']');
       steps = eval(steps);
 
-      // let steps = data[index].steps;
-      console.log(steps);
-      let name = data[index].name;
-      console.log(name);
+      const kpisArray = data[index].kpi_name
+        .replace(/[\[\]()]/g, '')
+        .split(',')
+        .map((item) => item.trim());
+
+      let object = data[index];
+      object.steps = steps;
+      object.kpi_name = kpisArray;
+      console.log(object);
 
       console.log('------------------');
+
+      // global stage id
+      let globalStageId = 0;
+      if (object.global_stage_name === 'Awareness') {
+        globalStageId = 2;
+      } else if (object.global_stage_name === 'Consideration') {
+        globalStageId = 3;
+      } else if (object.global_stage_name === 'Conversion') {
+        globalStageId = 4;
+      } else if (object.global_stage_name === 'Loyalty') {
+        globalStageId = 5;
+      }
+
+      //measuring frequency
+      if (object.kpi_mesuring_frequency === 'Weekly') {
+        object.kpi_mesuring_frequency = 'weekly';
+      } else if (object.kpi_mesuring_frequency === 'Monthly') {
+        object.kpi_mesuring_frequency = 'monthly';
+      } else if (object.kpi_mesuring_frequency === 'Daily') {
+        object.kpi_mesuring_frequency = 'daily';
+      }
+
+      // create tactic
+      const query = `
+      INSERT INTO tactics (name,private,globalStageId,instance) VALUES (?,?,?,?)
+    `;
+      const params = [object.name, false, globalStageId, false];
+
+      let { insertId } = await this.db.query(query, params);
+
+      //create kpis
+      let kpisTempArray = [];
+      for (let i = 0; i < kpisArray.length; i++) {
+        kpisTempArray.push([
+          insertId,
+          kpisArray[i],
+          object.kpi_mesuring_frequency,
+        ]);
+      }
+
+      await this.db.batch(
+        `INSERT INTO kpis (tacticId,name,kpiMeasuringFrequency) VALUES (?,?,?)`,
+        kpisTempArray,
+      );
+
+      //create steps
+      let stepsArray = [];
+      for (let i = 0; i < steps.length; i++) {
+        stepsArray.push([insertId, steps[i][1], steps[i][2], steps[i][0]]);
+      }
+
+      await this.db.batch(
+        `INSERT INTO tactic_step (tacticId,name,description,theOrder) VALUES (?,?,?,?)`,
+        stepsArray,
+      );
     }
   }
 }

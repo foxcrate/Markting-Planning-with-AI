@@ -22,7 +22,7 @@ export class TacticEntity {
   @Column()
   name: string;
 
-  @Column({ type: 'longtext' })
+  @Column({ type: 'longtext', nullable: true })
   description: string;
 
   @Column({ type: 'boolean', default: false })
