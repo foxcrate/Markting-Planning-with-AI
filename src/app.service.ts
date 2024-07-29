@@ -58,13 +58,13 @@ export class AppService {
       // global stage id
       let globalStageId = 0;
       if (object.global_stage_name === 'Awareness') {
-        globalStageId = 2;
+        globalStageId = 1;
       } else if (object.global_stage_name === 'Consideration') {
-        globalStageId = 3;
+        globalStageId = 2;
       } else if (object.global_stage_name === 'Conversion') {
-        globalStageId = 4;
+        globalStageId = 3;
       } else if (object.global_stage_name === 'Loyalty') {
-        globalStageId = 5;
+        globalStageId = 4;
       }
 
       //measuring frequency
