@@ -23,6 +23,7 @@ import { ConnectSocialDto } from './dtos/connect-social.dto';
 import { UserService } from 'src/user/user.service';
 import { RefreshTokenReturnDto } from './dtos/refresh-token-return.dto';
 import { SendEmailReturnDto } from './dtos/send-email-return-otp.dto';
+import { UpdateSocialDto } from './dtos/update-social.dto';
 
 @Injectable()
 export class AuthService {
@@ -358,22 +359,57 @@ export class AuthService {
       facebookId: socialSignUp.facebookId,
     });
 
-    // await this.otpService.sendMobileOtp(
-    //   socialSignUp.phoneNumber,
-    //   OtpTypes.SIGNUP,
-    // );
-
-    // let newUser = {
-    //   ...createdUser,
-    //   userOnboarded: await this.userService.userOnboarded(createdUser.id),
-    // };
-
-    // return {
-    //   user: newUser,
-    //   message: 'Please check your mobile for otp verification',
-    // };
-
     const { password, ...restProperties } = createdUser;
+    // let user = restProperties;
+    let user = {
+      ...restProperties,
+      userOnboarded: await this.userService.userOnboarded(restProperties.id),
+    };
+    return {
+      user: user,
+      token: this.createNormalToken(user),
+      refreshToken: this.createRefreshToken(user),
+    };
+  }
+
+  async updateSocial(updateSocial: UpdateSocialDto, userId: number) {
+    if (!updateSocial.facebookId && !updateSocial.googleId) {
+      throw new UnprocessableEntityException(
+        'Please provide a social id (facebookId or googleId)',
+      );
+    }
+
+    if (updateSocial.facebookId && updateSocial.googleId) {
+      throw new UnprocessableEntityException(
+        'Please provide either facebookId or googleId',
+      );
+    }
+
+    //validate if user exists
+    if (updateSocial.googleId) {
+      if (
+        await this.userRepository.findUsersByGoogleId(updateSocial.googleId)
+      ) {
+        throw new UnprocessableEntityException(
+          'Google Social Account already exists',
+        );
+      }
+    } else if (updateSocial.facebookId) {
+      if (
+        await this.userRepository.findUsersByFacebookId(updateSocial.facebookId)
+      ) {
+        throw new UnprocessableEntityException(
+          'Facebook Social Account already exists',
+        );
+      }
+    }
+
+    const updatesUser = await this.userRepository.updateSocial(
+      updateSocial,
+      userId,
+    );
+
+    const { password, ...restProperties } = updatesUser;
     // let user = restProperties;
     let user = {
       ...restProperties,

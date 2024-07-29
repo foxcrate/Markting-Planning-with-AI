@@ -3,6 +3,7 @@ import { UserDto } from './dtos/user.dto';
 import { UpdateProfileDto } from './dtos/update-profile-dto';
 import { DB_PROVIDER } from 'src/db/constants';
 import { Pool } from 'mariadb';
+import { UpdateSocialDto } from 'src/auth/dtos/update-social.dto';
 
 @Injectable()
 export class UserRepository {
@@ -84,6 +85,26 @@ export class UserRepository {
       UpdateProfileBody.firstName,
       UpdateProfileBody.lastName,
       UpdateProfileBody.profilePicture,
+      userId,
+    ]);
+
+    return await this.findById(userId);
+  }
+
+  async updateSocial(UpdateBody: UpdateSocialDto, userId: number) {
+    // updateBody.stages[0].
+    const query = `
+        UPDATE users
+        SET
+        email = IFNULL(?,users.email),
+        googleId = IFNULL(?,users.googleId),
+        facebookId = IFNULL(?,users.facebookId)
+        WHERE id = ?
+      `;
+    await this.db.query(query, [
+      UpdateBody.email,
+      UpdateBody.googleId,
+      UpdateBody.facebookId,
       userId,
     ]);
 

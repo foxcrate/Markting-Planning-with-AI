@@ -26,15 +26,14 @@ import {
   ApiUnauthorizedResponse,
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
-import { SignupReturnDto } from './dtos/signup-return.dto';
 import { ErrorResponseDto } from 'src/dtos/error-response.dto';
-import { SignInReturnDto } from './dtos/signin-return.dto';
 import { FacebookDataReturnDto } from './dtos/facebook-data-return.dto';
 import { GoogleDataReturnDto } from './dtos/google-data-return.dto';
 import { AuthReturnDto } from './dtos/auth-return.dto';
 import { RefreshTokenReturnDto } from './dtos/refresh-token-return.dto';
 import { SendEmailReturnDto } from './dtos/send-email-return-otp.dto';
 import { UserDto } from 'src/user/dtos/user.dto';
+import { UpdateSocialDto } from './dtos/update-social.dto';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
@@ -141,6 +140,26 @@ export class AuthController {
   @Post('social-sign-up')
   async socialSignUp(@Body() socialSignUp: SocialSignUpDto) {
     return await this.authService.socialSignUp(socialSignUp);
+  }
+
+  @ApiBody({
+    type: UpdateSocialDto,
+  })
+  @ApiCreatedResponse({
+    type: AuthReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Auth: Update Social')
+  @Post('update-social')
+  @UseGuards(AuthGuard)
+  async updateSocial(
+    @Body() reqBody: UpdateSocialDto,
+    @UserId() userId: number,
+  ) {
+    return await this.authService.updateSocial(reqBody, userId);
   }
 
   @ApiBody({
