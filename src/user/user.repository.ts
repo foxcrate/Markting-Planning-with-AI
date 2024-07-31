@@ -91,6 +91,17 @@ export class UserRepository {
     return await this.findById(userId);
   }
 
+  async delete(userId: number) {
+    let deletedUser = await this.findById(userId);
+    const query = `
+      DELETE FROM users
+      WHERE id = ?
+  `;
+    await this.db.query(query, [userId]);
+
+    return deletedUser;
+  }
+
   async updateSocial(UpdateBody: UpdateSocialDto, userId: number) {
     // updateBody.stages[0].
     const query = `

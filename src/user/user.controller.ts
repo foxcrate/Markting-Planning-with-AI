@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateProfileDto } from './dtos/update-profile-dto';
 import { UserId } from 'src/decorators/user-id.decorator';
@@ -63,6 +71,20 @@ export class UserController {
     type: ErrorResponseDto,
   })
   @ApiBearerAuth()
+  @ApiTags('User: Delete')
+  @Delete()
+  @UseGuards(AuthGuard)
+  async delete(@UserId() userId: number) {
+    return this.userService.delete(userId);
+  }
+
+  @ApiCreatedResponse({
+    type: UserDto,
+  })
+  @ApiNotFoundResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
   @ApiTags('User: Get')
   @Get()
   @UseGuards(AuthGuard)
@@ -91,28 +113,6 @@ export class UserController {
       userId,
     );
   }
-
-  // @ApiBody({ type: VerifyChangePhoneNumberDto })
-  // @ApiCreatedResponse({
-  //   type: MessageReturnDto,
-  // })
-  // @ApiNotFoundResponse({
-  //   type: ErrorResponseDto,
-  // })
-  // @ApiBearerAuth()
-  // @ApiTags('User: Change phone number verification')
-  // @Post('verify/change-phone-number')
-  // @UseGuards(AuthGuard)
-  // async verifyChangePhoneNumber(
-  //   @Body() body: VerifyChangePhoneNumberDto,
-  //   @UserId() userId,
-  // ) {
-  //   return await this.userService.verifyChangePhoneNumberOTP(
-  //     body.phoneNumber,
-  //     body.otp,
-  //     userId,
-  //   );
-  // }
 
   @ApiBody({ type: ChangeEmailDto })
   @ApiCreatedResponse({

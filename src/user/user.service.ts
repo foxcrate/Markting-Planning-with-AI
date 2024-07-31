@@ -22,6 +22,10 @@ export class UserService {
     return await this.userRepository.update(UpdateProfileBody, userId);
   }
 
+  async delete(userId: number): Promise<UserDto> {
+    return await this.userRepository.delete(userId);
+  }
+
   async getUserData(userId: number): Promise<UserDto> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
@@ -53,24 +57,6 @@ export class UserService {
       message: 'Phone Number updated successfully',
     };
   }
-
-  // async verifyChangePhoneNumberOTP(
-  //   newPhoneNumber: string,
-  //   otp: string,
-  //   userId: number,
-  // ): Promise<MessageReturnDto> {
-  //   await this.otpService.verifyOTP(
-  //     newPhoneNumber,
-  //     otp,
-  //     OtpTypes.CHANGE_PHONE_NUMBER,
-  //   );
-
-  //   await this.userRepository.updatePhoneNumber(newPhoneNumber, userId);
-
-  //   return {
-  //     message: 'Phone Number updated successfully',
-  //   };
-  // }
 
   async changeEmail(email: string): Promise<MessageReturnDto> {
     const existingUser = await this.userRepository.findUserByEmail(email);
