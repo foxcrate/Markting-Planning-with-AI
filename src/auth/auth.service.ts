@@ -353,7 +353,8 @@ export class AuthService {
     const createdUser = await this.userRepository.create({
       firstName: socialSignUp.firstName,
       lastName: socialSignUp.lastName,
-      email: socialSignUp.email,
+      authEmail: socialSignUp.authEmail,
+      contactEmail: socialSignUp.authEmail,
       phoneNumber: socialSignUp.phoneNumber,
       googleId: socialSignUp.googleId,
       facebookId: socialSignUp.facebookId,
@@ -460,25 +461,6 @@ export class AuthService {
     };
   }
 
-  // async requestConnectPhoneNumberWithSocial(
-  //   phoneNumber: string,
-  // ): Promise<SignInReturnDto> {
-  //   let theUser = await this.userRepository.findUserByPhoneNumber(phoneNumber);
-
-  //   if (!theUser) {
-  //     throw new NotFoundException('User not found');
-  //   }
-  //   // if (!theUser.phoneVerified) {
-  //   //   throw new BadRequestException('Phone Number not verified');
-  //   // }
-
-  //   await this.otpService.sendMobileOtp(phoneNumber, OtpTypes.CONNECT_SOCIAL);
-
-  //   return {
-  //     message: 'Please check your mobile for an otp',
-  //   };
-  // }
-
   async connectSocial(connectSocial: ConnectSocialDto): Promise<AuthReturnDto> {
     if (!connectSocial.facebookId && !connectSocial.googleId) {
       throw new UnprocessableEntityException(
@@ -499,17 +481,13 @@ export class AuthService {
     if (!existingUser) {
       throw new UnprocessableEntityException(`phone number doesn't exists`);
     }
-    // await this.otpService.verifyOTP(
-    //   existingUser.phoneNumber,
-    //   connectSocial.otp,
-    //   OtpTypes.CONNECT_SOCIAL,
-    // );
+
     await this.otpService.verifyFirebaseOTP(existingUser.phoneNumber);
 
     await this.userRepository.updateSocialMedia(
       connectSocial.firstName,
       connectSocial.lastName,
-      connectSocial.email,
+      connectSocial.authEmail,
       connectSocial.googleId,
       connectSocial.facebookId,
       existingUser.id,
@@ -531,20 +509,20 @@ export class AuthService {
 
   ////////////////////////
 
-  async sendEmailOtp(email: string): Promise<SendEmailReturnDto> {
-    await this.otpService.sendEmailOtp(email, OtpTypes.ADD_EMAIL);
+  async sendEmailOtp(contactEmail: string): Promise<SendEmailReturnDto> {
+    await this.otpService.sendEmailOtp(contactEmail, OtpTypes.ADD_EMAIL);
     return { message: 'Email sent successfully' };
   }
 
   async verifyEmailOTP(
-    email: string,
+    contactEmail: string,
     otp: string,
     userId: number,
   ): Promise<UserDto> {
-    await this.otpService.verifyOTP(email, otp, OtpTypes.ADD_EMAIL);
+    await this.otpService.verifyOTP(contactEmail, otp, OtpTypes.ADD_EMAIL);
     // add the email to user data
 
-    await this.userRepository.updateEmail(email, userId);
+    await this.userRepository.updateCommunicateEmail(contactEmail, userId);
     return await this.userRepository.findById(userId);
   }
 }

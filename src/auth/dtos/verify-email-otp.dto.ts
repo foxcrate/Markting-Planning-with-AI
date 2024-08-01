@@ -5,7 +5,7 @@ export class VerifyEmailOtpDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  email: string;
+  contactEmail: string;
 
   @ApiProperty()
   @IsNotEmpty()

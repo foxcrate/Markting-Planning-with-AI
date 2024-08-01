@@ -47,7 +47,8 @@ export class UserRepository {
     const {
       firstName,
       lastName,
-      email,
+      authEmail,
+      contactEmail,
       password,
       phoneNumber,
       googleId,
@@ -55,9 +56,16 @@ export class UserRepository {
     } = user;
 
     const query = `
-      INSERT INTO users (firstName, lastName, email, phoneNumber, password${googleId ? ', googleId' : ''}${facebookId ? ', facebookId' : ''}) VALUES (?, ?, ?, ?, ?${googleId ? ', ?' : ''}${facebookId ? ', ?' : ''})
+      INSERT INTO users (firstName, lastName, authEmail,contactEmail, phoneNumber, password${googleId ? ', googleId' : ''}${facebookId ? ', facebookId' : ''}) VALUES (?, ?,?, ?, ?, ?${googleId ? ', ?' : ''}${facebookId ? ', ?' : ''})
     `;
-    const params = [firstName, lastName, email, phoneNumber, password];
+    const params = [
+      firstName,
+      lastName,
+      authEmail,
+      contactEmail,
+      phoneNumber,
+      password,
+    ];
     if (googleId) {
       params.push(googleId);
     }
@@ -107,13 +115,13 @@ export class UserRepository {
     const query = `
         UPDATE users
         SET
-        email = IFNULL(?,users.email),
+        authEmail = IFNULL(?,users.authEmail),
         googleId = IFNULL(?,users.googleId),
         facebookId = IFNULL(?,users.facebookId)
         WHERE id = ?
       `;
     await this.db.query(query, [
-      UpdateBody.email,
+      UpdateBody.authEmail,
       UpdateBody.googleId,
       UpdateBody.facebookId,
       userId,
@@ -131,13 +139,13 @@ export class UserRepository {
   //   await this.db.query(query, [userId]);
   // }
 
-  async updateEmail(email: string, userId: number) {
+  async updateCommunicateEmail(contactEmail: string, userId: number) {
     const query = `
         UPDATE users
-        SET email = ?
+        SET contactEmail = ?
         WHERE id = ?
       `;
-    await this.db.query(query, [email, userId]);
+    await this.db.query(query, [contactEmail, userId]);
   }
 
   async updatePhoneNumber(phoneNumber: string, userId: number) {
@@ -159,19 +167,19 @@ export class UserRepository {
     return user;
   }
 
-  async findUserByEmail(email): Promise<UserDto> {
+  async findUserByCommunicateEmail(contactEmail): Promise<UserDto> {
     const query = `
         SELECT * FROM users
-        WHERE email = ? LIMIT 1
+        WHERE contactEmail = ? LIMIT 1
       `;
-    const [user] = await this.db.query(query, [email]);
+    const [user] = await this.db.query(query, [contactEmail]);
     return user;
   }
 
   async updateSocialMedia(
     firstName: string,
     lastName: string,
-    email: string,
+    authEmail: string,
     googleId: string,
     facebookId: string,
     userId: number,
@@ -181,7 +189,7 @@ export class UserRepository {
         SET
         firstName = ?,
         lastName = ?,
-        email = ?,
+        authEmail = ?,
         googleId = ?,
         facebookId = ?
         WHERE id = ?
@@ -189,7 +197,7 @@ export class UserRepository {
     await this.db.query(query, [
       firstName,
       lastName,
-      email,
+      authEmail,
       googleId,
       facebookId,
       userId,
@@ -202,7 +210,8 @@ export class UserRepository {
       users.id,
       users.firstName,
       users.lastName,
-      users.email,
+      users.authEmail,
+      users.contactEmail,
       users.credits,
       users.profilePicture,
       users.phoneNumber,
@@ -218,64 +227,3 @@ export class UserRepository {
     return theUser;
   }
 }
-
-// async changePassword(password: string, userId: number) {
-//   const query = `
-//       UPDATE users
-//       SET password = ?
-//       WHERE id = ?
-//     `;
-//   await this.db.query(query, [password, userId]);
-// }
-
-// async findUserByEmail(email): Promise<UserDto> {
-//   const query = `
-//       SELECT * FROM users
-//       WHERE email = ? LIMIT 1
-//     `;
-//   const [user] = await this.db.query(query, [email]);
-//   return user;
-// }
-
-// async verifyEmail(userId: number) {
-//   const query = `
-//     UPDATE users
-//     SET emailVerified = true
-//     WHERE id = ?
-//   `;
-//   await this.db.query(query, [userId]);
-// }
-
-// async findUsersByEmailOrGoogleId(email, googleId): Promise<UserDto[]> {
-//   const query = `
-//       SELECT * FROM users
-//       WHERE (email = ? OR googleId = ?)
-//     `;
-//   return this.db.query(query, [email, googleId]);
-// }
-
-// async findUsersByEmail(email): Promise<UserDto[]> {
-//   const query = `
-//       SELECT * FROM users
-//       WHERE email = ?
-//     `;
-//   return this.db.query(query, [email]);
-// }
-
-// async saveForgetPasswordOtp(otp: string, userId: number) {
-//   const query = `
-//       UPDATE users
-//       SET forgetPasswordOtp = ?
-//       WHERE id = ?
-//     `;
-//   await this.db.query(query, [otp, userId]);
-// }
-
-// async findUsersByEmailOrFacebookId(email, facebookId): Promise<UserDto[]> {
-//   const query = `
-//       SELECT * FROM users
-//       WHERE (email = ? OR facebookId = ?)
-//     `;
-//   return this.db.query(query, [email, facebookId]);
-
-// }

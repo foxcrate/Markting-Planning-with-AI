@@ -5,5 +5,5 @@ export class ChangeEmailDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  email: string;
+  contactEmail: string;
 }

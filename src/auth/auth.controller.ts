@@ -1,6 +1,5 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { VerifyOtpDto } from './dtos/verify-otp.dto';
 import { RefreshTokenDto } from './dtos/refresh-token.dto';
 import { GoogleReturnDataSerializer } from './serializers/google-return-data.serializer';
 import { FacebookReturnDataSerializer } from './serializers/facebook-return-data.serializer';
@@ -181,27 +180,6 @@ export class AuthController {
     return await this.authService.socialSignIn(socialSignIn);
   }
 
-  // @ApiBody({
-  //   type: PhoneNumberDto,
-  // })
-  // @ApiCreatedResponse({
-  //   type: SignInReturnDto,
-  //   description: 'OTP will be sent to the phone number',
-  // })
-  // @ApiNotFoundResponse({
-  //   type: ErrorResponseDto,
-  // })
-  // @ApiBadRequestResponse({
-  //   type: ErrorResponseDto,
-  // })
-  // @ApiTags('Auth: Request to connect phone number with social')
-  // @Post('request/connect-phone-social')
-  // async connectPhoneSocial(@Body() { phoneNumber }: PhoneNumberDto) {
-  //   return await this.authService.requestConnectPhoneNumberWithSocial(
-  //     phoneNumber,
-  //   );
-  // }
-
   @ApiBody({
     type: ConnectSocialDto,
   })
@@ -234,42 +212,6 @@ export class AuthController {
     return await this.authService.refreshToken(refreshToken);
   }
 
-  // @ApiBody({
-  //   type: VerifyOtpDto,
-  // })
-  // @ApiCreatedResponse({
-  //   type: AuthReturnDto,
-  // })
-  // @ApiUnprocessableEntityResponse({
-  //   type: ErrorResponseDto,
-  // })
-  // @ApiTags('Auth: Signup OTP Verification')
-  // @Post('verify/signup-otp')
-  // async verifySignupOtp1(@Body() verifyOtpData: VerifyOtpDto) {
-  //   return await this.authService.verifySignupOTP(
-  //     verifyOtpData.otp,
-  //     verifyOtpData.mobileNumber,
-  //   );
-  // }
-
-  // @ApiBody({
-  //   type: VerifyOtpDto,
-  // })
-  // @ApiCreatedResponse({
-  //   type: AuthReturnDto,
-  // })
-  // @ApiUnprocessableEntityResponse({
-  //   type: ErrorResponseDto,
-  // })
-  // @ApiTags('Auth: Signin OTP Verification')
-  // @Post('verify/signin-otp')
-  // async verifySigninOtp1(@Body() verifyOtpData: VerifyOtpDto) {
-  //   return await this.authService.verifySigninOTP(
-  //     verifyOtpData.otp,
-  //     verifyOtpData.mobileNumber,
-  //   );
-  // }
-
   ////////////////////////
 
   @ApiBody({
@@ -287,7 +229,7 @@ export class AuthController {
   @Post('email-otp')
   @UseGuards(AuthGuard)
   async sendEmailOtp(@Body() sendEmailDto: SendEmailDto) {
-    return await this.authService.sendEmailOtp(sendEmailDto.email);
+    return await this.authService.sendEmailOtp(sendEmailDto.contactEmail);
   }
 
   @ApiBody({
@@ -308,7 +250,7 @@ export class AuthController {
     @UserId() userId: number,
   ) {
     return await this.authService.verifyEmailOTP(
-      verifyEmailOtpDto.email,
+      verifyEmailOtpDto.contactEmail,
       verifyEmailOtpDto.otp,
       userId,
     );
