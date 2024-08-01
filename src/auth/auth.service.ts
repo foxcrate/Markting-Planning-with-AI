@@ -493,7 +493,11 @@ export class AuthService {
       existingUser.id,
     );
 
-    const { password, ...restProperties } = existingUser;
+    let updatedUser = await this.userRepository.findUserByPhoneNumber(
+      connectSocial.mobileNumber,
+    );
+
+    const { password, ...restProperties } = updatedUser;
     let user = restProperties;
 
     let newUser = {

@@ -16,7 +16,7 @@ export class FunnelEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
+  @Column()
   name: string;
 
   @Column({ type: 'longtext' })

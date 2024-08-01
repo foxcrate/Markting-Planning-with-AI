@@ -16,10 +16,10 @@ export class FunnelRepository {
 
   async create(funnelCreateBody: FunnelCreateDto, userId: number) {
     const { name, description } = funnelCreateBody;
-    let repeatedFunnel = await this.findByName(name);
-    if (repeatedFunnel) {
-      throw new UnprocessableEntityException('funnel name already exists');
-    }
+    // let repeatedFunnel = await this.findByName(name);
+    // if (repeatedFunnel) {
+    //   throw new UnprocessableEntityException('funnel name already exists');
+    // }
     const query = `
       INSERT INTO funnels (name, description, userId) VALUES (?, ?, ?)
     `;
