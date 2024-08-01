@@ -15,7 +15,7 @@ export class ConnectSocialDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  authEmail: string;
 
   @ApiProperty()
   @IsNotEmpty()

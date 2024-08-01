@@ -24,7 +24,10 @@ export class UserEntity {
   lastName: string;
 
   @Column({ nullable: true })
-  email: string;
+  authEmail: string;
+
+  @Column({ nullable: true })
+  contactEmail: string;
 
   @Column({ nullable: true })
   profilePicture: string;

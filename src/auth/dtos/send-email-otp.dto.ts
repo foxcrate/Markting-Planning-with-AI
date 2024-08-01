@@ -5,5 +5,5 @@ export class SendEmailDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  email: string;
+  contactEmail: string;
 }

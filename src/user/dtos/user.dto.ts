@@ -8,7 +8,9 @@ export class UserDto {
   @ApiProperty()
   lastName?: string;
   @ApiProperty()
-  email?: string;
+  authEmail?: string;
+  @ApiProperty()
+  contactEmail?: string;
   @ApiProperty()
   password?: string;
   @ApiProperty()

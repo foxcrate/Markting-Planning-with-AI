@@ -58,13 +58,14 @@ export class UserService {
     };
   }
 
-  async changeEmail(email: string): Promise<MessageReturnDto> {
-    const existingUser = await this.userRepository.findUserByEmail(email);
+  async changeEmail(contactEmail: string): Promise<MessageReturnDto> {
+    const existingUser =
+      await this.userRepository.findUserByCommunicateEmail(contactEmail);
     if (existingUser) {
       throw new UnprocessableEntityException(`email already exists`);
     }
 
-    await this.otpService.sendEmailOtp(email, OtpTypes.CHANGE_EMAIL);
+    await this.otpService.sendEmailOtp(contactEmail, OtpTypes.CHANGE_EMAIL);
 
     return {
       message: 'Please check your new email for an otp',
@@ -72,13 +73,20 @@ export class UserService {
   }
 
   async verifyChangeEmailOTP(
-    newEmail: string,
+    newCommunicateEmail: string,
     otp: string,
     userId: number,
   ): Promise<MessageReturnDto> {
-    await this.otpService.verifyOTP(newEmail, otp, OtpTypes.CHANGE_EMAIL);
+    await this.otpService.verifyOTP(
+      newCommunicateEmail,
+      otp,
+      OtpTypes.CHANGE_EMAIL,
+    );
 
-    await this.userRepository.updateEmail(newEmail, userId);
+    await this.userRepository.updateCommunicateEmail(
+      newCommunicateEmail,
+      userId,
+    );
 
     return {
       message: 'Email updated successfully',

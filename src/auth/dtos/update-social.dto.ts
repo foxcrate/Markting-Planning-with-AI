@@ -5,7 +5,7 @@ export class UpdateSocialDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsEmail()
-  email: string;
+  authEmail: string;
 
   @ApiProperty()
   @IsOptional()

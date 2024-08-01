@@ -126,7 +126,7 @@ export class UserController {
   @Post('change/email')
   @UseGuards(AuthGuard)
   async changeEmail(@Body() changeEmailBody: ChangeEmailDto) {
-    return this.userService.changeEmail(changeEmailBody.email);
+    return this.userService.changeEmail(changeEmailBody.contactEmail);
   }
 
   @ApiBody({ type: VerifyChangeEmailDto })
@@ -145,7 +145,7 @@ export class UserController {
     @UserId() userId,
   ) {
     return await this.userService.verifyChangeEmailOTP(
-      body.email,
+      body.contactEmail,
       body.otp,
       userId,
     );
