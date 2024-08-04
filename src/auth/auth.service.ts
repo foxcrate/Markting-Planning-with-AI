@@ -133,6 +133,7 @@ export class AuthService {
 
     if (!theUser) {
       throw new NotFoundException('User not found');
+      // throw new HttpException('Forbidden', HttpStatus.SEE_OTHER);
     }
     // if (!theUser.phoneVerified) {
     //   throw new BadRequestException('Phone Number not verified');

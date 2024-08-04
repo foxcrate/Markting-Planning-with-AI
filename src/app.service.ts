@@ -1,6 +1,7 @@
 import {
   Inject,
   Injectable,
+  InternalServerErrorException,
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -18,6 +19,7 @@ export class AppService {
   }
 
   async testFirebase() {
+    // throw new ServiceUnavailableException('OpenAI API Error');
     // try {
     //   let id = '+201550307033';
     //   const user = await admin.auth().getUser(id);

@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
   OnModuleInit,
+  ServiceUnavailableException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import OpenAI from 'openai';
@@ -177,10 +178,9 @@ export class OpenAiService implements OnModuleInit {
         threadId: threadId,
       };
     } else {
-      console.log(run.status);
-      throw new UnprocessableEntityException(
-        `error in openAI chat run: ${run.status}`,
-      );
+      console.log('error in openAI chat run:', run.status);
+
+      throw new ServiceUnavailableException('OpenAI API Error');
     }
   }
 
@@ -378,10 +378,9 @@ export class OpenAiService implements OnModuleInit {
         threadEnd: false,
       };
     } else {
-      console.log(JSON.stringify(run));
-      throw new UnprocessableEntityException(
-        `error in openAI run: ${run.status}`,
-      );
+      console.log('error in openAI chat run:', run.status);
+
+      throw new ServiceUnavailableException('OpenAI API Error');
     }
   }
 
@@ -470,10 +469,9 @@ export class OpenAiService implements OnModuleInit {
           };
       }
     } else {
-      console.log(run);
-      throw new UnprocessableEntityException(
-        `error in openAI run: ${run.status}`,
-      );
+      console.log('error in openAI chat run:', run.status);
+
+      throw new ServiceUnavailableException('OpenAI API Error');
     }
   }
 
@@ -571,10 +569,9 @@ export class OpenAiService implements OnModuleInit {
           };
       }
     } else {
-      console.log(run);
-      throw new UnprocessableEntityException(
-        `error in openAI run: ${run.status}`,
-      );
+      console.log('error in openAI chat run:', run.status);
+
+      throw new ServiceUnavailableException('OpenAI API Error');
     }
   }
 
@@ -608,10 +605,9 @@ export class OpenAiService implements OnModuleInit {
         threadId: threadId,
       };
     } else {
-      console.log(run.status);
-      throw new UnprocessableEntityException(
-        `error in openAI run: ${run.status}`,
-      );
+      console.log('error in openAI chat run:', run.status);
+
+      throw new ServiceUnavailableException('OpenAI API Error');
     }
   }
 
