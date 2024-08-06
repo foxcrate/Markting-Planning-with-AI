@@ -1,11 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class CreateAiTacticDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
   prompt: string;
+
+  @ApiProperty({ type: Boolean, default: false })
+  @IsBoolean()
+  @IsNotEmpty()
+  library: boolean;
 
   @ApiProperty()
   @IsNotEmpty()

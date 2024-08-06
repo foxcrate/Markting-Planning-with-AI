@@ -19,7 +19,7 @@ export class GlobalStageService {
   }
 
   //get one globalStage
-  async getOne(globalStageId: number) {
+  async getOne(globalStageId: number): Promise<GlobalStageReturnDto> {
     return await this.globalStageRepository.findById(globalStageId);
   }
 

@@ -61,6 +61,7 @@ export class OpenAiService implements OnModuleInit {
 
   async aiCreateTactic(body: CreateAiTacticDto, userId: number): Promise<any> {
     let serializedUserDataObject = await this.getFunctionalAiUserData(
+      body.library,
       body.workspaceId,
       body.funnelId,
       body.stageId,
@@ -103,6 +104,7 @@ export class OpenAiService implements OnModuleInit {
     );
 
     let serializedUserDataObject = await this.getFunctionalAiUserData(
+      null,
       body.workspaceId,
       body.funnelId,
       body.stageId,
@@ -185,6 +187,7 @@ export class OpenAiService implements OnModuleInit {
   }
 
   async getFunctionalAiUserData(
+    library: boolean,
     workspaceId: number,
     funnelId: number,
     stageId: number,
@@ -203,32 +206,58 @@ export class OpenAiService implements OnModuleInit {
     }
 
     let theFunnel: any;
+    let theStage: any;
     let theFunnelStages: any;
-    if (!funnelId) {
+
+    if (library === false || library === null) {
+      if (!funnelId) {
+        theFunnel = {
+          name: null,
+          description: null,
+        };
+        theFunnelStages = null;
+      } else {
+        theFunnel = await this.funnelService.getOne(funnelId, userId);
+
+        theFunnelStages = await this.globalStageService.getAll();
+      }
+
+      if (!stageId) {
+        theStage = {
+          name: null,
+          description: null,
+          tactics: null,
+        };
+      } else {
+        theStage = await this.stageService.getOne(
+          stageId,
+          theFunnel.userId,
+          userId,
+        );
+        theStage = {
+          name: theStage.name,
+          description: theStage.description,
+          tactics: theStage.tactics,
+        };
+      }
+    } else if (library === true) {
       theFunnel = {
         name: null,
         description: null,
       };
       theFunnelStages = null;
-    } else {
-      theFunnel = await this.funnelService.getOne(funnelId, userId);
 
-      theFunnelStages = await this.globalStageService.getAll();
-    }
+      // get the global stage
+      theStage = await this.globalStageService.getOne(stageId);
+      if (!theStage) {
+        throw new NotFoundException('global-stage not found');
+      }
 
-    let theStage: any;
-    if (!stageId) {
       theStage = {
-        name: null,
-        description: null,
+        name: theStage.name,
+        description: theStage.description,
         tactics: null,
       };
-    } else {
-      theStage = await this.stageService.getOne(
-        stageId,
-        theFunnel.userId,
-        userId,
-      );
     }
 
     let serializedReturnObject = {
