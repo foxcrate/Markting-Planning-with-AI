@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { WorkspaceReturnDto } from './dtos/workspace-return.dto';
 import { WorkspaceRepository } from './workspace.repository';
-import { WorkspaceUpdateDto } from './dtos/workspace-update.dto';
 
 @Injectable()
 export class WorkspaceService {
@@ -15,11 +14,18 @@ export class WorkspaceService {
     return await this.workspaceRepository.create(workspaceData, userId);
   }
 
-  async update(
-    id: number,
-    workspaceData: any,
-    userId: number,
-  ): Promise<WorkspaceReturnDto> {
+  async update(id: number, workspaceData: any, userId: number): Promise<any> {
+    // validate worspace parameters
+    let onboardingParameters =
+      await this.workspaceRepository.getOnboardingParameters();
+
+    let workspaceDataKeys = Object.keys(workspaceData);
+    onboardingParameters.forEach((key) => {
+      if (!workspaceDataKeys.includes(key)) {
+        throw new UnprocessableEntityException('Invalid workspace data');
+      }
+    });
+
     if (id == 0) {
       return await this.workspaceRepository.updateFirstWorkspace(
         workspaceData,
@@ -37,6 +43,16 @@ export class WorkspaceService {
     userId: number,
   ): Promise<WorkspaceReturnDto> {
     if (id == 0) {
+      // validate worspace parameters
+      let onboardingParameters =
+        await this.workspaceRepository.getOnboardingParameters();
+
+      let workspaceDataKeys = Object.keys(updateBody);
+      onboardingParameters.forEach((key) => {
+        if (!workspaceDataKeys.includes(key)) {
+          throw new UnprocessableEntityException('Invalid workspace data');
+        }
+      });
       return await this.workspaceRepository.updateFirstWorkspace(
         updateBody,
         userId,

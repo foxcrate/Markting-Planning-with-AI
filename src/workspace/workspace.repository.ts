@@ -4,10 +4,10 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { WorkspaceReturnDto } from './dtos/workspace-return.dto';
-import { WorkspaceDto } from './dtos/workspace.dto';
-import { WorkspaceUpdateDto } from './dtos/workspace-update.dto';
 import { Pool } from 'mariadb';
 import { DB_PROVIDER } from 'src/db/constants';
+import { TemplateReturnDto } from 'src/template/dtos/template-return.dto';
+import { TemplateType } from 'src/enums/template-type.enum';
 
 @Injectable()
 export class WorkspaceRepository {
@@ -202,5 +202,50 @@ export class WorkspaceRepository {
     });
 
     return theWorkspaces;
+  }
+
+  async getOnboardingTemplate(): Promise<TemplateReturnDto> {
+    const query = `
+    SELECT
+      templates.id,
+      templates.name,
+      templates.type,
+      templates.description,
+      templates.parameters,
+      templates.openaiAssistantId
+    FROM templates
+    WHERE templates.type = ?
+   `;
+    const templates = await this.db.query(query, [TemplateType.ONBOARDING]);
+
+    if (templates.length === 0) {
+      throw new UnprocessableEntityException('Template not found');
+      // return null;
+    }
+    const template = templates[0];
+
+    // template.parameters = JSON.parse(template.parameters);
+
+    try {
+      template.parameters = eval(`(${template.parameters})`);
+      // console.log(arrayOfObjects);
+    } catch (error) {
+      console.error('Parsing error:', error);
+    }
+
+    // console.log(template);
+
+    return template;
+  }
+
+  async getOnboardingParameters() {
+    let onboardingTemplate = await this.getOnboardingTemplate();
+    let onboardingParameters = onboardingTemplate.parameters;
+    // console.log(onboardingParameters);
+
+    let onboardingParametersNames = onboardingParameters.map(
+      (parameter) => parameter.name,
+    );
+    return onboardingParametersNames;
   }
 }
