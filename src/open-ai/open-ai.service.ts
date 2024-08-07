@@ -28,6 +28,7 @@ import { MessageService } from 'src/message/message.service';
 import { AiChatResponseDto } from './dtos/ai-chat-response.dto';
 import { UserService } from 'src/user/user.service';
 import { GlobalStageService } from 'src/global-stage/global-stage.service';
+import { KpiReturnDto } from 'src/kpi/dtos/return.dto';
 
 @Injectable()
 export class OpenAiService implements OnModuleInit {
@@ -68,15 +69,24 @@ export class OpenAiService implements OnModuleInit {
       userId,
     );
 
-    return await this.runFunctionalAssistant(
-      this.configService.getOrThrow('CREATE_ONE_TACTIC_ASSISTANT_ID'),
-      serializedUserDataObject,
-      body.prompt,
-      body.workspaceId,
-      body.funnelId,
-      body.stageId,
-      userId,
-    );
+    try {
+      let aiResponse = await this.runFunctionalAssistant(
+        this.configService.getOrThrow('CREATE_ONE_TACTIC_ASSISTANT_ID'),
+        serializedUserDataObject,
+        body.prompt,
+        body.workspaceId,
+        body.funnelId,
+        body.stageId,
+        userId,
+      );
+      return aiResponse;
+    } catch (error: any) {
+      console.log('---------- create ai tactic error -----------');
+
+      console.log(error.message);
+
+      throw new ServiceUnavailableException(error.code);
+    }
   }
 
   async aiChat(
@@ -380,10 +390,6 @@ export class OpenAiService implements OnModuleInit {
     assistantMessage: string;
     threadEnd: boolean;
   }> {
-    // console.log({
-    //   runInstructions,
-    // });
-
     let run = await this.instance.beta.threads.runs.create(threadOpenaiId, {
       assistant_id: openaiAssistantId,
       additional_instructions: JSON.stringify(runInstructions),
@@ -462,12 +468,6 @@ export class OpenAiService implements OnModuleInit {
         case 'add_tactic_to_workspace':
           console.log('-- add_tactic_to_workspace --');
 
-          if (workspaceId === null || funnelId === null || stageId === null) {
-            throw new UnprocessableEntityException(
-              'workspaceId and funnelId and stageId is required',
-            );
-          }
-
           let aiCratedObject = JSON.parse(
             run.required_action.submit_tool_outputs.tool_calls[0].function
               .arguments,
@@ -479,15 +479,14 @@ export class OpenAiService implements OnModuleInit {
           ) {
             console.log('-- empty object from openai --');
 
-            throw new UnprocessableEntityException(
-              `error in openAI run:  ${run.status}`,
-            );
+            throw new ServiceUnavailableException('OpenAI API Error');
           }
 
           // console.log(aiCratedObject);
 
-          assistantMessage = await this.addTacticToWorkspaceHandler(
+          assistantMessage = this.addTacticToWorkspaceHandler(
             prompt,
+            runInstructions,
             aiCratedObject.tactic,
           );
 
@@ -546,16 +545,6 @@ export class OpenAiService implements OnModuleInit {
         threadEnd: false,
       };
     } else if (run.status === 'requires_action') {
-      // console.log('---- run in complete-----');
-
-      // console.log(run);
-
-      // console.log('---------');
-
-      // console.log(
-      //   run.required_action.submit_tool_outputs.tool_calls[0].function,
-      // );
-
       let assistantMessage = null;
       switch (
         run.required_action.submit_tool_outputs.tool_calls[0].function.name
@@ -571,17 +560,6 @@ export class OpenAiService implements OnModuleInit {
             assistantMessage: assistantMessage,
             threadEnd: true,
           };
-        // case 'add_funnel_stages_to_my_workspace':
-        //   assistantMessage = await this.createFunnelFunctionCallHandler(
-        //     run,
-        //     userId,
-        //   );
-
-        //   await this.threadService.finishTemplateThread(threadOpenaiId);
-        //   return {
-        //     assistantMessage: assistantMessage,
-        //     threadEnd: true,
-        //   };
         case 'add_tactics_to_workspace':
           assistantMessage = await this.createStageTacticsFunctionCallHandler(
             run,
@@ -645,19 +623,27 @@ export class OpenAiService implements OnModuleInit {
     return thread;
   }
 
-  private async addTacticToWorkspaceHandler(
+  private addTacticToWorkspaceHandler(
     prompt: string,
+    runInstructions: SerializedDataObjectDto,
     aiCreatedTactic: any,
-  ): Promise<AiCreatedTacticDto> {
-    //return serialized tactic
+  ): AiCreatedTacticDto {
+    let kpis: KpiReturnDto[] = [];
+    kpis.push({
+      id: null,
+      name: aiCreatedTactic.kpi_name,
+      unit: aiCreatedTactic.kpi_unit,
+      kpiMeasuringFrequency: aiCreatedTactic.kpi_measuring_frequency,
+      tacticId: null,
+    });
+
     return {
       prompt: prompt,
       name: aiCreatedTactic.name,
+      stageName: runInstructions.stage_data.name,
       description: aiCreatedTactic.description,
       theOrder: aiCreatedTactic.theOrder,
-      kpiName: aiCreatedTactic.kpi_name,
-      kpiUnit: aiCreatedTactic.kpi_unit,
-      kpiMeasuringFrequency: aiCreatedTactic.kpi_measuring_frequency,
+      kpis: kpis,
       steps: aiCreatedTactic.steps_to_achieve_the_tactic,
     };
   }
@@ -723,38 +709,6 @@ export class OpenAiService implements OnModuleInit {
     return onboardingParametersNames;
   }
 
-  // private async createFunnelFunctionCallHandler(run, userId) {
-  //   console.log('------- createFunnelFunctionCallHandler ------');
-  //   let functionReturnJsonObject = JSON.parse(
-  //     run.required_action.submit_tool_outputs.tool_calls[0].function.arguments,
-  //   );
-
-  //   if (
-  //     !Array.isArray(functionReturnJsonObject.stages) ||
-  //     functionReturnJsonObject.stages.length == 0
-  //   ) {
-  //     console.log(functionReturnJsonObject);
-  //     throw new UnprocessableEntityException(
-  //       'Error in Assistant function call response',
-  //     );
-  //   }
-
-  //   if (await this.funnelService.userHasAssistantFunnel(userId)) {
-  //     await this.funnelService.updateAssistantFunnel(
-  //       functionReturnJsonObject.stages,
-  //       userId,
-  //     );
-  //   } else {
-  //     await this.funnelService.createAssistantFunnel(
-  //       functionReturnJsonObject.stages,
-  //       userId,
-  //     );
-  //   }
-
-  //   await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
-  //   return functionReturnJsonObject;
-  // }
-
   private async createStageTacticsFunctionCallHandler(
     run: any,
     userId: number,
@@ -773,8 +727,12 @@ export class OpenAiService implements OnModuleInit {
       !Array.isArray(functionReturnJsonObject.tactics) ||
       functionReturnJsonObject.tactics.length == 0
     ) {
+      console.log(
+        'Error in Assistant function call response: created tactics array are empty',
+      );
+
       console.log(functionReturnJsonObject);
-      throw new UnprocessableEntityException(
+      throw new ServiceUnavailableException(
         'Error in Assistant function call response',
       );
     }

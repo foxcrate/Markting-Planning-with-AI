@@ -201,14 +201,19 @@ export class StageRepository {
      COUNT(tactics_stages.id) AS tacticsNumber
       FROM
       tactics_stages
-      WHERE stageId = ?
+      LEFT JOIN
+      tactics ON tactics.id = tactics_stages.tacticId
+      WHERE
+      tactics_stages.stageId = ?
+      AND
+      tactics.checked = false
       `,
       [stageId],
     );
     return stageTacticsNumber.tacticsNumber;
   }
 
-  async updateStageTacticsOrder(
+  async updateStageManyTacticsOrder(
     stageId: number,
     tacticsAndOrders: TacticIdAndOrderDto[],
   ) {
@@ -224,6 +229,23 @@ export class StageRepository {
         [tacticsAndOrders[i].theOrder, stageId, tacticsAndOrders[i].tacticId],
       );
     }
+  }
+
+  async updateStageOneTacticOrder(
+    stageId: number,
+    tacticId: number,
+    order: number,
+  ) {
+    await this.db.query(
+      `
+      UPDATE tactics_stages
+      SET
+      theOrder = ?
+      WHERE
+      stageId = ? AND tacticId = ?
+      `,
+      [order, stageId, tacticId],
+    );
   }
 
   async validateTacticBelongToStage(stageId: number, tacticsId: number) {
@@ -282,10 +304,37 @@ export class StageRepository {
     return tacticStepsIds.tacticStepIds;
   }
 
-  async checkboxTactic(tacticId: number) {
+  async isTacticChecked(tacticId: number): Promise<boolean> {
+    var query = `
+    SELECT
+    checked
+    FROM
+    tactics
+    WHERE
+    id = ?
+  `;
+    let [theTactic] = await this.db.query(query, [tacticId]);
+    return theTactic.checked;
+  }
+
+  async checkboxTacticTrue(tacticId: number) {
     var query = `
         UPDATE tactics
-        SET tactics.checked = IF(tactics.checked = 0, 1, 0)
+        SET
+        tactics.checked = 1
+        WHERE id = ?
+      `;
+
+    await this.db.query(query, [tacticId]);
+
+    return true;
+  }
+
+  async checkboxTacticFalse(tacticId: number) {
+    var query = `
+        UPDATE tactics
+        SET
+        tactics.checked = 0
         WHERE id = ?
       `;
 

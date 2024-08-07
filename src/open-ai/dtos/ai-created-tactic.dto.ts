@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { KpiMeasuringFrequencyEnum } from 'src/enums/kpi-measuring-frequency.enum';
 import { AiCreatedTacticStepDto } from './ai-created-tactic-step.dto';
+import { KpiReturnDto } from 'src/kpi/dtos/return.dto';
 
 export class AiCreatedTacticDto {
   @ApiProperty()
@@ -10,21 +10,19 @@ export class AiCreatedTacticDto {
   name: string;
 
   @ApiProperty()
+  stageName: string;
+
+  @ApiProperty()
   description: string;
 
   @ApiProperty()
   theOrder: number;
 
-  @ApiProperty()
-  kpiName: string;
-
-  @ApiProperty()
-  kpiUnit: string;
-
   @ApiProperty({
-    enum: KpiMeasuringFrequencyEnum,
+    type: KpiReturnDto,
+    isArray: true,
   })
-  kpiMeasuringFrequency: KpiMeasuringFrequencyEnum;
+  kpis: KpiReturnDto[];
 
   @ApiProperty({ type: AiCreatedTacticStepDto, isArray: true })
   steps: AiCreatedTacticStepDto[];

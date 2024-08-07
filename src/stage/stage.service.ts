@@ -55,7 +55,7 @@ export class StageService {
 
     await this.updateStageTacticsOrderValidations(stageId, tacticsAndOrders);
 
-    await this.stageRepository.updateStageTacticsOrder(
+    await this.stageRepository.updateStageManyTacticsOrder(
       stageId,
       tacticsAndOrders,
     );
@@ -125,8 +125,26 @@ export class StageService {
 
     // validate the tactic is an instance tactic
     await this.stageRepository.validateTacticBelongToStage(stageId, tacticId);
-    return await this.stageRepository.checkboxTactic(tacticId);
-    // return await this.stageRepository.findById(stageId);
+    if (!(await this.stageRepository.isTacticChecked(tacticId))) {
+      await this.stageRepository.updateStageOneTacticOrder(
+        stageId,
+        tacticId,
+        0,
+      );
+      await this.stageRepository.checkboxTacticTrue(tacticId);
+      // update the order of the rest tactics
+      await this.updateStageTacticsOrderAfterChange(stageId);
+    } else {
+      const stageTacticsNumber =
+        await this.stageRepository.getStageTacticsNumber(stageId);
+      await this.stageRepository.updateStageOneTacticOrder(
+        stageId,
+        tacticId,
+        stageTacticsNumber + 1,
+      );
+      await this.stageRepository.checkboxTacticFalse(tacticId);
+    }
+    return await this.stageRepository.findById(stageId);
   }
 
   async checkboxTacticStep(
@@ -180,6 +198,29 @@ export class StageService {
     //delete tactic
     await this.tacticService.delete(tacticId, userId);
     return await this.stageRepository.findById(stageId);
+  }
+
+  async updateStageTacticsOrderAfterChange(stageId: number) {
+    // get all stage tactics
+    const theStage = await this.stageRepository.findById(stageId);
+
+    const theStageTactics = theStage.tactics;
+
+    let notArchivedTactics = theStageTactics.filter(
+      (tactic) => tactic.checked == false,
+    );
+
+    let sortedNotArchivedTactics = notArchivedTactics.sort((a, b) => {
+      return Number(a.theOrder) - Number(b.theOrder);
+    });
+
+    for (let i = 0; i < sortedNotArchivedTactics.length; i++) {
+      await this.stageRepository.updateStageOneTacticOrder(
+        stageId,
+        sortedNotArchivedTactics[i].id,
+        i + 1,
+      );
+    }
   }
 
   async addGlobalStages(funnelId: number) {
