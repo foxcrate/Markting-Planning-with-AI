@@ -14,6 +14,7 @@ import { TacticStepEntity } from './src/tactic/tactic-step.entity';
 import { TacticsStagesEntity } from './src/stage/tactics-stages.entity';
 import { KpiEntity } from 'src/kpi/kpi.entity';
 import { KpiEntryEntity } from 'src/kpi/kpi-entry.entity';
+import { TemplateCategoryEntity } from 'src/template-category/template-category.entity';
 require('dotenv').config({
   path: `${process.env.NODE_ENV ? process.env.NODE_ENV : ''}.env`,
 });
@@ -41,6 +42,7 @@ export const typeOrmDbConfig: TypeOrmModuleOptions = {
     TacticsStagesEntity,
     KpiEntity,
     KpiEntryEntity,
+    TemplateCategoryEntity,
   ],
   //migrations: [__dirname + '/migrations/**/*'],
   //migrationsTableName: 'migrations',

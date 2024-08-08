@@ -130,15 +130,6 @@ export class UserRepository {
     return await this.findById(userId);
   }
 
-  // async verifyPhoneNumber(userId: number) {
-  //   const query = `
-  //       UPDATE users
-  //       SET phoneVerified = true
-  //       WHERE id = ?
-  //     `;
-  //   await this.db.query(query, [userId]);
-  // }
-
   async updateCommunicateEmail(contactEmail: string, userId: number) {
     const query = `
         UPDATE users
@@ -210,6 +201,7 @@ export class UserRepository {
       users.id,
       users.firstName,
       users.lastName,
+      users.type,
       users.authEmail,
       users.contactEmail,
       users.credits,

@@ -40,7 +40,7 @@ export class AuthService {
   private createNormalToken(user: UserDto) {
     const payload = {
       sub: user.id,
-      authType: UserRoles.CUSTOMER,
+      authType: user.type,
       tokenType: 'normal',
     };
     return this.jwtService.sign(payload, {
@@ -51,7 +51,7 @@ export class AuthService {
   private createRefreshToken(user: UserDto) {
     const payload = {
       sub: user.id,
-      authType: UserRoles.CUSTOMER,
+      authType: user.type,
       tokenType: 'refresh',
     };
     return this.jwtService.sign(payload, {
@@ -189,65 +189,6 @@ export class AuthService {
       refreshToken: this.createRefreshToken(user),
     };
   }
-
-  // async verifySignupOTP(
-  //   otp: string,
-  //   mobileNumber: string,
-  // ): Promise<AuthReturnDto> {
-  //   const existingUser =
-  //     await this.userRepository.findUserByPhoneNumber(mobileNumber);
-  //   if (!existingUser) {
-  //     throw new UnprocessableEntityException(`phone number doesn't exists`);
-  //   }
-  //   await this.otpService.verifyOTP(
-  //     existingUser.phoneNumber,
-  //     otp,
-  //     OtpTypes.SIGNUP,
-  //   );
-
-  //   await this.userRepository.verifyPhoneNumber(existingUser.id);
-
-  //   const { password, ...restProperties } = existingUser;
-  //   // let user = restProperties;
-  //   let user = {
-  //     ...restProperties,
-  //     userOnboarded: await this.userService.userOnboarded(restProperties.id),
-  //   };
-  //   return {
-  //     user: user,
-  //     token: this.createNormalToken(user),
-  //     refreshToken: this.createRefreshToken(user),
-  //   };
-  // }
-
-  // async verifySigninOTP(
-  //   otp: string,
-  //   mobileNumber: string,
-  // ): Promise<AuthReturnDto> {
-  //   const existingUser =
-  //     await this.userRepository.findUserByPhoneNumber(mobileNumber);
-  //   if (!existingUser) {
-  //     throw new UnprocessableEntityException(`phone number doesn't exists`);
-  //   }
-  //   await this.otpService.verifyOTP(
-  //     existingUser.phoneNumber,
-  //     otp,
-  //     OtpTypes.SIGNIN,
-  //   );
-
-  //   await this.userRepository.verifyPhoneNumber(existingUser.id);
-
-  //   const { password, ...restProperties } = existingUser;
-  //   let user = {
-  //     ...restProperties,
-  //     userOnboarded: await this.userService.userOnboarded(restProperties.id),
-  //   };
-  //   return {
-  //     user: user,
-  //     token: this.createNormalToken(user),
-  //     refreshToken: this.createRefreshToken(user),
-  //   };
-  // }
 
   async checkSavedPhone(phoneNumber: string): Promise<boolean> {
     let foundedUser =

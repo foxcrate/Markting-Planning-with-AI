@@ -11,6 +11,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { TacticEntity } from '../tactic/tactic.entity';
+import { UserRoles } from 'src/enums/user-roles.enum';
 
 @Entity({ name: 'users' })
 export class UserEntity {
@@ -22,6 +23,13 @@ export class UserEntity {
 
   @Column({ nullable: true })
   lastName: string;
+
+  @Column({
+    type: 'enum',
+    enum: UserRoles,
+    default: UserRoles.CUSTOMER,
+  })
+  type: UserRoles;
 
   @Column({ nullable: true })
   authEmail: string;

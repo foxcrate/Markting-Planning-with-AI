@@ -8,7 +8,9 @@ import {
   UpdateDateColumn,
   OneToMany,
   JoinColumn,
+  ManyToOne,
 } from 'typeorm';
+import { TemplateCategoryEntity } from 'src/template-category/template-category.entity';
 
 @Entity({ name: 'templates' })
 export class TemplateEntity {
@@ -37,6 +39,16 @@ export class TemplateEntity {
   @OneToMany(() => ThreadEntity, (thread) => thread.template)
   @JoinColumn()
   threads: ThreadEntity[];
+
+  @ManyToOne(
+    () => TemplateCategoryEntity,
+    (templateCategory) => templateCategory.templates,
+    {
+      cascade: true,
+      onDelete: 'CASCADE',
+    },
+  )
+  templateCategory: TemplateCategoryEntity;
 
   @CreateDateColumn()
   createdAt: Date;
