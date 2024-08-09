@@ -1,13 +1,13 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { Pool } from 'mariadb';
 import { DB_PROVIDER } from 'src/db/constants';
-import { OtpTypes } from 'src/enums/otp-types.enum';
+import { OtpTypeEnum } from 'src/enums/otp-types.enum';
 
 @Injectable()
 export class OtpRepository {
   constructor(@Inject(DB_PROVIDER) private db: Pool) {}
 
-  async saveOTP(mobileNumber: string, otp: string, type: OtpTypes) {
+  async saveOTP(mobileNumber: string, otp: string, type: OtpTypeEnum) {
     let query = `
       SELECT *
       FROM otps
@@ -51,7 +51,7 @@ export class OtpRepository {
   async checkSavedOTP(
     mobileNumber: string,
     otp: string,
-    type: OtpTypes,
+    type: OtpTypeEnum,
   ): Promise<any> {
     let query = `
       SELECT
@@ -73,7 +73,7 @@ export class OtpRepository {
     return true;
   }
 
-  async deletePastOTP(mobileNumber: string, type: OtpTypes): Promise<any> {
+  async deletePastOTP(mobileNumber: string, type: OtpTypeEnum): Promise<any> {
     let query = `
       DELETE
       FROM otps

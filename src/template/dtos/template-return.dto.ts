@@ -1,4 +1,4 @@
-import { TemplateType } from 'src/enums/template-type.enum';
+import { TemplateTypeEnum } from 'src/enums/template-type.enum';
 import { ParameterObjectDto } from './parameter-object.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -10,7 +10,7 @@ export class TemplateReturnDto {
   name: string;
 
   @ApiProperty()
-  type: TemplateType;
+  type: TemplateTypeEnum;
 
   @ApiProperty()
   description: string;

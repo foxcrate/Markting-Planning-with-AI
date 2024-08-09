@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { TemplateReturnDto } from './dtos/template-return.dto';
-import { TemplateType } from 'src/enums/template-type.enum';
+import { TemplateTypeEnum } from 'src/enums/template-type.enum';
 import { TemplateDto } from './dtos/template.dto';
 import { Pool } from 'mariadb';
 import { DB_PROVIDER } from 'src/db/constants';
@@ -160,7 +160,9 @@ export class TemplateRepository {
     FROM templates
     WHERE type = ?
    `;
-    const [template] = await this.db.query(query, [TemplateType.ONBOARDING]);
+    const [template] = await this.db.query(query, [
+      TemplateTypeEnum.ONBOARDING,
+    ]);
 
     // template.parameters = JSON.parse(JSON.stringify(template.parameters));
 

@@ -19,11 +19,11 @@ import { WorkspaceReturnDto } from 'src/workspace/dtos/workspace-return.dto';
 import { ConfigService } from '@nestjs/config';
 import { SerializedDataObjectDto } from './dtos/serializedDataObject.dto';
 import { AiCreatedTacticDto } from './dtos/ai-created-tactic.dto';
-import { TemplateType } from 'src/enums/template-type.enum';
+import { TemplateTypeEnum } from 'src/enums/template-type.enum';
 import { TemplateService } from 'src/template/template.service';
 import { AiChatRequestDto } from './dtos/ai-chat-request.dto';
 import { ThreadReturnDto } from 'src/thread/dtos/thread-return.dto';
-import { SenderRole } from 'src/enums/sender-role.enum';
+import { SenderRoleEnum } from 'src/enums/sender-role.enum';
 import { MessageService } from 'src/message/message.service';
 import { AiChatResponseDto } from './dtos/ai-chat-response.dto';
 import { UserService } from 'src/user/user.service';
@@ -110,7 +110,7 @@ export class OpenAiService implements OnModuleInit {
     await this.messageService.create(
       body.message,
       theThread.id,
-      SenderRole.USER,
+      SenderRoleEnum.USER,
     );
 
     let serializedUserDataObject = await this.getFunctionalAiUserData(
@@ -182,7 +182,7 @@ export class OpenAiService implements OnModuleInit {
       await this.messageService.create(
         aiMessage,
         threadId,
-        SenderRole.ASSISTANT,
+        SenderRoleEnum.ASSISTANT,
       );
 
       return {
@@ -698,7 +698,7 @@ export class OpenAiService implements OnModuleInit {
 
   async getOnboardingParametersName() {
     let onboardingTemplate = await this.templateService.getOneByType(
-      TemplateType.ONBOARDING,
+      TemplateTypeEnum.ONBOARDING,
     );
     let onboardingParameters = onboardingTemplate.parameters;
     // console.log(onboardingParameters);

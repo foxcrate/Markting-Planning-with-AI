@@ -1,10 +1,10 @@
-import { TemplateType } from 'src/enums/template-type.enum';
+import { TemplateTypeEnum } from 'src/enums/template-type.enum';
 import { ParameterObjectDto } from './parameter-object.dto';
 
 export class TemplateDto {
   name: string;
 
-  type: TemplateType;
+  type: TemplateTypeEnum;
 
   description: string;
 

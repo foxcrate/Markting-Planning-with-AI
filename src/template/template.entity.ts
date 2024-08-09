@@ -1,5 +1,5 @@
 import { ThreadEntity } from '../thread/thread.entity';
-import { TemplateType } from '../enums/template-type.enum';
+import { TemplateTypeEnum } from '../enums/template-type.enum';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -19,10 +19,10 @@ export class TemplateEntity {
 
   @Column({
     type: 'enum',
-    enum: TemplateType,
-    default: TemplateType.CUSTOM,
+    enum: TemplateTypeEnum,
+    default: TemplateTypeEnum.CUSTOM,
   })
-  type: TemplateType;
+  type: TemplateTypeEnum;
 
   @Column({ nullable: true })
   openaiAssistantId: string;

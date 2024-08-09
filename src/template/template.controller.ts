@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { TemplateService } from './template.service';
 import { OnboardingTemplateDto } from './dtos/onboarding-template.dto';
-import { TemplateType } from 'src/enums/template-type.enum';
+import { TemplateTypeEnum } from 'src/enums/template-type.enum';
 import { UserId } from 'src/decorators/user-id.decorator';
 import { AuthGuard } from 'src/gurads/auth.guard';
 import { TemplateRepository } from './template.repository';
@@ -27,6 +27,9 @@ import { ErrorResponseDto } from 'src/dtos/error-response.dto';
 import { TemplateReturnDto } from './dtos/template-return.dto';
 import { NotEndedThreadAiResponseDto } from './dtos/not-ended-thread-ai-response.dto';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
+import { Roles } from 'src/decorators/roles.decorator';
+import { RoleGuard } from 'src/gurads/role.guard';
+import { TemplateCreateDto } from './dtos/template-create.dto';
 
 // @ApiTags('Template')
 @Controller({ path: 'template', version: '1' })
@@ -55,6 +58,22 @@ export class TemplateController {
     return this.templateService.setOnboardingTemplate(template);
   }
 
+  @ApiBody({ type: TemplateCreateDto })
+  @ApiCreatedResponse({
+    type: TemplateReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Template: Create')
+  @Post()
+  @Roles('admin')
+  @UseGuards(AuthGuard, RoleGuard)
+  async create(@Body() template: TemplateCreateDto) {
+    // return this.templateService.setOnboardingTemplate(template);
+  }
+
   @ApiCreatedResponse({
     type: NotEndedThreadAiResponseDto,
   })
@@ -67,7 +86,7 @@ export class TemplateController {
   @UseGuards(AuthGuard)
   async startOnboardingTemplate(@UserId() userId: number) {
     let onboardingTemplate = await this.templateRepository.findByType(
-      TemplateType.ONBOARDING,
+      TemplateTypeEnum.ONBOARDING,
     );
     if (!onboardingTemplate) {
       throw new UnprocessableEntityException('There is no onboarding template');
@@ -119,7 +138,7 @@ export class TemplateController {
     @UserId() userId: number,
   ) {
     let onboardingTemplate = await this.templateRepository.findByType(
-      TemplateType.ONBOARDING,
+      TemplateTypeEnum.ONBOARDING,
     );
     return await this.templateService.answerTemplateQuestion(
       onboardingTemplate.id,
@@ -143,7 +162,7 @@ export class TemplateController {
   // @UseGuards(AuthGuard)
   // async startFunnelTemplate(@UserId() userId: number) {
   //   let funnelTemplate = await this.templateRepository.findByType(
-  //     TemplateType.FUNNEL,
+  //     TemplateTypeEnum.FUNNEL,
   //   );
   //   if (!funnelTemplate) {
   //     throw new UnprocessableEntityException('There is no funnel template');
@@ -165,7 +184,7 @@ export class TemplateController {
   //   @UserId() userId: number,
   // ) {
   //   let funnelTemplate = await this.templateRepository.findByType(
-  //     TemplateType.FUNNEL,
+  //     TemplateTypeEnum.FUNNEL,
   //   );
   //   return await this.templateService.answerTemplateQuestion(
   //     funnelTemplate.id,
@@ -212,7 +231,7 @@ export class TemplateController {
     @UserId() userId: number,
   ) {
     let tacticTemplate = await this.templateRepository.findByType(
-      TemplateType.TACTIC,
+      TemplateTypeEnum.TACTIC,
     );
     if (!tacticTemplate) {
       throw new UnprocessableEntityException('There is no tactic template');
@@ -245,7 +264,7 @@ export class TemplateController {
     @UserId() userId: number,
   ) {
     let tacticTemplate = await this.templateRepository.findByType(
-      TemplateType.TACTIC,
+      TemplateTypeEnum.TACTIC,
     );
     return await this.templateService.answerTemplateQuestion(
       tacticTemplate.id,

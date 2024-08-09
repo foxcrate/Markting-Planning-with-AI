@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { OtpRepository } from './otp.repository';
-import { OtpTypes } from 'src/enums/otp-types.enum';
+import { OtpTypeEnum } from 'src/enums/otp-types.enum';
 import { EmailService } from 'src/email/email.service';
 import emailVerificationOtp from 'src/email/templates/email-verification-otp.template';
 import * as admin from 'firebase-admin';
@@ -19,7 +19,7 @@ export class OtpService {
     private readonly emailService: EmailService,
   ) {}
 
-  async sendMobileOtp(phoneNumber: string, type: OtpTypes) {
+  async sendMobileOtp(phoneNumber: string, type: OtpTypeEnum) {
     // const createdOtp = this.createOtp();
     const createdOtp = '123456';
     await this.otpRepository.saveOTP(phoneNumber, createdOtp, type);
@@ -27,7 +27,7 @@ export class OtpService {
     return 'OTP sent successfully';
   }
 
-  async sendEmailOtp(email: string, type: OtpTypes) {
+  async sendEmailOtp(email: string, type: OtpTypeEnum) {
     // const createdOtp = this.createOtp();
     const createdOtp = this.createOtp();
     await this.otpRepository.saveOTP(email, createdOtp, type);
@@ -39,7 +39,7 @@ export class OtpService {
     return 'OTP sent successfully';
   }
 
-  async verifyOTP(phoneNumber, otp, type: OtpTypes) {
+  async verifyOTP(phoneNumber, otp, type: OtpTypeEnum) {
     //throw error if not passed
     await this.otpRepository.checkSavedOTP(phoneNumber, otp, type);
 

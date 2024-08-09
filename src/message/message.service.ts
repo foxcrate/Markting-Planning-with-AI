@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { MessageRepository } from './message.repository';
-import { OpenAiService } from 'src/open-ai/open-ai.service';
-import { ThreadRepository } from 'src/thread/thread.repository';
-import { SenderRole } from 'src/enums/sender-role.enum';
-import { ThreadReturnDto } from 'src/thread/dtos/thread-return.dto';
 
 @Injectable()
 export class MessageService {
@@ -17,7 +13,7 @@ export class MessageService {
     // }
     // theThread = await this.threadRepository.findById(threadId);
     // //save user message
-    // await this.messageRepository.create(message, theThread.id, SenderRole.USER);
+    // await this.messageRepository.create(message, theThread.id, SenderRoleEnum.USER);
     // let aiResponse = await this.openAiService.sendMessageReturnResponse(
     //   theThread.openAiId,
     //   message,
@@ -25,7 +21,7 @@ export class MessageService {
     // await this.messageRepository.create(
     //   aiResponse.message,
     //   theThread.id,
-    //   SenderRole.ASSISTANT,
+    //   SenderRoleEnum.ASSISTANT,
     // );
     // return aiResponse;
   }

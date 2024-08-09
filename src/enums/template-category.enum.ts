@@ -1,4 +1,4 @@
-export enum SenderRoleEnum {
+export enum TemplateCategoryEnum {
   USER = 'user',
   ASSISTANT = 'assistant',
 }

@@ -7,7 +7,7 @@ import { WorkspaceReturnDto } from './dtos/workspace-return.dto';
 import { Pool } from 'mariadb';
 import { DB_PROVIDER } from 'src/db/constants';
 import { TemplateReturnDto } from 'src/template/dtos/template-return.dto';
-import { TemplateType } from 'src/enums/template-type.enum';
+import { TemplateTypeEnum } from 'src/enums/template-type.enum';
 
 @Injectable()
 export class WorkspaceRepository {
@@ -216,7 +216,7 @@ export class WorkspaceRepository {
     FROM templates
     WHERE templates.type = ?
    `;
-    const templates = await this.db.query(query, [TemplateType.ONBOARDING]);
+    const templates = await this.db.query(query, [TemplateTypeEnum.ONBOARDING]);
 
     if (templates.length === 0) {
       throw new UnprocessableEntityException('Template not found');

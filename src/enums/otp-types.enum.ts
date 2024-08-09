@@ -1,4 +1,4 @@
-export enum OtpTypes {
+export enum OtpTypeEnum {
   SIGNIN = 'signin',
   SIGNUP = 'signup',
   CONNECT_SOCIAL = 'connect_social',

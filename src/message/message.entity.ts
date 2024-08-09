@@ -7,7 +7,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { ThreadEntity } from '../thread/thread.entity';
-import { SenderRole } from '../enums/sender-role.enum';
+import { SenderRoleEnum } from '../enums/sender-role.enum';
 
 @Entity({ name: 'messages' })
 export class MessageEntity {
@@ -16,11 +16,11 @@ export class MessageEntity {
 
   @Column({
     type: 'enum',
-    enum: SenderRole,
+    enum: SenderRoleEnum,
     nullable: true,
     default: null,
   })
-  senderRole: SenderRole | null;
+  SenderRoleEnum: SenderRoleEnum | null;
 
   @Column('longtext')
   content: string;

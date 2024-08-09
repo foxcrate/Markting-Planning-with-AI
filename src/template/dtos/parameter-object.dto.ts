@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsString } from 'class-validator';
-import { FunctionCallDataTypes } from 'src/enums/function-call-data-types.enum';
+import { FunctionCallDataTypeEnum } from 'src/enums/function-call-data-types.enum';
 
 export class ParameterObjectDto {
   @ApiProperty()
@@ -11,7 +11,7 @@ export class ParameterObjectDto {
   @IsString()
   description: string;
 
-  @ApiProperty({ enum: FunctionCallDataTypes })
-  @IsEnum(FunctionCallDataTypes)
-  type: FunctionCallDataTypes;
+  @ApiProperty({ enum: FunctionCallDataTypeEnum })
+  @IsEnum(FunctionCallDataTypeEnum)
+  type: FunctionCallDataTypeEnum;
 }

@@ -7,9 +7,9 @@ import {
 import { OnboardingTemplateDto } from './dtos/onboarding-template.dto';
 import { TemplateRepository } from './template.repository';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
-import { TemplateType } from 'src/enums/template-type.enum';
+import { TemplateTypeEnum } from 'src/enums/template-type.enum';
 import { MessageService } from 'src/message/message.service';
-import { SenderRole } from 'src/enums/sender-role.enum';
+import { SenderRoleEnum } from 'src/enums/sender-role.enum';
 import { ThreadRepository } from 'src/thread/thread.repository';
 import { FunnelTemplateDto } from './dtos/funnel-template.dto';
 import { WorkspaceRepository } from 'src/workspace/workspace.repository';
@@ -34,7 +34,7 @@ export class TemplateService {
   async setOnboardingTemplate(template: OnboardingTemplateDto): Promise<any> {
     // check if system has onboarding template
     const existingTemplate = await this.templateRepository.findByType(
-      TemplateType.ONBOARDING,
+      TemplateTypeEnum.ONBOARDING,
     );
     // console.log(template.parameters);
 
@@ -48,14 +48,14 @@ export class TemplateService {
     if (existingTemplate) {
       await this.openAiService.updateTemplateAssistance(
         existingTemplate.openaiAssistantId,
-        TemplateType.ONBOARDING,
+        TemplateTypeEnum.ONBOARDING,
         description,
         template.parameters,
       );
 
       return await this.templateRepository.update(existingTemplate.id, {
-        name: TemplateType.ONBOARDING,
-        type: TemplateType.ONBOARDING,
+        name: TemplateTypeEnum.ONBOARDING,
+        type: TemplateTypeEnum.ONBOARDING,
         description: description,
         parameters: template.parameters,
         openaiAssistantId: existingTemplate.openaiAssistantId,
@@ -63,14 +63,14 @@ export class TemplateService {
     }
 
     let assistance = await this.openAiService.createTemplateAssistance(
-      TemplateType.ONBOARDING,
+      TemplateTypeEnum.ONBOARDING,
       description,
       template.parameters,
     );
 
     return await this.templateRepository.create({
-      name: TemplateType.ONBOARDING,
-      type: TemplateType.ONBOARDING,
+      name: TemplateTypeEnum.ONBOARDING,
+      type: TemplateTypeEnum.ONBOARDING,
       description: description,
       parameters: template.parameters,
       openaiAssistantId: assistance.id,
@@ -80,20 +80,20 @@ export class TemplateService {
   async setFunnelTemplate(template: FunnelTemplateDto) {
     // check if system has funnel template
     const existingTemplate = await this.templateRepository.findByType(
-      TemplateType.FUNNEL,
+      TemplateTypeEnum.FUNNEL,
     );
 
     if (existingTemplate) {
       await this.openAiService.updateTemplateAssistance(
         existingTemplate.openaiAssistantId,
-        TemplateType.FUNNEL,
+        TemplateTypeEnum.FUNNEL,
         template.description,
         null,
       );
 
       return await this.templateRepository.update(existingTemplate.id, {
-        name: TemplateType.FUNNEL,
-        type: TemplateType.FUNNEL,
+        name: TemplateTypeEnum.FUNNEL,
+        type: TemplateTypeEnum.FUNNEL,
         description: template.description,
         parameters: null,
         openaiAssistantId: existingTemplate.openaiAssistantId,
@@ -101,14 +101,14 @@ export class TemplateService {
     }
 
     let assistance = await this.openAiService.createTemplateAssistance(
-      TemplateType.FUNNEL,
+      TemplateTypeEnum.FUNNEL,
       template.description,
       null,
     );
 
     return await this.templateRepository.create({
-      name: TemplateType.FUNNEL,
-      type: TemplateType.FUNNEL,
+      name: TemplateTypeEnum.FUNNEL,
+      type: TemplateTypeEnum.FUNNEL,
       description: template.description,
       parameters: null,
       openaiAssistantId: assistance.id,
@@ -120,20 +120,20 @@ export class TemplateService {
   ): Promise<TemplateReturnDto> {
     // check if system has funnel template
     const existingTemplate = await this.templateRepository.findByType(
-      TemplateType.TACTIC,
+      TemplateTypeEnum.TACTIC,
     );
 
     if (existingTemplate) {
       await this.openAiService.updateTemplateAssistance(
         existingTemplate.openaiAssistantId,
-        TemplateType.TACTIC,
+        TemplateTypeEnum.TACTIC,
         template.description,
         null,
       );
 
       return await this.templateRepository.update(existingTemplate.id, {
-        name: TemplateType.TACTIC,
-        type: TemplateType.TACTIC,
+        name: TemplateTypeEnum.TACTIC,
+        type: TemplateTypeEnum.TACTIC,
         description: template.description,
         parameters: null,
         openaiAssistantId: existingTemplate.openaiAssistantId,
@@ -141,14 +141,14 @@ export class TemplateService {
     }
 
     let assistance = await this.openAiService.createTemplateAssistance(
-      TemplateType.TACTIC,
+      TemplateTypeEnum.TACTIC,
       template.description,
       null,
     );
 
     return await this.templateRepository.create({
-      name: TemplateType.TACTIC,
-      type: TemplateType.TACTIC,
+      name: TemplateTypeEnum.TACTIC,
+      type: TemplateTypeEnum.TACTIC,
       description: template.description,
       parameters: null,
       openaiAssistantId: assistance.id,
@@ -215,7 +215,7 @@ export class TemplateService {
     await this.messageService.create(
       runObject.assistantMessage,
       thread.id,
-      SenderRole.ASSISTANT,
+      SenderRoleEnum.ASSISTANT,
     );
 
     return { assistantMessage: runObject.assistantMessage, threadEnd: false };
@@ -242,7 +242,7 @@ export class TemplateService {
     }
 
     // save user message
-    await this.messageService.create(answer, thread.id, SenderRole.USER);
+    await this.messageService.create(answer, thread.id, SenderRoleEnum.USER);
 
     //get the template run instruction if exists
     let runInstruction = await this.getTemplateRunInstruction(
@@ -277,7 +277,7 @@ export class TemplateService {
       await this.messageService.create(
         aiResponseObject.assistantMessage,
         thread.id,
-        SenderRole.ASSISTANT,
+        SenderRoleEnum.ASSISTANT,
       );
       return {
         assistantMessage: aiResponseObject.assistantMessage,
@@ -296,11 +296,11 @@ export class TemplateService {
     let theTemplate = await this.templateRepository.findById(templateId);
 
     switch (theTemplate.type) {
-      case TemplateType.ONBOARDING:
+      case TemplateTypeEnum.ONBOARDING:
         return '';
-      case TemplateType.FUNNEL:
+      case TemplateTypeEnum.FUNNEL:
         return await this.getFunnelTemplateRunInstruction(userId, workspaceId);
-      case TemplateType.TACTIC:
+      case TemplateTypeEnum.TACTIC:
         return await this.getTacticTemplateRunInstruction(
           userId,
           workspaceId,

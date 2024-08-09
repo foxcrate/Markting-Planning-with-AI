@@ -17,8 +17,8 @@ import { SocialSignUpDto } from './dtos/social-signup.dto';
 import { SocialSignInDto } from './dtos/social-signin.dto';
 import { MobileSignInDto } from './dtos/mobile-signin.dto';
 import { MobileSignUpDto } from './dtos/mobile-signup.dto';
-import { UserRoles } from 'src/enums/user-roles.enum';
-import { OtpTypes } from 'src/enums/otp-types.enum';
+import { UserRoleEnum } from 'src/enums/user-roles.enum';
+import { OtpTypeEnum } from 'src/enums/otp-types.enum';
 import { ConnectSocialDto } from './dtos/connect-social.dto';
 import { UserService } from 'src/user/user.service';
 import { RefreshTokenReturnDto } from './dtos/refresh-token-return.dto';
@@ -88,7 +88,7 @@ export class AuthService {
 
     let tokenPayload = {
       sub: payload.sub,
-      authType: UserRoles.CUSTOMER,
+      authType: UserRoleEnum.CUSTOMER,
       tokenType: 'normal',
     };
 
@@ -135,16 +135,8 @@ export class AuthService {
       throw new NotFoundException('User not found');
       // throw new HttpException('Forbidden', HttpStatus.SEE_OTHER);
     }
-    // if (!theUser.phoneVerified) {
-    //   throw new BadRequestException('Phone Number not verified');
-    // }
-    // await this.otpService.sendMobileOtp(signIn.phoneNumber, OtpTypes.SIGNIN);
 
     await this.otpService.verifyFirebaseOTP(signIn.phoneNumber);
-
-    // return {
-    //   message: 'Please check your mobile for an otp',
-    // };
 
     const { password, ...restProperties } = theUser;
     let user = {
@@ -174,8 +166,6 @@ export class AuthService {
     const createdUser = await this.userRepository.create({
       ...signUp,
     });
-
-    // await this.otpService.sendMobileOtp(signUp.phoneNumber, OtpTypes.SIGNUP);
 
     const { password, ...restProperties } = createdUser;
     // let user = restProperties;
@@ -456,7 +446,7 @@ export class AuthService {
   ////////////////////////
 
   async sendEmailOtp(contactEmail: string): Promise<SendEmailReturnDto> {
-    await this.otpService.sendEmailOtp(contactEmail, OtpTypes.ADD_EMAIL);
+    await this.otpService.sendEmailOtp(contactEmail, OtpTypeEnum.ADD_EMAIL);
     return { message: 'Email sent successfully' };
   }
 
@@ -465,7 +455,7 @@ export class AuthService {
     otp: string,
     userId: number,
   ): Promise<UserDto> {
-    await this.otpService.verifyOTP(contactEmail, otp, OtpTypes.ADD_EMAIL);
+    await this.otpService.verifyOTP(contactEmail, otp, OtpTypeEnum.ADD_EMAIL);
     // add the email to user data
 
     await this.userRepository.updateCommunicateEmail(contactEmail, userId);

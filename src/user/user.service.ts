@@ -8,7 +8,7 @@ import { UpdateProfileDto } from './dtos/update-profile-dto';
 import { UserDto } from './dtos/user.dto';
 import { WorkspaceService } from 'src/workspace/workspace.service';
 import { OtpService } from 'src/otp/otp.service';
-import { OtpTypes } from 'src/enums/otp-types.enum';
+import { OtpTypeEnum } from 'src/enums/otp-types.enum';
 import { MessageReturnDto } from '../dtos/message-return.dto';
 
 @Injectable()
@@ -65,7 +65,7 @@ export class UserService {
       throw new UnprocessableEntityException(`email already exists`);
     }
 
-    await this.otpService.sendEmailOtp(contactEmail, OtpTypes.CHANGE_EMAIL);
+    await this.otpService.sendEmailOtp(contactEmail, OtpTypeEnum.CHANGE_EMAIL);
 
     return {
       message: 'Please check your new email for an otp',
@@ -80,7 +80,7 @@ export class UserService {
     await this.otpService.verifyOTP(
       newCommunicateEmail,
       otp,
-      OtpTypes.CHANGE_EMAIL,
+      OtpTypeEnum.CHANGE_EMAIL,
     );
 
     await this.userRepository.updateCommunicateEmail(
