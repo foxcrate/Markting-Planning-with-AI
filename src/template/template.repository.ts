@@ -12,15 +12,18 @@ export class TemplateRepository {
   async create(template: TemplateDto): Promise<TemplateReturnDto> {
     const query = `
     INSERT INTO templates
-    (name,type,description,parameters,openaiAssistantId)
-    values (?,?,?,?,?)
+    (name,type,description,profilePicture,categoryId,parameters,requiredData,openaiAssistantId)
+    values (?,?,?,?,?,?,?,?)
    `;
 
     let { insertId } = await this.db.query(query, [
       template.name,
       template.type,
       template.description,
+      template.profilePicture,
+      template.categoryId,
       template.parameters ? JSON.stringify(template.parameters) : null,
+      template.requiredData ? JSON.stringify(template.requiredData) : null,
       template.openaiAssistantId,
     ]);
 
@@ -34,6 +37,9 @@ export class TemplateRepository {
     name = COALESCE(?,name),
     type = COALESCE(?,type),
     description = COALESCE(?,description),
+    profilePicture = COALESCE(?,profilePicture),
+    categoryId = COALESCE(?,categoryId),
+    requiredData = COALESCE(?,requiredData),
     parameters = COALESCE(?,parameters)
     WHERE id= ?
    `;
@@ -42,6 +48,9 @@ export class TemplateRepository {
       template.name,
       template.type,
       template.description,
+      template.profilePicture,
+      template.categoryId,
+      template.requiredData ? JSON.stringify(template.requiredData) : null,
       template.parameters ? JSON.stringify(template.parameters) : null,
       id,
     ]);
@@ -56,7 +65,10 @@ export class TemplateRepository {
       templates.name,
       templates.type,
       templates.description,
+      templates.profilePicture,
+      templates.categoryId,
       templates.parameters,
+      templates.requiredData,
       templates.openaiAssistantId
     FROM templates
     WHERE templates.id = ?
@@ -72,12 +84,56 @@ export class TemplateRepository {
     // template.parameters = JSON.parse(JSON.stringify(template.parameters));
     try {
       template.parameters = eval(`(${template.parameters})`);
+      template.requiredData = eval(`(${template.requiredData})`);
       // console.log(arrayOfObjects);
     } catch (error) {
       console.error('Parsing error:', error);
     }
 
     return template;
+  }
+
+  async delete(templateId: number) {
+    const query = `
+  DELETE
+  FROM
+   templates
+  WHERE
+    templates.id = ?
+   `;
+    const templates = await this.db.query(query, [templateId]);
+  }
+
+  async getAll(): Promise<TemplateReturnDto[]> {
+    const query = `
+    SELECT
+      templates.id,
+      templates.name,
+      templates.type,
+      templates.description,
+      templates.profilePicture,
+      templates.categoryId,
+      templates.parameters,
+      templates.requiredData,
+      templates.openaiAssistantId
+    FROM templates
+   `;
+
+    const templates = await this.db.query(query);
+
+    // loop over templates
+    for (const template of templates) {
+      // template.parameters = JSON.parse(JSON.stringify(template.parameters));
+      try {
+        template.parameters = eval(`(${template.parameters})`);
+        template.requiredData = eval(`(${template.requiredData})`);
+        // console.log(arrayOfObjects);
+      } catch (error) {
+        console.error('Parsing error:', error);
+      }
+    }
+
+    return templates;
   }
 
   async findByName(name: string): Promise<TemplateReturnDto> {
@@ -87,7 +143,10 @@ export class TemplateRepository {
       templates.name,
       templates.type,
       templates.description,
+      templates.profilePicture,
+      templates.categoryId,
       templates.parameters,
+      templates.requiredData,
       templates.openaiAssistantId
     FROM templates
     WHERE templates.name = ?
@@ -103,6 +162,7 @@ export class TemplateRepository {
 
     try {
       template.parameters = eval(`(${template.parameters})`);
+      template.requiredData = eval(`(${template.requiredData})`);
       // console.log(arrayOfObjects);
     } catch (error) {
       console.error('Parsing error:', error);
@@ -120,7 +180,10 @@ export class TemplateRepository {
       templates.name,
       templates.type,
       templates.description,
+      templates.profilePicture,
+      templates.categoryId,
       templates.parameters,
+      templates.requiredData,
       templates.openaiAssistantId
     FROM templates
     WHERE templates.type = ?
@@ -136,6 +199,7 @@ export class TemplateRepository {
 
     try {
       template.parameters = eval(`(${template.parameters})`);
+      template.requiredData = eval(`(${template.requiredData})`);
       // console.log(arrayOfObjects);
     } catch (error) {
       console.error('Parsing error:', error);

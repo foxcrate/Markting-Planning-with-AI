@@ -17,7 +17,7 @@ export class TemplateCategoryEntity {
   @Column()
   name: string;
 
-  @OneToMany(() => TemplateEntity, (template) => template.templateCategory)
+  @OneToMany(() => TemplateEntity, (template) => template.category)
   @JoinColumn()
   templates: TemplateEntity[];
 

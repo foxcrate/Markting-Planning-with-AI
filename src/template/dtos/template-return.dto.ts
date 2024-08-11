@@ -1,6 +1,7 @@
 import { TemplateTypeEnum } from 'src/enums/template-type.enum';
 import { ParameterObjectDto } from './parameter-object.dto';
 import { ApiProperty } from '@nestjs/swagger';
+import { RequiredDataDto } from './required-data.dto';
 
 export class TemplateReturnDto {
   @ApiProperty()
@@ -10,13 +11,22 @@ export class TemplateReturnDto {
   name: string;
 
   @ApiProperty()
+  profilePicture: string;
+
+  @ApiProperty()
   type: TemplateTypeEnum;
 
   @ApiProperty()
   description: string;
 
   @ApiProperty()
+  categoryId: number;
+
+  @ApiProperty()
   parameters: ParameterObjectDto[];
+
+  @ApiProperty()
+  requiredData: RequiredDataDto[];
 
   @ApiProperty()
   openaiAssistantId: string;

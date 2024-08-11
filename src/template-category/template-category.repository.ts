@@ -24,8 +24,6 @@ export class TemplateCategoryRepository {
     INSERT INTO template_category (name) VALUES (?)
   `;
 
-    await this.db.query(query, [reqBody.name]);
-
     let { insertId } = await this.db.query(query, [reqBody.name]);
 
     return await this.findById(Number(insertId));
@@ -50,7 +48,7 @@ export class TemplateCategoryRepository {
       UPDATE
       template_category
       SET
-      name = IFNULL(?,template_category.name),
+      name = IFNULL(?,template_category.name)
       WHERE id = ?
     `;
     await this.db.query(query, [reqBody.name, id]);

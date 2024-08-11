@@ -1,7 +1,11 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
+  Param,
   Post,
+  Put,
   UnprocessableEntityException,
   UseGuards,
 } from '@nestjs/common';
@@ -20,6 +24,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
+  ApiParam,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -30,6 +35,8 @@ import { OpenAiService } from 'src/open-ai/open-ai.service';
 import { Roles } from 'src/decorators/roles.decorator';
 import { RoleGuard } from 'src/gurads/role.guard';
 import { TemplateCreateDto } from './dtos/template-create.dto';
+import { TemplateIdDto } from './dtos/template-id.dto';
+import { TemplateUpdateDto } from './dtos/template-update.dto';
 
 // @ApiTags('Template')
 @Controller({ path: 'template', version: '1' })
@@ -66,12 +73,86 @@ export class TemplateController {
     type: ErrorResponseDto,
   })
   @ApiBearerAuth()
-  @ApiTags('Template: Create')
+  @ApiTags('Template: CRUD: Create')
   @Post()
   @Roles('admin')
   @UseGuards(AuthGuard, RoleGuard)
   async create(@Body() template: TemplateCreateDto) {
-    // return this.templateService.setOnboardingTemplate(template);
+    return this.templateService.create(template);
+  }
+
+  @ApiParam({
+    name: 'templateId',
+  })
+  @ApiBody({ type: TemplateUpdateDto })
+  @ApiCreatedResponse({
+    type: TemplateReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Template: CRUD: Update')
+  @Put('/:templateId')
+  @Roles('admin')
+  @UseGuards(AuthGuard, RoleGuard)
+  async udpate(
+    @Body() template: TemplateUpdateDto,
+    @Param() paramsId: TemplateIdDto,
+  ) {
+    return this.templateService.update(template, paramsId.templateId);
+  }
+
+  @ApiParam({
+    name: 'templateId',
+  })
+  @ApiCreatedResponse({
+    type: TemplateReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Template: CRUD: Get One')
+  @Get('/:templateId')
+  @Roles('admin', 'customer')
+  @UseGuards(AuthGuard, RoleGuard)
+  async getOne(@Param() paramsId: TemplateIdDto) {
+    return this.templateService.getOne(paramsId.templateId);
+  }
+
+  @ApiParam({
+    name: 'templateId',
+  })
+  @ApiCreatedResponse({
+    type: TemplateReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Template: CRUD: Delete')
+  @Delete('/:templateId')
+  @Roles('admin')
+  @UseGuards(AuthGuard, RoleGuard)
+  async delete(@Param() paramsId: TemplateIdDto) {
+    return this.templateService.delete(paramsId.templateId);
+  }
+
+  @ApiCreatedResponse({
+    type: TemplateReturnDto,
+    isArray: true,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Template: CRUD: Get All')
+  @Get()
+  @Roles('admin', 'customer')
+  @UseGuards(AuthGuard, RoleGuard)
+  async getAll() {
+    return this.templateService.getAll();
   }
 
   @ApiCreatedResponse({

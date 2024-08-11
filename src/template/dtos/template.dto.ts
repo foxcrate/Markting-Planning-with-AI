@@ -1,5 +1,6 @@
 import { TemplateTypeEnum } from 'src/enums/template-type.enum';
 import { ParameterObjectDto } from './parameter-object.dto';
+import { RequiredDataDto } from './required-data.dto';
 
 export class TemplateDto {
   name: string;
@@ -7,6 +8,12 @@ export class TemplateDto {
   type: TemplateTypeEnum;
 
   description: string;
+
+  profilePicture: string;
+
+  categoryId: number;
+
+  requiredData: RequiredDataDto[];
 
   parameters: ParameterObjectDto[];
 

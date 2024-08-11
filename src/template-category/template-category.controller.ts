@@ -14,6 +14,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
+  ApiParam,
   ApiTags,
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
@@ -53,6 +54,9 @@ export class TemplateCategoryController {
     );
   }
 
+  @ApiParam({
+    name: 'templateCategoryId',
+  })
   @ApiBody({ type: TemplateCategoryCreateDto })
   @ApiCreatedResponse({
     type: TemplateCategoryReturnDto,
@@ -90,9 +94,12 @@ export class TemplateCategoryController {
   @Roles('admin', 'customer')
   @UseGuards(AuthGuard, RoleGuard)
   async getAll(@UserId() userId: number) {
-    return await this.templateCategoryService.getAll(userId);
+    return await this.templateCategoryService.getAll();
   }
 
+  @ApiParam({
+    name: 'templateCategoryId',
+  })
   @ApiCreatedResponse({
     type: TemplateCategoryReturnDto,
   })
@@ -108,12 +115,12 @@ export class TemplateCategoryController {
     @Param() params: TemplateCategoryIdDto,
     @UserId() userId: number,
   ) {
-    return await this.templateCategoryService.getOne(
-      params.templateCategoryId,
-      userId,
-    );
+    return await this.templateCategoryService.getOne(params.templateCategoryId);
   }
 
+  @ApiParam({
+    name: 'templateCategoryId',
+  })
   @ApiCreatedResponse({
     type: TemplateCategoryReturnDto,
   })

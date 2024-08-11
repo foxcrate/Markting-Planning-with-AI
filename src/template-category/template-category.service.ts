@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { TemplateCategoryRepository } from './template-category.repository';
 import { TemplateCategoryCreateDto } from './dtos/template-category-create.dto';
 import { TemplateCategoryReturnDto } from './dtos/template-category-return.dto';
@@ -29,25 +29,26 @@ export class TemplateCategoryService {
       updateBody,
       templateCategoryId,
     );
-    return await this.templateCategoryRepository.findById(templateCategoryId);
+    return await this.getOne(templateCategoryId);
   }
 
   //get one templateCategory
-  async getOne(
-    templateCategoryId: number,
-    userId: number,
-  ): Promise<TemplateCategoryReturnDto> {
-    return await this.templateCategoryRepository.findById(templateCategoryId);
+  async getOne(templateCategoryId: number): Promise<TemplateCategoryReturnDto> {
+    let templateCategory =
+      await this.templateCategoryRepository.findById(templateCategoryId);
+    if (!templateCategory) {
+      throw new NotFoundException('Template Category not found');
+    }
+    return templateCategory;
   }
 
   //get all templateCategories
-  async getAll(userId: number) {
+  async getAll() {
     return await this.templateCategoryRepository.getAll();
   }
 
   async delete(templateCategoryId: number, userId: number) {
-    let deletedTemplateCategory =
-      await this.templateCategoryRepository.findById(templateCategoryId);
+    let deletedTemplateCategory = await this.getOne(templateCategoryId);
     await this.templateCategoryRepository.deleteById(templateCategoryId);
     return deletedTemplateCategory;
   }

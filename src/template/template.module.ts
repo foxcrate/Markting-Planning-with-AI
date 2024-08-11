@@ -9,6 +9,7 @@ import { ThreadModule } from 'src/thread/thread.module';
 import { WorkspaceModule } from 'src/workspace/workspace.module';
 import { FunnelModule } from 'src/funnel/funnel.module';
 import { StageModule } from 'src/stage/stage.module';
+import { TemplateCategoryModule } from 'src/template-category/template-category.module';
 
 @Module({
   controllers: [TemplateController],
@@ -20,6 +21,7 @@ import { StageModule } from 'src/stage/stage.module';
     WorkspaceModule,
     FunnelModule,
     StageModule,
+    TemplateCategoryModule,
   ],
   exports: [TemplateService, TemplateRepository],
 })

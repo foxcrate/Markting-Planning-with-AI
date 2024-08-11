@@ -292,6 +292,7 @@ export class OpenAiService implements OnModuleInit {
     functionParameters: ParameterObjectDto[],
   ): Promise<OpenAI.Beta.Assistants.Assistant> {
     let templateAssistantObject: AssistantCreateParams;
+
     if (functionParameters) {
       let functionsParametersObject =
         this.createFunctionParametersObject(functionParameters);
@@ -378,6 +379,12 @@ export class OpenAiService implements OnModuleInit {
       assistantId,
       templateAssistantObject,
     );
+
+    return assistant;
+  }
+
+  async deleteTemplateAssistance(assistantId: string) {
+    const assistant = await this.instance.beta.assistants.del(assistantId);
 
     return assistant;
   }

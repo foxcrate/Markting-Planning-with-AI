@@ -17,6 +17,8 @@ import { FunnelService } from 'src/funnel/funnel.service';
 import { StageService } from 'src/stage/stage.service';
 import { TemplateReturnDto } from './dtos/template-return.dto';
 import { NotEndedThreadAiResponseDto } from './dtos/not-ended-thread-ai-response.dto';
+import { TemplateCreateDto } from './dtos/template-create.dto';
+import { TemplateCategoryService } from 'src/template-category/template-category.service';
 
 @Injectable()
 export class TemplateService {
@@ -29,6 +31,7 @@ export class TemplateService {
     private readonly workspaceRepository: WorkspaceRepository,
     private readonly funnelService: FunnelService,
     private readonly stageService: StageService,
+    private readonly templateCategoryService: TemplateCategoryService,
   ) {}
 
   async setOnboardingTemplate(template: OnboardingTemplateDto): Promise<any> {
@@ -57,7 +60,10 @@ export class TemplateService {
         name: TemplateTypeEnum.ONBOARDING,
         type: TemplateTypeEnum.ONBOARDING,
         description: description,
+        profilePicture: null,
+        categoryId: null,
         parameters: template.parameters,
+        requiredData: null,
         openaiAssistantId: existingTemplate.openaiAssistantId,
       });
     }
@@ -72,7 +78,10 @@ export class TemplateService {
       name: TemplateTypeEnum.ONBOARDING,
       type: TemplateTypeEnum.ONBOARDING,
       description: description,
+      profilePicture: null,
+      categoryId: null,
       parameters: template.parameters,
+      requiredData: null,
       openaiAssistantId: assistance.id,
     });
   }
@@ -95,7 +104,10 @@ export class TemplateService {
         name: TemplateTypeEnum.FUNNEL,
         type: TemplateTypeEnum.FUNNEL,
         description: template.description,
+        profilePicture: null,
+        categoryId: null,
         parameters: null,
+        requiredData: null,
         openaiAssistantId: existingTemplate.openaiAssistantId,
       });
     }
@@ -110,7 +122,10 @@ export class TemplateService {
       name: TemplateTypeEnum.FUNNEL,
       type: TemplateTypeEnum.FUNNEL,
       description: template.description,
+      profilePicture: null,
+      categoryId: null,
       parameters: null,
+      requiredData: null,
       openaiAssistantId: assistance.id,
     });
   }
@@ -135,7 +150,10 @@ export class TemplateService {
         name: TemplateTypeEnum.TACTIC,
         type: TemplateTypeEnum.TACTIC,
         description: template.description,
+        profilePicture: null,
+        categoryId: null,
         parameters: null,
+        requiredData: null,
         openaiAssistantId: existingTemplate.openaiAssistantId,
       });
     }
@@ -150,8 +168,79 @@ export class TemplateService {
       name: TemplateTypeEnum.TACTIC,
       type: TemplateTypeEnum.TACTIC,
       description: template.description,
+      profilePicture: null,
+      categoryId: null,
       parameters: null,
+      requiredData: null,
       openaiAssistantId: assistance.id,
+    });
+  }
+
+  async create(templateBody: TemplateCreateDto) {
+    // check repeated template name
+    let sameNameTemplate = await this.templateRepository.findByName(
+      templateBody.name,
+    );
+    if (sameNameTemplate) {
+      throw new UnprocessableEntityException('Template name already exists');
+    }
+
+    // validate category id
+    await this.templateCategoryService.getOne(templateBody.categoryId);
+
+    let assistance = await this.openAiService.createTemplateAssistance(
+      templateBody.name,
+      templateBody.description,
+      null,
+    );
+
+    return await this.templateRepository.create({
+      name: templateBody.name,
+      type: TemplateTypeEnum.CUSTOM,
+      description: templateBody.description,
+      profilePicture: templateBody.profilePicture,
+      parameters: null,
+      requiredData: templateBody.requiredData,
+      categoryId: templateBody.categoryId,
+      openaiAssistantId: assistance.id,
+    });
+  }
+
+  async update(templateBody: TemplateCreateDto, templateId: number) {
+    // check repeated template name
+    if (templateBody.name) {
+      let sameNameTemplate = await this.templateRepository.findByName(
+        templateBody.name,
+      );
+      if (sameNameTemplate && sameNameTemplate.id === templateId) {
+        throw new UnprocessableEntityException('Template name already exists');
+      }
+    }
+
+    let theTemplate = await this.templateRepository.findById(templateId);
+
+    // validate category id
+    if (templateBody.categoryId) {
+      await this.templateCategoryService.getOne(templateBody.categoryId);
+    }
+
+    // update openai assistance
+    await this.openAiService.updateTemplateAssistance(
+      theTemplate.openaiAssistantId,
+      templateBody.name,
+      templateBody.description,
+      null,
+    );
+
+    return await this.templateRepository.update(templateId, {
+      name: templateBody.name,
+      type: TemplateTypeEnum.CUSTOM,
+      description: templateBody.description,
+      profilePicture: templateBody.profilePicture,
+      parameters: null,
+      requiredData: templateBody.requiredData,
+      categoryId: templateBody.categoryId,
+      openaiAssistantId: theTemplate.openaiAssistantId,
     });
   }
 
@@ -161,6 +250,25 @@ export class TemplateService {
       throw new UnprocessableEntityException('Template not found');
     }
     return template;
+  }
+
+  async delete(templateId: number): Promise<TemplateReturnDto> {
+    let template = await this.templateRepository.findById(templateId);
+    if (!template) {
+      throw new UnprocessableEntityException('Template not found');
+    }
+
+    // delete openai assistance
+    let assistance = await this.openAiService.deleteTemplateAssistance(
+      template.openaiAssistantId,
+    );
+
+    await this.templateRepository.delete(templateId);
+    return template;
+  }
+
+  async getAll(): Promise<TemplateReturnDto[]> {
+    return await this.templateRepository.getAll();
   }
 
   async getOneByType(type: string): Promise<TemplateReturnDto> {
@@ -307,6 +415,8 @@ export class TemplateService {
           funnelId,
           stageId,
         );
+      case TemplateTypeEnum.CUSTOM:
+        return await this.getCustomTemplateRunInstruction(workspaceId);
       default:
         return '';
     }
@@ -389,6 +499,8 @@ export class TemplateService {
       stage_data: stage_data,
     };
   }
+
+  private async getCustomTemplateRunInstruction(workspaceId: number) {}
 
   private serializeWorkspaceData(workspace) {
     let workspaceData = {

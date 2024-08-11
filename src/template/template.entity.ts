@@ -30,11 +30,17 @@ export class TemplateEntity {
   @Column()
   name: string;
 
+  @Column({ default: null })
+  profilePicture: string;
+
   @Column('longtext')
   description: string;
 
   @Column({ type: 'json', nullable: true, default: null })
   parameters: object;
+
+  @Column({ type: 'json', nullable: true, default: null })
+  requiredData: object;
 
   @OneToMany(() => ThreadEntity, (thread) => thread.template)
   @JoinColumn()
@@ -48,7 +54,7 @@ export class TemplateEntity {
       onDelete: 'CASCADE',
     },
   )
-  templateCategory: TemplateCategoryEntity;
+  category: TemplateCategoryEntity;
 
   @CreateDateColumn()
   createdAt: Date;

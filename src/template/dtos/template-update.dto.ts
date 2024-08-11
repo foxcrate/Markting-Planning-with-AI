@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsArray,
-  IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
@@ -10,9 +9,9 @@ import {
 import { Type } from 'class-transformer';
 import { RequiredDataDto } from './required-data.dto';
 
-export class TemplateCreateDto {
+export class TemplateUpdateDto {
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   name: string;
 
@@ -22,12 +21,12 @@ export class TemplateCreateDto {
   profilePicture: string;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   description: string;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   categoryId: number;
 
