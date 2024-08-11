@@ -29,98 +29,98 @@ import { DocumentIdDto } from './dtos/document-id.dto';
 
 @Controller({ path: 'document', version: '1' })
 export class DocumentController {
-  //   constructor(private readonly documentService: DocumentService) {}
-  //   @ApiBody({ type: DocumentCreateDto })
-  //   @ApiCreatedResponse({
-  //     type: DocumentReturnDto,
-  //   })
-  //   @ApiUnprocessableEntityResponse({
-  //     type: ErrorResponseDto,
-  //   })
-  //   @ApiBearerAuth()
-  //   @ApiTags('Document: Create')
-  //   @Post()
-  //   @Roles(UserRoleEnum.CUSTOMER)
-  //   @UseGuards(AuthGuard, RoleGuard)
-  //   async create(
-  //     @Body() documentCreateBody: DocumentCreateDto,
-  //     @UserId() userId: number,
-  //   ) {
-  //     return await this.documentService.create(documentCreateBody, userId);
-  //   }
-  //   @ApiParam({
-  //     name: 'documentId',
-  //   })
-  //   @ApiBody({ type: DocumentCreateDto })
-  //   @ApiCreatedResponse({
-  //     type: DocumentReturnDto,
-  //   })
-  //   @ApiUnprocessableEntityResponse({
-  //     type: ErrorResponseDto,
-  //   })
-  //   @ApiBearerAuth()
-  //   @ApiTags('Document: Update')
-  //   @Put('/:documentId')
-  //   @Roles(UserRoleEnum.CUSTOMER)
-  //   @UseGuards(AuthGuard, RoleGuard)
-  //   async update(
-  //     @Body() documentCreateBody: DocumentCreateDto,
-  //     @Param() params: DocumentIdDto,
-  //     @UserId() userId: number,
-  //   ) {
-  //     return await this.documentService.update(
-  //       documentCreateBody,
-  //       params.documentId,
-  //       userId,
-  //     );
-  //   }
-  //   @ApiCreatedResponse({
-  //     type: DocumentReturnDto,
-  //     isArray: true,
-  //   })
-  //   @ApiUnprocessableEntityResponse({
-  //     type: ErrorResponseDto,
-  //   })
-  //   @ApiBearerAuth()
-  //   @ApiTags('Document: GetAll')
-  //   @Get()
-  //   @Roles(UserRoleEnum.CUSTOMER)
-  //   @UseGuards(AuthGuard, RoleGuard)
-  //   async getAll(@UserId() userId: number) {
-  //     return await this.documentService.getAll(userId);
-  //   }
-  //   @ApiParam({
-  //     name: 'documentId',
-  //   })
-  //   @ApiCreatedResponse({
-  //     type: DocumentReturnDto,
-  //   })
-  //   @ApiUnprocessableEntityResponse({
-  //     type: ErrorResponseDto,
-  //   })
-  //   @ApiBearerAuth()
-  //   @ApiTags('Document: GetOne')
-  //   @Get('/:documentId')
-  //   @Roles(UserRoleEnum.CUSTOMER)
-  //   @UseGuards(AuthGuard, RoleGuard)
-  //   async getOne(@Param() params: DocumentIdDto, @UserId() userId: number) {
-  //     return await this.documentService.getOne(params.documentId);
-  //   }
-  //   @ApiParam({
-  //     name: 'documentId',
-  //   })
-  //   @ApiCreatedResponse({
-  //     type: DocumentReturnDto,
-  //   })
-  //   @ApiUnprocessableEntityResponse({
-  //     type: ErrorResponseDto,
-  //   })
-  //   @ApiBearerAuth()
-  //   @ApiTags('Document: Delete')
-  //   @Delete('/:documentId')
-  //   @Roles(UserRoleEnum.CUSTOMER)
-  //   @UseGuards(AuthGuard, RoleGuard)
-  //   async delete(@Param() params: DocumentIdDto, @UserId() userId: number) {
-  //     return await this.documentService.delete(params.documentId, userId);
-  //   }
+  constructor(private readonly documentService: DocumentService) {}
+  @ApiBody({ type: DocumentCreateDto })
+  @ApiCreatedResponse({
+    type: DocumentReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Document: Create')
+  @Post()
+  @Roles(UserRoleEnum.CUSTOMER)
+  @UseGuards(AuthGuard, RoleGuard)
+  async create(
+    @Body() documentCreateBody: DocumentCreateDto,
+    @UserId() userId: number,
+  ) {
+    return await this.documentService.create(documentCreateBody, userId);
+  }
+  @ApiParam({
+    name: 'documentId',
+  })
+  @ApiBody({ type: DocumentCreateDto })
+  @ApiCreatedResponse({
+    type: DocumentReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Document: Update')
+  @Put('/:documentId')
+  @Roles(UserRoleEnum.CUSTOMER)
+  @UseGuards(AuthGuard, RoleGuard)
+  async update(
+    @Body() documentCreateBody: DocumentCreateDto,
+    @Param() params: DocumentIdDto,
+    @UserId() userId: number,
+  ) {
+    return await this.documentService.update(
+      documentCreateBody,
+      params.documentId,
+      userId,
+    );
+  }
+  @ApiCreatedResponse({
+    type: DocumentReturnDto,
+    isArray: true,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Document: GetAll')
+  @Get()
+  @Roles(UserRoleEnum.CUSTOMER)
+  @UseGuards(AuthGuard, RoleGuard)
+  async getAll(@UserId() userId: number) {
+    return await this.documentService.getAll(userId);
+  }
+  @ApiParam({
+    name: 'documentId',
+  })
+  @ApiCreatedResponse({
+    type: DocumentReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Document: GetOne')
+  @Get('/:documentId')
+  @Roles(UserRoleEnum.CUSTOMER)
+  @UseGuards(AuthGuard, RoleGuard)
+  async getOne(@Param() params: DocumentIdDto, @UserId() userId: number) {
+    return await this.documentService.getOne(params.documentId);
+  }
+  @ApiParam({
+    name: 'documentId',
+  })
+  @ApiCreatedResponse({
+    type: DocumentReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Document: Delete')
+  @Delete('/:documentId')
+  @Roles(UserRoleEnum.CUSTOMER)
+  @UseGuards(AuthGuard, RoleGuard)
+  async delete(@Param() params: DocumentIdDto, @UserId() userId: number) {
+    return await this.documentService.delete(params.documentId, userId);
+  }
 }
