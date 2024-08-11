@@ -17,7 +17,7 @@ export class WorkspaceService {
   async update(id: number, workspaceData: any, userId: number): Promise<any> {
     // validate worspace parameters
     let onboardingParameters =
-      await this.workspaceRepository.getOnboardingParameters();
+      await this.workspaceRepository.getOnboardingParametersNames();
 
     let workspaceDataKeys = Object.keys(workspaceData);
     onboardingParameters.forEach((key) => {
@@ -25,42 +25,53 @@ export class WorkspaceService {
         throw new UnprocessableEntityException('Invalid workspace data');
       }
     });
+    let updatedWorkspace: any = {};
 
     if (id == 0) {
-      return await this.workspaceRepository.updateFirstWorkspace(
+      updatedWorkspace = await this.workspaceRepository.updateFirstWorkspace(
         workspaceData,
         userId,
       );
     } else {
       await this.isOwner(id, userId);
-      return await this.workspaceRepository.update(workspaceData, id);
+      updatedWorkspace = await this.workspaceRepository.update(
+        workspaceData,
+        id,
+      );
     }
+    return {
+      keys: onboardingParameters,
+      wholeObject: updatedWorkspace.parameters,
+    };
   }
 
-  async confirm(
-    id: number,
-    updateBody: any,
-    userId: number,
-  ): Promise<WorkspaceReturnDto> {
-    if (id == 0) {
-      // validate worspace parameters
-      let onboardingParameters =
-        await this.workspaceRepository.getOnboardingParameters();
+  async confirm(id: number, updateBody: any, userId: number): Promise<any> {
+    let updatedWorkspace: any = {};
 
-      let workspaceDataKeys = Object.keys(updateBody);
-      onboardingParameters.forEach((key) => {
-        if (!workspaceDataKeys.includes(key)) {
-          throw new UnprocessableEntityException('Invalid workspace data');
-        }
-      });
-      return await this.workspaceRepository.updateFirstWorkspace(
+    // validate worspace parameters
+    let onboardingParameters =
+      await this.workspaceRepository.getOnboardingParametersNames();
+
+    let workspaceDataKeys = Object.keys(updateBody);
+    onboardingParameters.forEach((key) => {
+      if (!workspaceDataKeys.includes(key)) {
+        throw new UnprocessableEntityException('Invalid workspace data');
+      }
+    });
+
+    if (id == 0) {
+      updatedWorkspace = await this.workspaceRepository.updateFirstWorkspace(
         updateBody,
         userId,
       );
     } else {
       await this.isOwner(id, userId);
-      return await this.workspaceRepository.update(updateBody, id);
+      updatedWorkspace = await this.workspaceRepository.update(updateBody, id);
     }
+    return {
+      keys: onboardingParameters,
+      wholeObject: updatedWorkspace.parameters,
+    };
   }
 
   async userHasConfirmedWorkspace(userId): Promise<boolean> {
@@ -73,15 +84,22 @@ export class WorkspaceService {
     }
   }
 
-  async getOne(id: number, userId: number): Promise<WorkspaceReturnDto> {
+  async getOne(id: number, userId: number): Promise<any> {
+    let workspace: any = {};
+    let onboardingParameters =
+      await this.workspaceRepository.getOnboardingParametersNames();
     if (id === 0) {
       let userConfirmedWorkspaces =
         await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
-      return userConfirmedWorkspaces[0];
+      workspace = userConfirmedWorkspaces[0];
     } else {
       await this.isOwner(id, userId);
-      return await this.workspaceRepository.findById(id);
+      workspace = await this.workspaceRepository.findById(id);
     }
+    return {
+      keys: onboardingParameters,
+      wholeObject: workspace.parameters,
+    };
   }
 
   async userUnConfirmedWorkspace(userId): Promise<WorkspaceReturnDto[]> {
