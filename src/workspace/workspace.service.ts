@@ -74,8 +74,14 @@ export class WorkspaceService {
   }
 
   async getOne(id: number, userId: number): Promise<WorkspaceReturnDto> {
-    await this.isOwner(id, userId);
-    return await this.workspaceRepository.findById(id);
+    if (id === 0) {
+      let userConfirmedWorkspaces =
+        await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
+      return userConfirmedWorkspaces[0];
+    } else {
+      await this.isOwner(id, userId);
+      return await this.workspaceRepository.findById(id);
+    }
   }
 
   async userUnConfirmedWorkspace(userId): Promise<WorkspaceReturnDto[]> {

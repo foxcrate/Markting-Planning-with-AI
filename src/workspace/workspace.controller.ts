@@ -1,4 +1,12 @@
-import { Body, Controller, Param, Put, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from 'src/gurads/auth.guard';
 import { WorkspaceService } from './workspace.service';
 import { UserId } from 'src/decorators/user-id.decorator';
@@ -41,6 +49,25 @@ export class WorkspaceController {
       workspaceUpdateDto,
       userId,
     );
+  }
+
+  @ApiParam({ name: 'id' })
+  @ApiCreatedResponse({
+    type: WorkspaceReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Workspace: GetOne')
+  @Get('/:id')
+  @UseGuards(AuthGuard)
+  async getOne(@Param() paramsIdDto: ParamsIdDto, @UserId() userId: number) {
+    let workspaceId = Number(paramsIdDto.id);
+    if (Number.isNaN(workspaceId)) {
+      throw new BadRequestException('Invalid workspace id');
+    }
+    return await this.workspaceService.getOne(workspaceId, userId);
   }
 
   @ApiParam({ name: 'id' })
