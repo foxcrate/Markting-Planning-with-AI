@@ -28,10 +28,10 @@ export class TemplateReturnDto {
   @ApiProperty()
   categoryId: number;
 
-  @ApiProperty()
+  @ApiProperty({ type: ParameterObjectDto, isArray: true })
   parameters: ParameterObjectDto[];
 
-  @ApiProperty()
+  @ApiProperty({ type: RequiredDataDto, isArray: true })
   requiredData: RequiredDataDto[];
 
   @ApiProperty()

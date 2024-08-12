@@ -1,11 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { DocumentRequiredDataDto } from './document-required-data.dto';
 
 export class DocumentDto {
   @ApiProperty()
   name: string;
 
   @ApiProperty()
-  requiredData: string;
+  requiredData: DocumentRequiredDataDto[];
 
   @ApiProperty()
   aiResponse: string;

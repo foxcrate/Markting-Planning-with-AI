@@ -1,5 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateNested,
+} from 'class-validator';
+import { DocumentRequiredDataDto } from './document-required-data.dto';
+import { Type } from 'class-transformer';
 
 export class DocumentUpdateDto {
   @ApiProperty()
@@ -7,10 +16,13 @@ export class DocumentUpdateDto {
   @IsString()
   name: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: DocumentRequiredDataDto, isArray: true })
+  @IsArray()
   @IsOptional()
-  @IsString()
-  requiredData: string;
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => DocumentRequiredDataDto)
+  requiredData: DocumentRequiredDataDto[];
 
   @ApiProperty()
   @IsOptional()

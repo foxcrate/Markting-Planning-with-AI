@@ -15,7 +15,7 @@ export class DocumentRepository {
       documents.requiredData,
       documents.aiResponse,
       documents.templateId,
-      documents.userId,
+      documents.userId
       FROM
       documents
       WHERE
@@ -23,10 +23,22 @@ export class DocumentRepository {
     `;
     let documents = await this.db.query(query, [userId]);
 
+    // loop over documents
+    for (const document of documents) {
+      try {
+        document.requiredData = eval(`(${document.requiredData})`);
+        // console.log(arrayOfObjects);
+      } catch (error) {
+        console.error('Parsing error:', error);
+      }
+    }
+
     return documents;
   }
 
   async create(reqBody: DocumentDto) {
+    console.log(reqBody);
+
     const query = `
     INSERT
     INTO
@@ -65,6 +77,13 @@ export class DocumentRepository {
         id = ?
     `;
     let [theDocument] = await this.db.query(query, [id]);
+
+    try {
+      theDocument.requiredData = eval(`(${theDocument.requiredData})`);
+      // console.log(arrayOfObjects);
+    } catch (error) {
+      console.error('Parsing error:', error);
+    }
     return theDocument;
   }
 

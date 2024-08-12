@@ -8,14 +8,21 @@ import { DocumentReturnDto } from './dtos/document-return.dto';
 import { DocumentRepository } from './document.repository';
 import { DocumentDto } from './dtos/document.dto';
 import { DocumentUpdateDto } from './dtos/document-update.dto';
+import { TemplateService } from 'src/template/template.service';
 
 @Injectable()
 export class DocumentService {
-  constructor(private readonly documentRepository: DocumentRepository) {}
+  constructor(
+    private readonly documentRepository: DocumentRepository,
+    private readonly templateService: TemplateService,
+  ) {}
   async create(
     reqBody: DocumentCreateDto,
     userId: number,
   ): Promise<DocumentReturnDto> {
+    //vallidate templates existance
+    await this.templateService.getOne(reqBody.templateId);
+
     //call ai
 
     let createDocumentBody: DocumentDto = {
@@ -35,6 +42,9 @@ export class DocumentService {
   ) {
     //validate ownership
     await this.isOwner(documentId, userId);
+
+    //vallidate templates existance
+    await this.templateService.getOne(updateBody.templateId);
 
     //call ai
 

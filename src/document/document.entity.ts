@@ -20,7 +20,7 @@ export class DocumentEntity {
   @Column({ type: 'json', nullable: true, default: null })
   requiredData: object;
 
-  @Column({ type: 'longtext' })
+  @Column({ type: 'longtext', nullable: true, default: null })
   aiResponse: string;
 
   @ManyToOne(() => TemplateEntity, (template) => template.documents, {

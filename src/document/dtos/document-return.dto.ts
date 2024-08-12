@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { DocumentRequiredDataDto } from './document-required-data.dto';
 
 export class DocumentReturnDto {
   @ApiProperty()
@@ -7,8 +8,8 @@ export class DocumentReturnDto {
   @ApiProperty()
   name: string;
 
-  @ApiProperty()
-  requiredData: string;
+  @ApiProperty({ type: DocumentRequiredDataDto, isArray: true })
+  requiredData: DocumentRequiredDataDto[];
 
   @ApiProperty()
   aiResponse: string;
