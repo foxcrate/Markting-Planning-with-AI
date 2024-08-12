@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class DocumentUpdateDto {
   @ApiProperty()
@@ -11,4 +11,9 @@ export class DocumentUpdateDto {
   @IsOptional()
   @IsString()
   requiredData: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  templateId: number;
 }

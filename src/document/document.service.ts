@@ -7,6 +7,7 @@ import { DocumentCreateDto } from './dtos/document-create.dto';
 import { DocumentReturnDto } from './dtos/document-return.dto';
 import { DocumentRepository } from './document.repository';
 import { DocumentDto } from './dtos/document.dto';
+import { DocumentUpdateDto } from './dtos/document-update.dto';
 
 @Injectable()
 export class DocumentService {
@@ -15,6 +16,8 @@ export class DocumentService {
     reqBody: DocumentCreateDto,
     userId: number,
   ): Promise<DocumentReturnDto> {
+    //call ai
+
     let createDocumentBody: DocumentDto = {
       ...reqBody,
       userId: userId,
@@ -26,19 +29,61 @@ export class DocumentService {
   }
 
   async update(
-    updateBody: DocumentCreateDto,
+    updateBody: DocumentUpdateDto,
     documentId: number,
     userId: number,
   ) {
     //validate ownership
     await this.isOwner(documentId, userId);
 
+    //call ai
+
     let updateDocumentBody: DocumentDto = {
       ...updateBody,
-      userId: userId,
+      userId: null,
       aiResponse: null,
     };
     await this.documentRepository.update(updateDocumentBody, documentId);
+    return await this.documentRepository.findById(documentId);
+  }
+
+  async regenerateAiResponse(documentId: number, userId: number) {
+    //validate ownership
+    await this.isOwner(documentId, userId);
+
+    //call ai
+
+    let updateDocumentBody: DocumentDto = {
+      requiredData: null,
+      aiResponse: null,
+      userId: null,
+      name: null,
+      templateId: null,
+    };
+    await this.documentRepository.update(updateDocumentBody, documentId);
+
+    return await this.documentRepository.findById(documentId);
+  }
+
+  async confirmAiResponse(
+    documentId: number,
+    aiResponse: string,
+    userId: number,
+  ) {
+    //validate ownership
+    await this.isOwner(documentId, userId);
+
+    //update document
+
+    let updateDocumentBody: DocumentDto = {
+      requiredData: null,
+      aiResponse: aiResponse,
+      userId: null,
+      name: null,
+      templateId: null,
+    };
+    await this.documentRepository.update(updateDocumentBody, documentId);
+
     return await this.documentRepository.findById(documentId);
   }
 

@@ -27,6 +27,7 @@ import { DocumentReturnDto } from './dtos/document-return.dto';
 import { UserRoleEnum } from 'src/enums/user-roles.enum';
 import { DocumentIdDto } from './dtos/document-id.dto';
 import { DocumentUpdateDto } from './dtos/document-update.dto';
+import { AiResponseDto } from './dtos/ai-response.dto';
 
 @Controller({ path: 'document', version: '1' })
 export class DocumentController {
@@ -66,13 +67,64 @@ export class DocumentController {
   @Roles(UserRoleEnum.CUSTOMER)
   @UseGuards(AuthGuard, RoleGuard)
   async update(
-    @Body() documentCreateBody: DocumentCreateDto,
+    @Body() documentUpdateBody: DocumentUpdateDto,
     @Param() params: DocumentIdDto,
     @UserId() userId: number,
   ) {
     return await this.documentService.update(
-      documentCreateBody,
+      documentUpdateBody,
       params.documentId,
+      userId,
+    );
+  }
+
+  @ApiParam({
+    name: 'documentId',
+  })
+  @ApiCreatedResponse({
+    type: DocumentReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Document: Regenerate Ai Response')
+  @Put('regenerate/:documentId')
+  @Roles(UserRoleEnum.CUSTOMER)
+  @UseGuards(AuthGuard, RoleGuard)
+  async regenerateAiResponse(
+    @Param() params: DocumentIdDto,
+    @UserId() userId: number,
+  ) {
+    return await this.documentService.regenerateAiResponse(
+      params.documentId,
+      userId,
+    );
+  }
+
+  @ApiParam({
+    name: 'documentId',
+  })
+  @ApiBody({ type: AiResponseDto })
+  @ApiCreatedResponse({
+    type: DocumentReturnDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Document: Confirm Ai Response')
+  @Put('confirm-ai/:documentId')
+  @Roles(UserRoleEnum.CUSTOMER)
+  @UseGuards(AuthGuard, RoleGuard)
+  async confirmAiResponse(
+    @Param() params: DocumentIdDto,
+    @Body() body: AiResponseDto,
+    @UserId() userId: number,
+  ) {
+    return await this.documentService.confirmAiResponse(
+      params.documentId,
+      body.aiResponse,
       userId,
     );
   }
