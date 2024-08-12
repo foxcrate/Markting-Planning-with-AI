@@ -238,7 +238,7 @@ export class WorkspaceRepository {
     return template;
   }
 
-  async getOnboardingParameters() {
+  async getOnboardingParametersNames() {
     let onboardingTemplate = await this.getOnboardingTemplate();
     let onboardingParameters = onboardingTemplate.parameters;
     // console.log(onboardingParameters);
