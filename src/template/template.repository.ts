@@ -12,14 +12,16 @@ export class TemplateRepository {
   async create(template: TemplateDto): Promise<TemplateReturnDto> {
     const query = `
     INSERT INTO templates
-    (name,type,description,profilePicture,categoryId,parameters,requiredData,openaiAssistantId)
-    values (?,?,?,?,?,?,?,?)
+    (name,type,description,maxCharacters,generatedDocumentsNum,profilePicture,categoryId,parameters,requiredData,openaiAssistantId)
+    values (?,?,?,?,?,?,?,?,?,?)
    `;
 
     let { insertId } = await this.db.query(query, [
       template.name,
       template.type,
       template.description,
+      template.maxCharacters,
+      template.generatedDocumentsNum,
       template.profilePicture,
       template.categoryId,
       template.parameters ? JSON.stringify(template.parameters) : null,
@@ -37,6 +39,8 @@ export class TemplateRepository {
     name = COALESCE(?,name),
     type = COALESCE(?,type),
     description = COALESCE(?,description),
+    maxCharacters = COALESCE(?,maxCharacters),
+    generatedDocumentsNum = COALESCE(?,generatedDocumentsNum),
     profilePicture = COALESCE(?,profilePicture),
     categoryId = COALESCE(?,categoryId),
     requiredData = COALESCE(?,requiredData),
@@ -48,6 +52,8 @@ export class TemplateRepository {
       template.name,
       template.type,
       template.description,
+      template.maxCharacters,
+      template.generatedDocumentsNum,
       template.profilePicture,
       template.categoryId,
       template.requiredData ? JSON.stringify(template.requiredData) : null,
@@ -65,6 +71,8 @@ export class TemplateRepository {
       templates.name,
       templates.type,
       templates.description,
+      templates.maxCharacters,
+      templates.generatedDocumentsNum,
       templates.profilePicture,
       templates.categoryId,
       templates.parameters,
@@ -111,6 +119,8 @@ export class TemplateRepository {
       templates.name,
       templates.type,
       templates.description,
+      templates.maxCharacters,
+      templates.generatedDocumentsNum,
       templates.profilePicture,
       templates.categoryId,
       templates.parameters,
@@ -143,6 +153,8 @@ export class TemplateRepository {
       templates.name,
       templates.type,
       templates.description,
+      templates.maxCharacters,
+      templates.generatedDocumentsNum,
       templates.profilePicture,
       templates.categoryId,
       templates.parameters,
@@ -180,6 +192,8 @@ export class TemplateRepository {
       templates.name,
       templates.type,
       templates.description,
+      templates.maxCharacters,
+      templates.generatedDocumentsNum,
       templates.profilePicture,
       templates.categoryId,
       templates.parameters,

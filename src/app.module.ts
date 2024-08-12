@@ -22,6 +22,7 @@ import { MariadbModule } from './db/mariadb.module';
 import { StageModule } from './stage/stage.module';
 import { KpiModule } from './kpi/kpi.module';
 import { TemplateCategoryModule } from './template-category/template-category.module';
+import { DocumentModule } from './document/document.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -54,6 +55,7 @@ import { TemplateCategoryModule } from './template-category/template-category.mo
     StageModule,
     KpiModule,
     TemplateCategoryModule,
+    DocumentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

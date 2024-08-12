@@ -9,6 +9,10 @@ export class TemplateDto {
 
   description: string;
 
+  maxCharacters: number;
+
+  generatedDocumentsNum: number;
+
   profilePicture: string;
 
   categoryId: number;

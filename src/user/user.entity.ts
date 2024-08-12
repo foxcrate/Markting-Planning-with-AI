@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 import { TacticEntity } from '../tactic/tactic.entity';
 import { UserRoleEnum } from 'src/enums/user-roles.enum';
+import { DocumentEntity } from 'src/document/document.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {
@@ -67,6 +68,10 @@ export class UserEntity {
   @OneToMany(() => TacticEntity, (tactic) => tactic.user)
   @JoinColumn()
   tactics: TacticEntity[];
+
+  @OneToMany(() => DocumentEntity, (document) => document.user)
+  @JoinColumn()
+  documents: DocumentEntity[];
 
   @Column({ nullable: true })
   googleId: string;

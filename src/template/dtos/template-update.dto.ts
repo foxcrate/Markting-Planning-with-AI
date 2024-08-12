@@ -28,6 +28,16 @@ export class TemplateUpdateDto {
   @ApiProperty()
   @IsOptional()
   @IsNumber()
+  maxCharacters: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  generatedDocumentsNum: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
   categoryId: number;
 
   @ApiProperty({ type: RequiredDataDto, isArray: true })
