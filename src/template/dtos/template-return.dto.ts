@@ -20,6 +20,9 @@ export class TemplateReturnDto {
   description: string;
 
   @ApiProperty()
+  example: string;
+
+  @ApiProperty()
   maxCharacters: number;
 
   @ApiProperty()

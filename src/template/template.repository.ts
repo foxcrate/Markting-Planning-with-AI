@@ -12,14 +12,15 @@ export class TemplateRepository {
   async create(template: TemplateDto): Promise<TemplateReturnDto> {
     const query = `
     INSERT INTO templates
-    (name,type,description,maxCharacters,generatedDocumentsNum,profilePicture,categoryId,parameters,requiredData,openaiAssistantId)
-    values (?,?,?,?,?,?,?,?,?,?)
+    (name,type,description,example,maxCharacters,generatedDocumentsNum,profilePicture,categoryId,parameters,requiredData,openaiAssistantId)
+    values (?,?,?,?,?,?,?,?,?,?,?)
    `;
 
     let { insertId } = await this.db.query(query, [
       template.name,
       template.type,
       template.description,
+      template.example,
       template.maxCharacters,
       template.generatedDocumentsNum,
       template.profilePicture,
@@ -39,6 +40,7 @@ export class TemplateRepository {
     name = COALESCE(?,name),
     type = COALESCE(?,type),
     description = COALESCE(?,description),
+    example = COALESCE(?,example),
     maxCharacters = COALESCE(?,maxCharacters),
     generatedDocumentsNum = COALESCE(?,generatedDocumentsNum),
     profilePicture = COALESCE(?,profilePicture),
@@ -52,6 +54,7 @@ export class TemplateRepository {
       template.name,
       template.type,
       template.description,
+      template.example,
       template.maxCharacters,
       template.generatedDocumentsNum,
       template.profilePicture,
@@ -71,6 +74,7 @@ export class TemplateRepository {
       templates.name,
       templates.type,
       templates.description,
+      templates.example,
       templates.maxCharacters,
       templates.generatedDocumentsNum,
       templates.profilePicture,
@@ -119,6 +123,7 @@ export class TemplateRepository {
       templates.name,
       templates.type,
       templates.description,
+      templates.example,
       templates.maxCharacters,
       templates.generatedDocumentsNum,
       templates.profilePicture,
@@ -127,6 +132,8 @@ export class TemplateRepository {
       templates.requiredData,
       templates.openaiAssistantId
     FROM templates
+    WHERE
+      templates.type = 'custom'
    `;
 
     const templates = await this.db.query(query);
@@ -153,6 +160,7 @@ export class TemplateRepository {
       templates.name,
       templates.type,
       templates.description,
+      templates.example,
       templates.maxCharacters,
       templates.generatedDocumentsNum,
       templates.profilePicture,
@@ -192,6 +200,7 @@ export class TemplateRepository {
       templates.name,
       templates.type,
       templates.description,
+      templates.example,
       templates.maxCharacters,
       templates.generatedDocumentsNum,
       templates.profilePicture,

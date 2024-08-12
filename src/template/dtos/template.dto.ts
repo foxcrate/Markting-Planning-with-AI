@@ -9,6 +9,8 @@ export class TemplateDto {
 
   description: string;
 
+  example: string;
+
   maxCharacters: number;
 
   generatedDocumentsNum: number;

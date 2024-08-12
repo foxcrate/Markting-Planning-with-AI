@@ -43,6 +43,9 @@ export class TemplateEntity {
   @Column('longtext')
   description: string;
 
+  @Column('longtext', { nullable: true, default: null })
+  example: string;
+
   @Column({ type: 'json', nullable: true, default: null })
   parameters: object;
 

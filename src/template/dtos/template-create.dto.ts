@@ -30,6 +30,11 @@ export class TemplateCreateDto {
 
   @ApiProperty()
   @IsNotEmpty()
+  @IsString()
+  example: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
   @Min(30, { message: 'Max Characters Number must be at least 30' })
   @Max(1000, { message: 'Max Characters Number must be no more than 1000' })
   @IsNumber()

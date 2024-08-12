@@ -27,6 +27,11 @@ export class TemplateUpdateDto {
 
   @ApiProperty()
   @IsOptional()
+  @IsString()
+  example: string;
+
+  @ApiProperty()
+  @IsOptional()
   @IsNumber()
   maxCharacters: number;
 
