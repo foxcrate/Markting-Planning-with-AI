@@ -5,6 +5,8 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
+  Min,
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -25,6 +27,20 @@ export class TemplateCreateDto {
   @IsNotEmpty()
   @IsString()
   description: string;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @Min(30, { message: 'Max Characters Number must be at least 30' })
+  @Max(1000, { message: 'Max Characters Number must be no more than 1000' })
+  @IsNumber()
+  maxCharacters: number;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @Min(1, { message: 'Document Number must be at least 1' })
+  @Max(6, { message: 'Document Number must be no more than 6' })
+  @IsNumber()
+  generatedDocumentsNum: number;
 
   @ApiProperty()
   @IsNotEmpty()

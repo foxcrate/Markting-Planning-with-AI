@@ -1,7 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { DocumentCreateDto } from './dtos/document-create.dto';
 import { DocumentReturnDto } from './dtos/document-return.dto';
 import { DocumentRepository } from './document.repository';
+import { DocumentDto } from './dtos/document.dto';
 
 @Injectable()
 export class DocumentService {
@@ -10,7 +15,12 @@ export class DocumentService {
     reqBody: DocumentCreateDto,
     userId: number,
   ): Promise<DocumentReturnDto> {
-    let newDocument = await this.documentRepository.create(reqBody);
+    let createDocumentBody: DocumentDto = {
+      ...reqBody,
+      userId: userId,
+      aiResponse: null,
+    };
+    let newDocument = await this.documentRepository.create(createDocumentBody);
 
     return await this.documentRepository.findById(newDocument.id);
   }
@@ -20,12 +30,23 @@ export class DocumentService {
     documentId: number,
     userId: number,
   ) {
-    await this.documentRepository.update(updateBody, documentId);
-    return await this.getOne(documentId);
+    //validate ownership
+    await this.isOwner(documentId, userId);
+
+    let updateDocumentBody: DocumentDto = {
+      ...updateBody,
+      userId: userId,
+      aiResponse: null,
+    };
+    await this.documentRepository.update(updateDocumentBody, documentId);
+    return await this.documentRepository.findById(documentId);
   }
 
   //get one templateCategory
-  async getOne(documentId: number): Promise<DocumentReturnDto> {
+  async getOne(documentId: number, userId: number): Promise<DocumentReturnDto> {
+    //validate ownership
+    await this.isOwner(documentId, userId);
+
     let document = await this.documentRepository.findById(documentId);
     if (!document) {
       throw new NotFoundException('Document not found');
@@ -34,13 +55,29 @@ export class DocumentService {
   }
 
   //get all templateCategories
-  async getAll(userId: number) {
+  async getAllByUserId(userId: number) {
     return await this.documentRepository.getAllByUserId(userId);
   }
 
   async delete(documentId: number, userId: number) {
-    let deletedDocument = await this.getOne(documentId);
+    //validate ownership
+    await this.isOwner(documentId, userId);
+
+    let deletedDocument = await this.documentRepository.findById(documentId);
     await this.documentRepository.deleteById(documentId);
     return deletedDocument;
+  }
+
+  async isOwner(documentId: number, userId: number) {
+    // return true;
+    const document = await this.documentRepository.findById(documentId);
+
+    if (!document) {
+      throw new NotFoundException('Document not found');
+    }
+
+    if (document.userId !== userId) {
+      throw new ForbiddenException('You are not the owner of this document');
+    }
   }
 }

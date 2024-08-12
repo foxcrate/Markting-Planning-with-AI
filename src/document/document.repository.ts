@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DB_PROVIDER } from 'src/db/constants';
 import { Pool } from 'mariadb';
-import { DocumentCreateDto } from './dtos/document-create.dto';
 import { DocumentReturnDto } from './dtos/document-return.dto';
+import { DocumentDto } from './dtos/document.dto';
 
 @Injectable()
 export class DocumentRepository {
@@ -10,21 +10,42 @@ export class DocumentRepository {
   async getAllByUserId(userId: number): Promise<DocumentReturnDto[]> {
     const query = `
       SELECT
-      template_category.id,
-      template_category.name
-      FROM template_category
+      documents.id,
+      documents.name,
+      documents.requiredData,
+      documents.aiResponse,
+      documents.templateId,
+      documents.userId,
+      FROM
+      documents
+      WHERE
+      userId = ?
     `;
-    let templateCategories = await this.db.query(query);
+    let documents = await this.db.query(query, [userId]);
 
-    return templateCategories;
+    return documents;
   }
 
-  async create(reqBody: DocumentCreateDto) {
+  async create(reqBody: DocumentDto) {
     const query = `
-    INSERT INTO template_category (name) VALUES (?)
+    INSERT
+    INTO
+    documents (
+    name,
+    requiredData,
+    aiResponse,
+    templateId,
+    userId
+    ) VALUES (?,?,?,?,?)
   `;
 
-    let { insertId } = await this.db.query(query, [reqBody.name]);
+    let { insertId } = await this.db.query(query, [
+      reqBody.name,
+      reqBody.requiredData,
+      reqBody.aiResponse,
+      reqBody.templateId,
+      reqBody.userId,
+    ]);
 
     return await this.findById(Number(insertId));
   }
@@ -32,33 +53,48 @@ export class DocumentRepository {
   async findById(id: number): Promise<DocumentReturnDto> {
     const query = `
     SELECT
-        id,
-        name
+      id,
+      name,
+      requiredData,
+      aiResponse,
+      templateId,
+      userId
     FROM
-        template_category
+        documents
     WHERE
         id = ?
     `;
-    let [theTemplateCategory] = await this.db.query(query, [id]);
-    return theTemplateCategory;
+    let [theDocument] = await this.db.query(query, [id]);
+    return theDocument;
   }
 
-  async update(reqBody: DocumentCreateDto, id: number) {
+  async update(reqBody: DocumentDto, id: number) {
     const query = `
       UPDATE
-      template_category
+      documents
       SET
-      name = IFNULL(?,template_category.name)
+      name = IFNULL(?,documents.name),
+      requiredData = IFNULL(?,documents.requiredData),
+      aiResponse = IFNULL(?,documents.aiResponse),
+      templateId = IFNULL(?,documents.templateId),
+      userId = IFNULL(?,documents.userId)
       WHERE id = ?
     `;
-    await this.db.query(query, [reqBody.name, id]);
+    await this.db.query(query, [
+      reqBody.name,
+      reqBody.requiredData,
+      reqBody.aiResponse,
+      reqBody.templateId,
+      reqBody.userId,
+      id,
+    ]);
   }
 
-  async deleteById(documentId: number): Promise<any> {
+  async deleteById(documentId: number) {
     const query = `
       DELETE
       FROM
-      template_category
+      documents
       WHERE id = ?
     `;
     await this.db.query(query, [documentId]);

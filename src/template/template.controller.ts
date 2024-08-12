@@ -65,7 +65,11 @@ export class TemplateController {
     return this.templateService.setOnboardingTemplate(template);
   }
 
-  @ApiBody({ type: TemplateCreateDto })
+  @ApiBody({
+    type: TemplateCreateDto,
+    description:
+      'maxCharacters must be between 30 and 1000 , generatedDocumentsNum must be between 1 and 6',
+  })
   @ApiCreatedResponse({
     type: TemplateReturnDto,
   })
@@ -84,7 +88,11 @@ export class TemplateController {
   @ApiParam({
     name: 'templateId',
   })
-  @ApiBody({ type: TemplateUpdateDto })
+  @ApiBody({
+    type: TemplateUpdateDto,
+    description:
+      'maxCharacters must be between 30 and 1000 , generatedDocumentsNum must be between 1 and 6',
+  })
   @ApiCreatedResponse({
     type: TemplateReturnDto,
   })

@@ -1,9 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class DocumentReturnDto {
-  @ApiProperty()
-  id: number;
-
+export class DocumentDto {
   @ApiProperty()
   name: string;
 

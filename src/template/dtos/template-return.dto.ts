@@ -20,6 +20,12 @@ export class TemplateReturnDto {
   description: string;
 
   @ApiProperty()
+  maxCharacters: number;
+
+  @ApiProperty()
+  generatedDocumentsNum: number;
+
+  @ApiProperty()
   categoryId: number;
 
   @ApiProperty()

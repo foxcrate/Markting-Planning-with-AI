@@ -26,6 +26,7 @@ import { DocumentCreateDto } from './dtos/document-create.dto';
 import { DocumentReturnDto } from './dtos/document-return.dto';
 import { UserRoleEnum } from 'src/enums/user-roles.enum';
 import { DocumentIdDto } from './dtos/document-id.dto';
+import { DocumentUpdateDto } from './dtos/document-update.dto';
 
 @Controller({ path: 'document', version: '1' })
 export class DocumentController {
@@ -48,10 +49,11 @@ export class DocumentController {
   ) {
     return await this.documentService.create(documentCreateBody, userId);
   }
+
   @ApiParam({
     name: 'documentId',
   })
-  @ApiBody({ type: DocumentCreateDto })
+  @ApiBody({ type: DocumentUpdateDto })
   @ApiCreatedResponse({
     type: DocumentReturnDto,
   })
@@ -74,6 +76,7 @@ export class DocumentController {
       userId,
     );
   }
+
   @ApiCreatedResponse({
     type: DocumentReturnDto,
     isArray: true,
@@ -87,8 +90,9 @@ export class DocumentController {
   @Roles(UserRoleEnum.CUSTOMER)
   @UseGuards(AuthGuard, RoleGuard)
   async getAll(@UserId() userId: number) {
-    return await this.documentService.getAll(userId);
+    return await this.documentService.getAllByUserId(userId);
   }
+
   @ApiParam({
     name: 'documentId',
   })
@@ -104,8 +108,9 @@ export class DocumentController {
   @Roles(UserRoleEnum.CUSTOMER)
   @UseGuards(AuthGuard, RoleGuard)
   async getOne(@Param() params: DocumentIdDto, @UserId() userId: number) {
-    return await this.documentService.getOne(params.documentId);
+    return await this.documentService.getOne(params.documentId, userId);
   }
+
   @ApiParam({
     name: 'documentId',
   })

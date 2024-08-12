@@ -11,6 +11,7 @@ import {
   ManyToOne,
 } from 'typeorm';
 import { TemplateCategoryEntity } from 'src/template-category/template-category.entity';
+import { DocumentEntity } from 'src/document/document.entity';
 
 @Entity({ name: 'templates' })
 export class TemplateEntity {
@@ -30,6 +31,12 @@ export class TemplateEntity {
   @Column()
   name: string;
 
+  @Column({ default: 400 })
+  maxCharacters: number;
+
+  @Column({ default: 1 })
+  generatedDocumentsNum: number;
+
   @Column({ default: null })
   profilePicture: string;
 
@@ -45,6 +52,10 @@ export class TemplateEntity {
   @OneToMany(() => ThreadEntity, (thread) => thread.template)
   @JoinColumn()
   threads: ThreadEntity[];
+
+  @OneToMany(() => DocumentEntity, (document) => document.template)
+  @JoinColumn()
+  documents: DocumentEntity[];
 
   @ManyToOne(
     () => TemplateCategoryEntity,
