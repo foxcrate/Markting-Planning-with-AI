@@ -35,7 +35,7 @@ export class DocumentRepository {
       try {
         document.requiredData = eval(`(${document.requiredData})`);
         if (document.aiResponse2) {
-          if (document.aiResponse2[0] == '[') {
+          if (document.aiResponse) {
             document.aiResponse2 = eval(`(${document.aiResponse2})`);
           } else {
             document.aiResponse2 = document.aiResponse2;
