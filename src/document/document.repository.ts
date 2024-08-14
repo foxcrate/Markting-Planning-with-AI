@@ -13,14 +13,7 @@ export class DocumentRepository {
       documents.id,
       documents.name,
       documents.requiredData,
-      CASE
-      WHEN JSON_VALID(aiResponse) THEN true
-      ELSE false
-      END AS aiResponse,
-      CASE
-      WHEN JSON_VALID(aiResponse) THEN JSON_EXTRACT(aiResponse,'$[*]')
-      ELSE aiResponse
-      END AS aiResponse2,
+      documents.aiResponse,
       documents.templateId,
       documents.userId
       FROM
@@ -34,13 +27,7 @@ export class DocumentRepository {
     for (const document of documents) {
       try {
         document.requiredData = eval(`(${document.requiredData})`);
-        if (document.aiResponse2) {
-          if (document.aiResponse) {
-            document.aiResponse2 = JSON.parse(`(${document.aiResponse2})`);
-          } else {
-            document.aiResponse2 = document.aiResponse2;
-          }
-        }
+        document.aiResponse = eval(`(${document.aiResponse})`);
       } catch (error) {
         console.error('Parsing error:', error);
       }
@@ -82,10 +69,7 @@ export class DocumentRepository {
       id,
       name,
       requiredData,
-      CASE
-      WHEN JSON_VALID(aiResponse) THEN JSON_EXTRACT(aiResponse,'$[*]')
-      ELSE aiResponse
-      END AS aiResponse,
+      aiResponse,
       templateId,
       userId
     FROM
@@ -99,13 +83,7 @@ export class DocumentRepository {
 
     try {
       theDocument.requiredData = eval(`(${theDocument.requiredData})`);
-      if (theDocument.aiResponse) {
-        if (theDocument.aiResponse[0] == '[') {
-          theDocument.aiResponse = eval(`(${theDocument.aiResponse})`);
-        } else {
-          theDocument.aiResponse = theDocument.aiResponse;
-        }
-      }
+      theDocument.aiResponse = eval(`(${theDocument.aiResponse})`);
     } catch (error) {
       console.error('Parsing error:', error);
     }
@@ -125,19 +103,10 @@ export class DocumentRepository {
       userId = IFNULL(?,documents.userId)
       WHERE id = ?
     `;
-    // console.log('----------------');
-    // console.log(
-    //   'reqBody.aiResponse:',
-    //   reqBody.aiResponse[0] === '[' ? 'true' : 'false',
-    // );
-    // console.log('----------------');
 
     await this.db.query(query, [
       reqBody.name,
       reqBody.requiredData ? JSON.stringify(reqBody.requiredData) : null,
-      // reqBody.aiResponse[0] === '['
-      //   ? JSON.stringify(reqBody.aiResponse)
-      //   : reqBody.aiResponse,
       reqBody.aiResponse,
       reqBody.templateId,
       reqBody.userId,
