@@ -13,7 +13,14 @@ export class DocumentRepository {
       documents.id,
       documents.name,
       documents.requiredData,
-      JSON_EXTRACT(aiResponse,'$[*]') AS aiResponse,
+      CASE
+      WHEN JSON_VALID(aiResponse) THEN true
+      ELSE false
+      END AS aiResponse,
+      CASE
+      WHEN JSON_VALID(aiResponse) THEN JSON_EXTRACT(aiResponse,'$[*]')
+      ELSE aiResponse
+      END AS aiResponse2,
       documents.templateId,
       documents.userId
       FROM
@@ -27,7 +34,13 @@ export class DocumentRepository {
     for (const document of documents) {
       try {
         document.requiredData = eval(`(${document.requiredData})`);
-        // console.log(arrayOfObjects);
+        if (document.aiResponse2) {
+          if (document.aiResponse2[0] == '[') {
+            document.aiResponse2 = eval(`(${document.aiResponse2})`);
+          } else {
+            document.aiResponse2 = document.aiResponse2;
+          }
+        }
       } catch (error) {
         console.error('Parsing error:', error);
       }
@@ -86,8 +99,13 @@ export class DocumentRepository {
 
     try {
       theDocument.requiredData = eval(`(${theDocument.requiredData})`);
-      // theDocument.aiResponse = eval(`(${theDocument.aiResponse})`);
-      // console.log(arrayOfObjects);
+      if (theDocument.aiResponse) {
+        if (theDocument.aiResponse[0] == '[') {
+          theDocument.aiResponse = eval(`(${theDocument.aiResponse})`);
+        } else {
+          theDocument.aiResponse = theDocument.aiResponse;
+        }
+      }
     } catch (error) {
       console.error('Parsing error:', error);
     }
@@ -107,9 +125,19 @@ export class DocumentRepository {
       userId = IFNULL(?,documents.userId)
       WHERE id = ?
     `;
+    // console.log('----------------');
+    // console.log(
+    //   'reqBody.aiResponse:',
+    //   reqBody.aiResponse[0] === '[' ? 'true' : 'false',
+    // );
+    // console.log('----------------');
+
     await this.db.query(query, [
       reqBody.name,
       reqBody.requiredData ? JSON.stringify(reqBody.requiredData) : null,
+      // reqBody.aiResponse[0] === '['
+      //   ? JSON.stringify(reqBody.aiResponse)
+      //   : reqBody.aiResponse,
       reqBody.aiResponse,
       reqBody.templateId,
       reqBody.userId,
