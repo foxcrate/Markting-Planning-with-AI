@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Req } from '@nestjs/common';
 import { AppService } from './app.service';
 import {
   ApiCreatedResponse,
@@ -21,12 +21,14 @@ export class AppController {
   })
   @ApiInternalServerErrorResponse()
   @Get()
-  getHello(): { message: string } {
+  getHello(@Req() req): { message: string } {
+    console.log(req);
+
     return this.appService.getHello();
   }
 
   @Get('test-firebase')
-  test() {
-    return this.appService.testFirebase();
+  async testFirebase() {
+    await this.appService.testFirebase();
   }
 }

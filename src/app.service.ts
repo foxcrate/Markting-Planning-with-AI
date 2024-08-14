@@ -1,10 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  InternalServerErrorException,
-  ServiceUnavailableException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { MessageReturnDto } from './dtos/message-return.dto';
 import * as admin from 'firebase-admin';
 import { DB_PROVIDER } from 'src/db/constants';

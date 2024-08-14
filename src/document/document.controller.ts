@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -28,6 +29,7 @@ import { UserRoleEnum } from 'src/enums/user-roles.enum';
 import { DocumentIdDto } from './dtos/document-id.dto';
 import { DocumentUpdateDto } from './dtos/document-update.dto';
 import { AiResponseDto } from './dtos/ai-response.dto';
+import { FastifyReply } from 'fastify';
 
 @Controller({ path: 'document', version: '1' })
 export class DocumentController {
@@ -179,5 +181,43 @@ export class DocumentController {
   @UseGuards(AuthGuard, RoleGuard)
   async delete(@Param() params: DocumentIdDto, @UserId() userId: number) {
     return await this.documentService.delete(params.documentId, userId);
+  }
+
+  @ApiParam({
+    name: 'documentId',
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Document: PDF Export')
+  @Put('/:documentId/pdf')
+  @Roles(UserRoleEnum.CUSTOMER)
+  @UseGuards(AuthGuard, RoleGuard)
+  async pdfExport(
+    @Param() params: DocumentIdDto,
+    @UserId() userId: number,
+    @Res() res: FastifyReply,
+  ) {
+    await this.documentService.pdfExport(res, params.documentId, userId);
+  }
+
+  @ApiParam({
+    name: 'documentId',
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Document: DOC Export')
+  @Put('/:documentId/doc')
+  @Roles(UserRoleEnum.CUSTOMER)
+  @UseGuards(AuthGuard, RoleGuard)
+  async docExport(
+    @Param() params: DocumentIdDto,
+    @UserId() userId: number,
+    @Res() res: FastifyReply,
+  ) {
+    await this.documentService.docExport(res, params.documentId, userId);
   }
 }
