@@ -78,6 +78,8 @@ export class DocumentRepository {
     `;
     let [theDocument] = await this.db.query(query, [id]);
 
+    console.log('theDocument.aiResponse:', theDocument.aiResponse);
+
     try {
       theDocument.requiredData = eval(`(${theDocument.requiredData})`);
       theDocument.aiResponse = eval(`(${theDocument.aiResponse})`);
