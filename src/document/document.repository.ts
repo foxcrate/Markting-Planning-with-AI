@@ -13,7 +13,7 @@ export class DocumentRepository {
       documents.id,
       documents.name,
       documents.requiredData,
-      documents.aiResponse,
+      JSON_EXTRACT(aiResponse,'$[*]') AS aiResponse,
       documents.templateId,
       documents.userId
       FROM
@@ -54,6 +54,7 @@ export class DocumentRepository {
     let { insertId } = await this.db.query(query, [
       reqBody.name,
       reqBody.requiredData ? JSON.stringify(reqBody.requiredData) : null,
+      // reqBody.requiredData,
       reqBody.aiResponse,
       reqBody.templateId,
       reqBody.userId,
@@ -68,7 +69,7 @@ export class DocumentRepository {
       id,
       name,
       requiredData,
-      aiResponse,
+      JSON_EXTRACT(aiResponse,'$[*]') AS aiResponse,
       templateId,
       userId
     FROM
@@ -82,11 +83,12 @@ export class DocumentRepository {
 
     try {
       theDocument.requiredData = eval(`(${theDocument.requiredData})`);
-      theDocument.aiResponse = eval(`(${theDocument.aiResponse})`);
+      // theDocument.aiResponse = eval(`(${theDocument.aiResponse})`);
       // console.log(arrayOfObjects);
     } catch (error) {
       console.error('Parsing error:', error);
     }
+    console.log('theDocument.aiResponse:', theDocument.aiResponse);
     return theDocument;
   }
 
