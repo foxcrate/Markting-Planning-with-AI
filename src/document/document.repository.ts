@@ -13,7 +13,8 @@ export class DocumentRepository {
       documents.id,
       documents.name,
       documents.requiredData,
-      documents.aiResponse,
+      documents.confirmedAnswer,
+      JSON_EXTRACT(aiResponse,'$[*]') AS aiResponse,
       documents.templateId,
       documents.userId
       FROM
@@ -27,7 +28,7 @@ export class DocumentRepository {
     for (const document of documents) {
       try {
         document.requiredData = eval(`(${document.requiredData})`);
-        document.aiResponse = eval(`(${document.aiResponse})`);
+        // document.aiResponse = eval(`(${document.aiResponse})`);
       } catch (error) {
         console.error('Parsing error:', error);
       }
@@ -37,7 +38,7 @@ export class DocumentRepository {
   }
 
   async create(reqBody: DocumentDto) {
-    console.log(reqBody);
+    // console.log(reqBody);
 
     const query = `
     INSERT
@@ -45,16 +46,17 @@ export class DocumentRepository {
     documents (
     name,
     requiredData,
+    confirmedAnswer,
     aiResponse,
     templateId,
     userId
-    ) VALUES (?,?,?,?,?)
+    ) VALUES (?,?,?,?,?,?)
   `;
 
     let { insertId } = await this.db.query(query, [
       reqBody.name,
       reqBody.requiredData ? JSON.stringify(reqBody.requiredData) : null,
-      // reqBody.requiredData,
+      reqBody.confirmedAnswer,
       reqBody.aiResponse,
       reqBody.templateId,
       reqBody.userId,
@@ -69,7 +71,8 @@ export class DocumentRepository {
       id,
       name,
       requiredData,
-      aiResponse,
+      documents.confirmedAnswer,
+      JSON_EXTRACT(aiResponse,'$[*]') AS aiResponse,
       templateId,
       userId
     FROM
@@ -79,15 +82,15 @@ export class DocumentRepository {
     `;
     let [theDocument] = await this.db.query(query, [id]);
 
-    console.log('theDocument.aiResponse:', theDocument.aiResponse);
+    // console.log('theDocument.aiResponse:', theDocument.aiResponse);
 
     try {
       theDocument.requiredData = eval(`(${theDocument.requiredData})`);
-      theDocument.aiResponse = eval(`(${theDocument.aiResponse})`);
+      // theDocument.aiResponse = eval(`(${theDocument.aiResponse})`);
     } catch (error) {
       console.error('Parsing error:', error);
     }
-    console.log('theDocument.aiResponse:', theDocument.aiResponse);
+    // console.log('theDocument.aiResponse:', theDocument.aiResponse);
     return theDocument;
   }
 
@@ -98,6 +101,7 @@ export class DocumentRepository {
       SET
       name = IFNULL(?,documents.name),
       requiredData = IFNULL(?,documents.requiredData),
+      confirmedAnswer = IFNULL(?,documents.confirmedAnswer),
       aiResponse = IFNULL(?,documents.aiResponse),
       templateId = IFNULL(?,documents.templateId),
       userId = IFNULL(?,documents.userId)
@@ -107,6 +111,7 @@ export class DocumentRepository {
     await this.db.query(query, [
       reqBody.name,
       reqBody.requiredData ? JSON.stringify(reqBody.requiredData) : null,
+      reqBody.confirmedAnswer,
       reqBody.aiResponse,
       reqBody.templateId,
       reqBody.userId,

@@ -48,6 +48,7 @@ export class DocumentService {
     let createDocumentBody: DocumentDto = {
       ...reqBody,
       userId: userId,
+      confirmedAnswer: null,
       aiResponse: null,
     };
     let newDocument = await this.documentRepository.create(createDocumentBody);
@@ -76,7 +77,7 @@ export class DocumentService {
       null,
     );
 
-    console.log('runInstruction:', runInstruction);
+    // console.log('runInstruction:', runInstruction);
 
     //call ai
     let aiResponse = await this.openAiService.runDocumentTemplateAssistant(
@@ -85,13 +86,18 @@ export class DocumentService {
       runInstruction,
     );
 
-    //update document aiResponse and return whole document
-
-    return await this.confirmAiResponse(
+    await this.documentRepository.update(
+      {
+        name: null,
+        requiredData: null,
+        confirmedAnswer: null,
+        aiResponse: aiResponse.assistantMessage,
+        templateId: null,
+        userId: null,
+      },
       newDocument.id,
-      aiResponse.assistantMessage,
-      userId,
     );
+    return await this.documentRepository.findById(newDocument.id);
   }
 
   async update(
@@ -114,6 +120,7 @@ export class DocumentService {
 
     let updateDocumentBody: DocumentDto = {
       ...updateBody,
+      confirmedAnswer: null,
       userId: null,
       aiResponse: null,
     };
@@ -155,7 +162,7 @@ export class DocumentService {
       null,
     );
 
-    console.log('runInstruction:', runInstruction);
+    // console.log('runInstruction:', runInstruction);
 
     //call ai
     let aiResponse = await this.openAiService.runDocumentTemplateAssistant(
@@ -166,16 +173,23 @@ export class DocumentService {
 
     //update document aiResponse and return whole document
 
-    return await this.confirmAiResponse(
+    await this.documentRepository.update(
+      {
+        name: null,
+        requiredData: null,
+        confirmedAnswer: null,
+        aiResponse: aiResponse.assistantMessage,
+        templateId: null,
+        userId: null,
+      },
       theDocument.id,
-      aiResponse.assistantMessage,
-      userId,
     );
+    return await this.documentRepository.findById(theDocument.id);
   }
 
   async confirmAiResponse(
     documentId: number,
-    aiResponse: string,
+    confirmedAnswer: string,
     userId: number,
   ) {
     //validate ownership
@@ -185,7 +199,8 @@ export class DocumentService {
 
     let updateDocumentBody: DocumentDto = {
       requiredData: null,
-      aiResponse: aiResponse,
+      confirmedAnswer: confirmedAnswer,
+      aiResponse: null,
       userId: null,
       name: null,
       templateId: null,
@@ -232,7 +247,7 @@ export class DocumentService {
         bufferPages: true,
       });
 
-      doc.text(theDocument.aiResponse, 100, 50);
+      doc.text(theDocument.confirmedAnswer, 100, 50);
       doc.end();
 
       const buffer = [];
@@ -263,7 +278,7 @@ export class DocumentService {
           properties: {},
           children: [
             new Paragraph({
-              children: [new TextRun(theDocument.aiResponse)],
+              children: [new TextRun(theDocument.confirmedAnswer)],
             }),
           ],
         },
@@ -318,7 +333,7 @@ export class DocumentService {
     let requiredDataKeys = documentRequiredData.map((object) => object.key);
 
     templateRequiredDataObject.forEach((key) => {
-      console.log('key:', key);
+      // console.log('key:', key);
 
       if (!requiredDataKeys.includes(key)) {
         throw new UnprocessableEntityException('Missing template requiredData');

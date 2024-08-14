@@ -47,9 +47,9 @@ export class AppService {
       let object = data[index];
       object.steps = steps;
       object.kpi_name = kpisArray;
-      console.log(object);
+      // console.log(object);
 
-      console.log('------------------');
+      // console.log('------------------');
 
       // global stage id
       let globalStageId = 0;

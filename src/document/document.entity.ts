@@ -17,6 +17,9 @@ export class DocumentEntity {
   @Column({ default: null })
   name: string;
 
+  @Column({ type: 'longtext', nullable: true, default: null })
+  confirmedAnswer: string;
+
   @Column({ type: 'json', nullable: true, default: null })
   requiredData: object;
 

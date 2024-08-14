@@ -28,7 +28,7 @@ import { DocumentReturnDto } from './dtos/document-return.dto';
 import { UserRoleEnum } from 'src/enums/user-roles.enum';
 import { DocumentIdDto } from './dtos/document-id.dto';
 import { DocumentUpdateDto } from './dtos/document-update.dto';
-import { AiResponseDto } from './dtos/ai-response.dto';
+import { ConfirmedAnswerDto } from './dtos/confirmed-answer.dto';
 import { FastifyReply } from 'fastify';
 
 @Controller({ path: 'document', version: '1' })
@@ -107,7 +107,7 @@ export class DocumentController {
   @ApiParam({
     name: 'documentId',
   })
-  @ApiBody({ type: AiResponseDto })
+  @ApiBody({ type: ConfirmedAnswerDto })
   @ApiCreatedResponse({
     type: DocumentReturnDto,
   })
@@ -121,12 +121,12 @@ export class DocumentController {
   @UseGuards(AuthGuard, RoleGuard)
   async confirmAiResponse(
     @Param() params: DocumentIdDto,
-    @Body() body: AiResponseDto,
+    @Body() body: ConfirmedAnswerDto,
     @UserId() userId: number,
   ) {
     return await this.documentService.confirmAiResponse(
       params.documentId,
-      body.aiResponse,
+      body.confirmedAnswer,
       userId,
     );
   }
@@ -209,7 +209,7 @@ export class DocumentController {
     type: ErrorResponseDto,
   })
   @ApiBearerAuth()
-  @ApiTags('Document: DOC Export')
+  @ApiTags('Document: Doc Export')
   @Put('/:documentId/doc')
   @Roles(UserRoleEnum.CUSTOMER)
   @UseGuards(AuthGuard, RoleGuard)

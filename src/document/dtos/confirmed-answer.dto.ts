@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class AiResponseDto {
+export class ConfirmedAnswerDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsString()
-  aiResponse: string;
+  confirmedAnswer: string;
 }

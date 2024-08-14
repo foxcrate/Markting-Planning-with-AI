@@ -12,6 +12,9 @@ export class DocumentReturnDto {
   requiredData: DocumentRequiredDataDto[];
 
   @ApiProperty()
+  confirmedAnswer: string;
+
+  @ApiProperty()
   aiResponse: string;
 
   @ApiProperty()
