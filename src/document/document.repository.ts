@@ -17,7 +17,10 @@ export class DocumentRepository {
       WHEN JSON_VALID(aiResponse) THEN true
       ELSE false
       END AS aiResponse,
-      aiResponse AS aiResponse2,
+      CASE
+      WHEN JSON_VALID(aiResponse) THEN JSON_EXTRACT(aiResponse,'$[*]')
+      ELSE aiResponse
+      END AS aiResponse2,
       documents.templateId,
       documents.userId
       FROM
@@ -33,7 +36,7 @@ export class DocumentRepository {
         document.requiredData = eval(`(${document.requiredData})`);
         if (document.aiResponse2) {
           if (document.aiResponse) {
-            document.aiResponse2 = eval(`(${document.aiResponse2})`);
+            document.aiResponse2 = JSON.parse(`(${document.aiResponse2})`);
           } else {
             document.aiResponse2 = document.aiResponse2;
           }
@@ -79,7 +82,10 @@ export class DocumentRepository {
       id,
       name,
       requiredData,
-      aiResponse,
+      CASE
+      WHEN JSON_VALID(aiResponse) THEN JSON_EXTRACT(aiResponse,'$[*]')
+      ELSE aiResponse
+      END AS aiResponse,
       templateId,
       userId
     FROM
