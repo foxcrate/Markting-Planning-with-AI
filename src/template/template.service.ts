@@ -19,6 +19,8 @@ import { TemplateReturnDto } from './dtos/template-return.dto';
 import { NotEndedThreadAiResponseDto } from './dtos/not-ended-thread-ai-response.dto';
 import { TemplateCreateDto } from './dtos/template-create.dto';
 import { TemplateCategoryService } from 'src/template-category/template-category.service';
+import { TemplateUpdateDto } from './dtos/template-update.dto';
+import { DocumentService } from 'src/document/document.service';
 
 @Injectable()
 export class TemplateService {
@@ -31,6 +33,8 @@ export class TemplateService {
     private readonly workspaceRepository: WorkspaceRepository,
     private readonly funnelService: FunnelService,
     private readonly stageService: StageService,
+    @Inject(forwardRef(() => DocumentService))
+    private readonly documentService: DocumentService,
     private readonly templateCategoryService: TemplateCategoryService,
   ) {}
 
@@ -205,6 +209,19 @@ export class TemplateService {
 
     // validate category id
     await this.templateCategoryService.getOne(templateBody.categoryId);
+    let descriptionToBeSaved = templateBody.description;
+    templateBody.description = `
+      I will pass to you complementary information in a json object in the run instruction.
+      ${templateBody.description},
+      create ${templateBody.generatedDocumentsNum} of them each with max ${templateBody.maxCharacters} char
+      return the output in this format:
+      [
+      {
+      "content",
+      "charactersNumber"
+      }
+      ]
+    `;
 
     let assistance = await this.openAiService.createTemplateAssistance(
       templateBody.name,
@@ -215,7 +232,7 @@ export class TemplateService {
     return await this.templateRepository.create({
       name: templateBody.name,
       type: TemplateTypeEnum.CUSTOM,
-      description: templateBody.description,
+      description: descriptionToBeSaved,
       example: templateBody.example,
       maxCharacters: templateBody.maxCharacters,
       generatedDocumentsNum: templateBody.generatedDocumentsNum,
@@ -227,7 +244,7 @@ export class TemplateService {
     });
   }
 
-  async update(templateBody: TemplateCreateDto, templateId: number) {
+  async update(templateBody: TemplateUpdateDto, templateId: number) {
     // check repeated template name
     if (templateBody.name) {
       let sameNameTemplate = await this.templateRepository.findByName(
@@ -238,25 +255,43 @@ export class TemplateService {
       }
     }
 
-    let theTemplate = await this.templateRepository.findById(templateId);
+    let theTemplate = await this.getOne(templateId);
 
     // validate category id
     if (templateBody.categoryId) {
       await this.templateCategoryService.getOne(templateBody.categoryId);
     }
+    let descriptionToBeSaved = null;
+    if (templateBody.description) {
+      descriptionToBeSaved = theTemplate.description;
+      templateBody.description = `
+      I will pass  to you complementary information in a json object in the run instruction.
+      ${templateBody.description},
+      create ${templateBody.generatedDocumentsNum ? templateBody.generatedDocumentsNum : theTemplate.generatedDocumentsNum} of them each with max ${templateBody.maxCharacters ? templateBody.maxCharacters : theTemplate.maxCharacters} char
+      return the output in this format:
+      [
+      {
+      "content",
+      "charactersNumber"
+      }
+      ]
+    `;
+    }
 
     // update openai assistance
     await this.openAiService.updateTemplateAssistance(
       theTemplate.openaiAssistantId,
-      templateBody.name,
-      templateBody.description,
+      templateBody.name ? templateBody.name : theTemplate.name,
+      templateBody.description
+        ? templateBody.description
+        : theTemplate.description,
       null,
     );
 
     return await this.templateRepository.update(templateId, {
       name: templateBody.name,
       type: TemplateTypeEnum.CUSTOM,
-      description: templateBody.description,
+      description: descriptionToBeSaved,
       example: templateBody.example,
       maxCharacters: templateBody.maxCharacters,
       generatedDocumentsNum: templateBody.generatedDocumentsNum,
@@ -330,6 +365,7 @@ export class TemplateService {
     //get the template run instruction if exists
     let runInstruction = await this.getTemplateRunInstruction(
       template.id,
+      null,
       userId,
       workspaceId,
       funnelId,
@@ -337,7 +373,7 @@ export class TemplateService {
     );
 
     // run the assistant with thread id
-    let runObject = await this.openAiService.runTemplateAssistant(
+    let runObject = await this.openAiService.runBuiltInTemplateAssistant(
       template.openaiAssistantId,
       thread.openAiId,
       runInstruction,
@@ -379,6 +415,7 @@ export class TemplateService {
     //get the template run instruction if exists
     let runInstruction = await this.getTemplateRunInstruction(
       template.id,
+      null,
       userId,
       workspaceId,
       funnelId,
@@ -418,8 +455,9 @@ export class TemplateService {
     }
   }
 
-  private async getTemplateRunInstruction(
+  async getTemplateRunInstruction(
     templateId: number,
+    documentId: number,
     userId: number,
     workspaceId: number,
     funnelId: number,
@@ -440,7 +478,12 @@ export class TemplateService {
           stageId,
         );
       case TemplateTypeEnum.CUSTOM:
-        return await this.getCustomTemplateRunInstruction(workspaceId);
+        return await this.getCustomTemplateRunInstruction(
+          userId,
+          templateId,
+          documentId,
+          workspaceId,
+        );
       default:
         return '';
     }
@@ -524,9 +567,50 @@ export class TemplateService {
     };
   }
 
-  private async getCustomTemplateRunInstruction(workspaceId: number) {}
+  private async getCustomTemplateRunInstruction(
+    userId: number,
+    templateId: number,
+    documentId: number,
+    workspaceId: number,
+  ): Promise<any> {
+    let theDocument = await this.documentService.getOne(documentId, 0);
 
-  private serializeWorkspaceData(workspace) {
+    //////////////////////////////get workspace data
+    let workspaceData;
+    if (workspaceId) {
+      let workspace = await this.workspaceRepository.findById(workspaceId);
+      //if no workspace
+      if (!workspace) {
+        throw new UnprocessableEntityException('Workspace not found');
+      }
+      // workspaceData = this.serializeWorkspaceData(workspace.parameters);
+      workspaceData = workspace.parameters;
+    } else if (workspaceId == null) {
+      let userWorkspaces =
+        await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
+      // workspaceData = this.serializeWorkspaceData(userWorkspaces[0].parameters);
+      workspaceData = userWorkspaces[0].parameters;
+    }
+
+    const requiredDataJsonObject = theDocument.requiredData.reduce(
+      (acc, curr) => {
+        acc[curr.key] = curr.value;
+        return acc;
+      },
+      {},
+    );
+
+    let documentRequiredData = requiredDataJsonObject;
+
+    return {
+      ...workspaceData,
+      ...documentRequiredData,
+    };
+  }
+
+  serializeWorkspaceData(workspace) {
+    // console.log('workspace:', workspace);
+
     let workspaceData = {
       project_name: workspace.name,
       project_goal: workspace.goal,
@@ -534,6 +618,9 @@ export class TemplateService {
       project_targetGroup: workspace.targetGroup,
       project_marketingLevel: workspace.marketingLevel,
     };
+
+    // console.log('workspaceData:', workspaceData);
+
     return workspaceData;
   }
 

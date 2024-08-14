@@ -389,7 +389,7 @@ export class OpenAiService implements OnModuleInit {
     return assistant;
   }
 
-  async runTemplateAssistant(
+  async runBuiltInTemplateAssistant(
     openaiAssistantId: string,
     threadOpenaiId: string,
     runInstructions: string,
@@ -418,6 +418,43 @@ export class OpenAiService implements OnModuleInit {
       return {
         assistantMessage: messages.data[0].content[0].text.value,
         threadEnd: false,
+      };
+    } else {
+      console.log('error in openAI chat run:', run.status);
+
+      throw new ServiceUnavailableException('OpenAI API Error');
+    }
+  }
+
+  async runDocumentTemplateAssistant(
+    openaiAssistantId: string,
+    threadOpenaiId: string,
+    runInstructions: string,
+  ): Promise<{
+    assistantMessage: string;
+    threadEnd: boolean;
+  }> {
+    let run = await this.instance.beta.threads.runs.create(threadOpenaiId, {
+      assistant_id: openaiAssistantId,
+      additional_instructions: JSON.stringify(runInstructions),
+    });
+
+    while (['queued', 'in_progress', 'cancelling'].includes(run.status)) {
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second
+      run = await this.instance.beta.threads.runs.retrieve(
+        run.thread_id,
+        run.id,
+      );
+    }
+
+    if (run.status === 'completed') {
+      const messages: any = await this.instance.beta.threads.messages.list(
+        run.thread_id,
+      );
+
+      return {
+        assistantMessage: messages.data[0].content[0].text.value,
+        threadEnd: true,
       };
     } else {
       console.log('error in openAI chat run:', run.status);

@@ -53,7 +53,7 @@ export class DocumentRepository {
 
     let { insertId } = await this.db.query(query, [
       reqBody.name,
-      reqBody.requiredData,
+      reqBody.requiredData ? JSON.stringify(reqBody.requiredData) : null,
       reqBody.aiResponse,
       reqBody.templateId,
       reqBody.userId,
@@ -80,6 +80,7 @@ export class DocumentRepository {
 
     try {
       theDocument.requiredData = eval(`(${theDocument.requiredData})`);
+      theDocument.aiResponse = eval(`(${theDocument.aiResponse})`);
       // console.log(arrayOfObjects);
     } catch (error) {
       console.error('Parsing error:', error);
@@ -101,7 +102,7 @@ export class DocumentRepository {
     `;
     await this.db.query(query, [
       reqBody.name,
-      reqBody.requiredData,
+      reqBody.requiredData ? JSON.stringify(reqBody.requiredData) : null,
       reqBody.aiResponse,
       reqBody.templateId,
       reqBody.userId,

@@ -1,7 +1,11 @@
 import {
+  BadRequestException,
   ForbiddenException,
+  forwardRef,
+  Inject,
   Injectable,
   NotFoundException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { DocumentCreateDto } from './dtos/document-create.dto';
 import { DocumentReturnDto } from './dtos/document-return.dto';
@@ -9,21 +13,34 @@ import { DocumentRepository } from './document.repository';
 import { DocumentDto } from './dtos/document.dto';
 import { DocumentUpdateDto } from './dtos/document-update.dto';
 import { TemplateService } from 'src/template/template.service';
+import { OpenAiService } from 'src/open-ai/open-ai.service';
+import { ThreadRepository } from 'src/thread/thread.repository';
+import { WorkspaceRepository } from 'src/workspace/workspace.repository';
 
 @Injectable()
 export class DocumentService {
   constructor(
     private readonly documentRepository: DocumentRepository,
+    @Inject(forwardRef(() => TemplateService))
     private readonly templateService: TemplateService,
+    @Inject(forwardRef(() => OpenAiService))
+    private readonly openAiService: OpenAiService,
+    private readonly workspaceRepository: WorkspaceRepository,
+    private readonly threadRepository: ThreadRepository,
   ) {}
   async create(
     reqBody: DocumentCreateDto,
     userId: number,
   ): Promise<DocumentReturnDto> {
-    //vallidate templates existance
-    await this.templateService.getOne(reqBody.templateId);
+    //validate templates existance
+    let theTemplate = await this.templateService.getOne(reqBody.templateId);
 
-    //call ai
+    //validate template required data
+
+    await this.validateTemplateRequiredData(
+      theTemplate.id,
+      reqBody.requiredData,
+    );
 
     let createDocumentBody: DocumentDto = {
       ...reqBody,
@@ -32,7 +49,46 @@ export class DocumentService {
     };
     let newDocument = await this.documentRepository.create(createDocumentBody);
 
-    return await this.documentRepository.findById(newDocument.id);
+    //create thread
+    let openAiThread = await this.openAiService.createUserThread();
+    // let theThread = await this.threadRepository.create(
+    //   userId,
+    //   reqBody.templateId,
+    //   openAiThread.id,
+    // );
+
+    //formulate the run instructions
+    let userWorkspaces =
+      await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
+    if (userWorkspaces.length === 0) {
+      throw new BadRequestException('user has no workspace');
+    }
+
+    let runInstruction = await this.templateService.getTemplateRunInstruction(
+      reqBody.templateId,
+      newDocument.id,
+      userId,
+      userWorkspaces[0].id,
+      null,
+      null,
+    );
+
+    console.log('runInstruction:', runInstruction);
+
+    //call ai
+    let aiResponse = await this.openAiService.runDocumentTemplateAssistant(
+      theTemplate.openaiAssistantId,
+      openAiThread.id,
+      runInstruction,
+    );
+
+    //update document aiResponse and return whole document
+
+    return await this.confirmAiResponse(
+      newDocument.id,
+      aiResponse.assistantMessage,
+      userId,
+    );
   }
 
   async update(
@@ -44,7 +100,12 @@ export class DocumentService {
     await this.isOwner(documentId, userId);
 
     //vallidate templates existance
-    await this.templateService.getOne(updateBody.templateId);
+    let theTemplate = await this.templateService.getOne(updateBody.templateId);
+
+    await this.validateTemplateRequiredData(
+      theTemplate.id,
+      updateBody.requiredData,
+    );
 
     //call ai
 
@@ -63,16 +124,50 @@ export class DocumentService {
 
     //call ai
 
-    let updateDocumentBody: DocumentDto = {
-      requiredData: null,
-      aiResponse: null,
-      userId: null,
-      name: null,
-      templateId: null,
-    };
-    await this.documentRepository.update(updateDocumentBody, documentId);
+    let theDocument = await this.documentRepository.findById(documentId);
+    let theTemplate = await this.templateService.getOne(theDocument.templateId);
 
-    return await this.documentRepository.findById(documentId);
+    //create thread
+    let openAiThread = await this.openAiService.createUserThread();
+
+    // let theThread = await this.threadRepository.create(
+    //   userId,
+    //   theDocument.templateId,
+    //   openAiThread.id,
+    // );
+
+    //formulate the run instructions
+    let userWorkspaces =
+      await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
+    if (userWorkspaces.length === 0) {
+      throw new BadRequestException('user has no workspace');
+    }
+
+    let runInstruction = await this.templateService.getTemplateRunInstruction(
+      theDocument.templateId,
+      theDocument.id,
+      userId,
+      userWorkspaces[0].id,
+      null,
+      null,
+    );
+
+    console.log('runInstruction:', runInstruction);
+
+    //call ai
+    let aiResponse = await this.openAiService.runDocumentTemplateAssistant(
+      theTemplate.openaiAssistantId,
+      openAiThread.id,
+      runInstruction,
+    );
+
+    //update document aiResponse and return whole document
+
+    return await this.confirmAiResponse(
+      theDocument.id,
+      aiResponse.assistantMessage,
+      userId,
+    );
   }
 
   async confirmAiResponse(
@@ -97,10 +192,12 @@ export class DocumentService {
     return await this.documentRepository.findById(documentId);
   }
 
-  //get one templateCategory
+  //get one document
   async getOne(documentId: number, userId: number): Promise<DocumentReturnDto> {
     //validate ownership
-    await this.isOwner(documentId, userId);
+    if (userId !== 0) {
+      await this.isOwner(documentId, userId);
+    }
 
     let document = await this.documentRepository.findById(documentId);
     if (!document) {
@@ -134,5 +231,35 @@ export class DocumentService {
     if (document.userId !== userId) {
       throw new ForbiddenException('You are not the owner of this document');
     }
+  }
+
+  async validateTemplateRequiredData(
+    templateId: number,
+    documentRequiredData: any,
+  ) {
+    let theTemplate = await this.templateService.getOne(templateId);
+    let templateRequiredData = theTemplate.requiredData;
+
+    if (!documentRequiredData) {
+      if (!templateRequiredData || templateRequiredData.length === 0) {
+        return true;
+      } else {
+        throw new UnprocessableEntityException('Missing template requiredData');
+      }
+    }
+
+    let templateRequiredDataObject = templateRequiredData.map(
+      (key) => key.name,
+    );
+
+    let requiredDataKeys = documentRequiredData.map((object) => object.key);
+
+    templateRequiredDataObject.forEach((key) => {
+      console.log('key:', key);
+
+      if (!requiredDataKeys.includes(key)) {
+        throw new UnprocessableEntityException('Missing template requiredData');
+      }
+    });
   }
 }

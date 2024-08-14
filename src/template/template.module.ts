@@ -10,6 +10,7 @@ import { WorkspaceModule } from 'src/workspace/workspace.module';
 import { FunnelModule } from 'src/funnel/funnel.module';
 import { StageModule } from 'src/stage/stage.module';
 import { TemplateCategoryModule } from 'src/template-category/template-category.module';
+import { DocumentModule } from 'src/document/document.module';
 
 @Module({
   controllers: [TemplateController],
@@ -22,6 +23,7 @@ import { TemplateCategoryModule } from 'src/template-category/template-category.
     FunnelModule,
     StageModule,
     TemplateCategoryModule,
+    forwardRef(() => DocumentModule),
   ],
   exports: [TemplateService, TemplateRepository],
 })
