@@ -69,7 +69,10 @@ export class DocumentRepository {
       id,
       name,
       requiredData,
-      JSON_EXTRACT(aiResponse,'$[*]') AS aiResponse,
+      CASE
+      WHEN JSON_VALID(aiResponse) THEN JSON_EXTRACT(aiResponse,'$[*]')
+      ELSE aiResponse
+      END AS aiResponse,
       templateId,
       userId
     FROM
