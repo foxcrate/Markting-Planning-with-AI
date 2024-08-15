@@ -287,81 +287,81 @@ export class TemplateController {
 
   ///////////////////////// Tactics //////////////////////////////
 
-  @ApiBody({ type: FunnelTemplateDto })
-  @ApiCreatedResponse({
-    type: TemplateReturnDto,
-  })
-  @ApiUnauthorizedResponse({
-    type: ErrorResponseDto,
-  })
-  @ApiBearerAuth()
-  @ApiTags('Template: Tactic: Create')
-  @Post('tactic')
-  @UseGuards(AuthGuard)
-  async setTacticFlow(@Body() template: FunnelTemplateDto) {
-    return this.templateService.setTacticTemplate(template);
-  }
+  // @ApiBody({ type: FunnelTemplateDto })
+  // @ApiCreatedResponse({
+  //   type: TemplateReturnDto,
+  // })
+  // @ApiUnauthorizedResponse({
+  //   type: ErrorResponseDto,
+  // })
+  // @ApiBearerAuth()
+  // @ApiTags('Template: Tactic: Create')
+  // @Post('tactic')
+  // @UseGuards(AuthGuard)
+  // async setTacticFlow(@Body() template: FunnelTemplateDto) {
+  //   return this.templateService.setTacticTemplate(template);
+  // }
 
-  @ApiBody({
-    type: StartTacticTemplateDto,
-  })
-  @ApiCreatedResponse({
-    type: NotEndedThreadAiResponseDto,
-  })
-  @ApiUnauthorizedResponse({
-    type: ErrorResponseDto,
-  })
-  @ApiBearerAuth()
-  @ApiTags('Template: Tactic: Start')
-  @Post('tactic/start')
-  @UseGuards(AuthGuard)
-  async startTacticTemplate(
-    @Body() startTacticTemplateBody: StartTacticTemplateDto,
-    @UserId() userId: number,
-  ) {
-    let tacticTemplate = await this.templateRepository.findByType(
-      TemplateTypeEnum.TACTIC,
-    );
-    if (!tacticTemplate) {
-      throw new UnprocessableEntityException('There is no tactic template');
-    }
-    return await this.templateService.startTemplateFlow(
-      tacticTemplate.id,
-      userId,
-      8,
-      startTacticTemplateBody.funnelId,
-      startTacticTemplateBody.stageId,
-    );
-  }
+  // @ApiBody({
+  //   type: StartTacticTemplateDto,
+  // })
+  // @ApiCreatedResponse({
+  //   type: NotEndedThreadAiResponseDto,
+  // })
+  // @ApiUnauthorizedResponse({
+  //   type: ErrorResponseDto,
+  // })
+  // @ApiBearerAuth()
+  // @ApiTags('Template: Tactic: Start')
+  // @Post('tactic/start')
+  // @UseGuards(AuthGuard)
+  // async startTacticTemplate(
+  //   @Body() startTacticTemplateBody: StartTacticTemplateDto,
+  //   @UserId() userId: number,
+  // ) {
+  //   let tacticTemplate = await this.templateRepository.findByType(
+  //     TemplateTypeEnum.TACTIC,
+  //   );
+  //   if (!tacticTemplate) {
+  //     throw new UnprocessableEntityException('There is no tactic template');
+  //   }
+  //   return await this.templateService.startTemplateFlow(
+  //     tacticTemplate.id,
+  //     userId,
+  //     null,
+  //     startTacticTemplateBody.funnelId,
+  //     startTacticTemplateBody.stageId,
+  //   );
+  // }
 
-  @ApiBody({
-    type: TacticQuestionAnswer,
-  })
-  @ApiCreatedResponse({
-    type: NotEndedThreadAiResponseDto,
-    description: 'ThreadEnd boolean will be true when the thread is ended',
-  })
-  @ApiUnauthorizedResponse({
-    type: ErrorResponseDto,
-  })
-  @ApiBearerAuth()
-  @ApiTags('Template: Tactic: Answer')
-  @Post('tactic/answer')
-  @UseGuards(AuthGuard)
-  async tacticAnswer(
-    @Body() questionAnswer: TacticQuestionAnswer,
-    @UserId() userId: number,
-  ) {
-    let tacticTemplate = await this.templateRepository.findByType(
-      TemplateTypeEnum.TACTIC,
-    );
-    return await this.templateService.answerTemplateQuestion(
-      tacticTemplate.id,
-      questionAnswer.answer,
-      userId,
-      8,
-      questionAnswer.funnelId,
-      questionAnswer.stageId,
-    );
-  }
+  // @ApiBody({
+  //   type: TacticQuestionAnswer,
+  // })
+  // @ApiCreatedResponse({
+  //   type: NotEndedThreadAiResponseDto,
+  //   description: 'ThreadEnd boolean will be true when the thread is ended',
+  // })
+  // @ApiUnauthorizedResponse({
+  //   type: ErrorResponseDto,
+  // })
+  // @ApiBearerAuth()
+  // @ApiTags('Template: Tactic: Answer')
+  // @Post('tactic/answer')
+  // @UseGuards(AuthGuard)
+  // async tacticAnswer(
+  //   @Body() questionAnswer: TacticQuestionAnswer,
+  //   @UserId() userId: number,
+  // ) {
+  //   let tacticTemplate = await this.templateRepository.findByType(
+  //     TemplateTypeEnum.TACTIC,
+  //   );
+  //   return await this.templateService.answerTemplateQuestion(
+  //     tacticTemplate.id,
+  //     questionAnswer.answer,
+  //     userId,
+  //     null,
+  //     questionAnswer.funnelId,
+  //     questionAnswer.stageId,
+  //   );
+  // }
 }

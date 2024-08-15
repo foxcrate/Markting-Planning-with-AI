@@ -20,7 +20,7 @@ export class MessageEntity {
     nullable: true,
     default: null,
   })
-  SenderRoleEnum: SenderRoleEnum | null;
+  SenderRole: SenderRoleEnum | null;
 
   @Column('longtext')
   content: string;

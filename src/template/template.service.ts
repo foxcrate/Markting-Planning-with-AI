@@ -503,11 +503,13 @@ export class TemplateService {
       if (!workspace) {
         throw new UnprocessableEntityException('Workspace not found');
       }
-      workspaceData = this.serializeWorkspaceData(workspace);
+      // workspaceData = this.serializeWorkspaceData(workspace);
+      workspaceData = workspace.parameters;
     } else if (workspaceId == null) {
       let userWorkspaces =
         await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
-      workspaceData = this.serializeWorkspaceData(userWorkspaces[0]);
+      // workspaceData = this.serializeWorkspaceData(userWorkspaces[0]);
+      workspaceData = userWorkspaces[0].parameters;
     }
     return workspaceData;
   }
@@ -532,11 +534,15 @@ export class TemplateService {
       if (!workspace) {
         throw new UnprocessableEntityException('Workspace not found');
       }
-      workspaceData = this.serializeWorkspaceData(workspace);
+      // workspaceData = this.serializeWorkspaceData(workspace);
+      workspaceData = workspace.parameters;
     } else if (workspaceId == null) {
       let userWorkspaces =
         await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
-      workspaceData = this.serializeWorkspaceData(userWorkspaces[0]);
+
+      // workspaceData = this.serializeWorkspaceData(userWorkspaces[0]);
+      // console.log('serializedworkspaceData:', workspaceData);
+      workspaceData = userWorkspaces[0].parameters;
     }
     let project_data = workspaceData;
 

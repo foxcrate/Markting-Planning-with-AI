@@ -29,11 +29,13 @@ import { AiChatResponseDto } from './dtos/ai-chat-response.dto';
 import { UserService } from 'src/user/user.service';
 import { GlobalStageService } from 'src/global-stage/global-stage.service';
 import { KpiReturnDto } from 'src/kpi/dtos/return.dto';
+import { WorkspaceRepository } from 'src/workspace/workspace.repository';
 
 @Injectable()
 export class OpenAiService implements OnModuleInit {
   constructor(
     private workspaceService: WorkspaceService,
+    private workspaceRepository: WorkspaceRepository,
     private funnelService: FunnelService,
     private threadService: ThreadService,
     private messageService: MessageService,
@@ -121,8 +123,6 @@ export class OpenAiService implements OnModuleInit {
       userId,
     );
 
-    // console.log(JSON.stringify(serializedUserDataObject));
-
     //get user data
     let theUser = await this.userService.getUserData(userId);
 
@@ -131,13 +131,23 @@ export class OpenAiService implements OnModuleInit {
       ...serializedUserDataObject,
     };
 
-    return await this.chatAssistant(
-      this.configService.getOrThrow('CHAT_ASSISTANT_ID'),
-      newSerializedUserDataObject,
-      body.message,
-      theThread.id,
-      theThread.openAiId,
-    );
+    try {
+      let aiResponse = await this.chatAssistant(
+        this.configService.getOrThrow('CHAT_ASSISTANT_ID'),
+        newSerializedUserDataObject,
+        body.message,
+        theThread.id,
+        theThread.openAiId,
+      );
+
+      return aiResponse;
+    } catch (error: any) {
+      console.log('---------- create ai tactic error -----------');
+
+      console.log(error.message);
+
+      throw new ServiceUnavailableException(error.code);
+    }
   }
 
   async chatAssistant(
@@ -206,14 +216,20 @@ export class OpenAiService implements OnModuleInit {
     let theWorkspace: WorkspaceReturnDto;
     if (workspaceId == 0) {
       let userWorkspaces =
-        await this.workspaceService.userConfirmedWorkspace(userId);
+        await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
       theWorkspace = userWorkspaces[0];
       if (!theWorkspace) {
         throw new NotFoundException('User has no workspaces');
       }
     } else {
-      theWorkspace = await this.workspaceService.getOne(workspaceId, userId);
+      theWorkspace = await this.workspaceRepository.findById(workspaceId);
+      //if no workspace
+      if (!theWorkspace) {
+        throw new UnprocessableEntityException('Workspace not found');
+      }
     }
+
+    // console.log('workspace:', theWorkspace);
 
     let theFunnel: any;
     let theStage: any;
@@ -517,21 +533,25 @@ export class OpenAiService implements OnModuleInit {
               .arguments,
           );
 
-          if (
-            Object.keys(aiCratedObject).length === 0 &&
-            Object.keys(aiCratedObject.tactic).length === 0
-          ) {
+          // console.log(aiCratedObject);
+
+          // if (
+          //   !aiCratedObject ||
+          //   !aiCratedObject.tactic ||
+          //   Object.keys(aiCratedObject).length === 0 ||
+          //   Object.keys(aiCratedObject.tactic).length === 0
+          // )
+          if (!aiCratedObject || Object.keys(aiCratedObject).length === 0) {
             console.log('-- empty object from openai --');
 
             throw new ServiceUnavailableException('OpenAI API Error');
           }
 
-          // console.log(aiCratedObject);
-
           assistantMessage = this.addTacticToWorkspaceHandler(
             prompt,
             runInstructions,
-            aiCratedObject.tactic,
+            // aiCratedObject.tactic,
+            aiCratedObject,
           );
 
           await this.threadService.finishTemplateThread(theThread.openAiId);
@@ -673,13 +693,21 @@ export class OpenAiService implements OnModuleInit {
     aiCreatedTactic: any,
   ): AiCreatedTacticDto {
     let kpis: KpiReturnDto[] = [];
-    kpis.push({
-      id: null,
-      name: aiCreatedTactic.kpi_name,
-      unit: aiCreatedTactic.kpi_unit,
-      kpiMeasuringFrequency: aiCreatedTactic.kpi_measuring_frequency,
-      tacticId: null,
-    });
+    if (aiCreatedTactic.kpi_name) {
+      kpis.push({
+        id: null,
+        name: aiCreatedTactic.kpi_name,
+        unit: aiCreatedTactic.kpi_unit,
+        kpiMeasuringFrequency: aiCreatedTactic.kpi_measuring_frequency,
+        tacticId: null,
+      });
+    }
+
+    let steps = [];
+
+    if (aiCreatedTactic.steps_to_achieve_the_tactic) {
+      steps = aiCreatedTactic.steps_to_achieve_the_tactic;
+    }
 
     return {
       prompt: prompt,
@@ -688,7 +716,7 @@ export class OpenAiService implements OnModuleInit {
       description: aiCreatedTactic.description,
       theOrder: aiCreatedTactic.theOrder,
       kpis: kpis,
-      steps: aiCreatedTactic.steps_to_achieve_the_tactic,
+      steps: steps,
     };
   }
 
