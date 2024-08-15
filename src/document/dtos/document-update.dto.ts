@@ -23,9 +23,4 @@ export class DocumentUpdateDto {
   @ValidateNested({ each: true })
   @Type(() => DocumentRequiredDataDto)
   requiredData: DocumentRequiredDataDto[];
-
-  @ApiProperty()
-  @IsOptional()
-  @IsNumber()
-  templateId: number;
 }

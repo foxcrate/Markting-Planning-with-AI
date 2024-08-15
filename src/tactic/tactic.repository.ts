@@ -92,27 +92,6 @@ export class TacticRepository {
     await this.db.query(query, [tacticId]);
   }
 
-  //create tactics
-
-  // async createTactics(tactics: any[], stageId: number) {
-  //   try {
-  //     for (let i = 0; i < tactics.length; i++) {
-  //       tactics[i].stageId = stageId;
-  //       tactics[i].globalStageId = null;
-  //       tactics[i].kpiName = null;
-  //       tactics[i].kpiUnit = null;
-  //       tactics[i].instance = false;
-  //       tactics[i].kpiMeasuringFrequency = null;
-  //       await this.create(tactics[i], null);
-  //     }
-  //   } catch (e) {
-  //     console.log(e);
-  //     throw e;
-  //   }
-
-  //   return true;
-  // }
-
   async getTacticsByUserId(userId: number, filterOptions: GetMineFilterDto) {
     const queryStart = `
     WITH
@@ -171,19 +150,40 @@ export class TacticRepository {
       where this_tactics_stages.tacticId = tactics.id
     )
     AS stages,
-   CASE WHEN COUNT(kpis.id) = 0 THEN null
-    ELSE
-    JSON_ARRAYAGG(JSON_OBJECT(
-      'id',kpis.id,
-      'name', kpis.name,
-      'unit', kpis.unit,
-      'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency
-      ))
-    END AS kpis
+    (
+      SELECT
+        CASE WHEN COUNT(kpis.id) = 0 THEN null
+        ELSE
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'id',kpis.id,
+            'name', kpis.name,
+            'unit', kpis.unit,
+            'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency,
+            'kpi_entries', (
+              SELECT
+              CASE WHEN COUNT(kpi_entry.id) = 0 THEN null
+              ELSE
+                JSON_ARRAYAGG(JSON_OBJECT(
+                  'id',kpi_entry.id,
+                  'value', kpi_entry.value,
+                  'date', kpi_entry.date
+                ))
+              END
+              FROM kpi_entry
+              WHERE kpi_entry.kpiId = kpis.id
+            )
+          )
+        )
+        END AS kpis
+      FROM
+        kpis
+      WHERE
+        kpis.tacticId = tactics.id
+    ) AS kpis
     FROM tactics
     LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
     LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
-    LEFT JOIN kpis ON kpis.tacticId = tactics.id
     LEFT JOIN users ON users.id = tactics.userId
     WHERE tactics.userId = ?
     AND
@@ -282,29 +282,40 @@ export class TacticRepository {
         'theOrder', tactic_step.theOrder
         ))
       END AS steps,
-    CASE WHEN COUNT(kpis.id) = 0 THEN null
-    ELSE
-    JSON_ARRAYAGG(JSON_OBJECT(
-      'id',kpis.id,
-      'name', kpis.name,
-      'unit', kpis.unit,
-      'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency,
-      'kpiEntries', (
+      (
         SELECT
-        JSON_ARRAYAGG(JSON_OBJECT(
-          'id',kpi_entry.id,
-          'value', kpi_entry.value,
-          'date', kpi_entry.date
-        ))
-        FROM kpi_entry
-        WHERE kpi_entry.kpiId = kpis.id
-      )
-      ))
-    END AS kpis
+          CASE WHEN COUNT(kpis.id) = 0 THEN null
+          ELSE
+          JSON_ARRAYAGG(
+            JSON_OBJECT(
+              'id',kpis.id,
+              'name', kpis.name,
+              'unit', kpis.unit,
+              'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency,
+              'kpi_entries', (
+                SELECT
+                CASE WHEN COUNT(kpi_entry.id) = 0 THEN null
+                ELSE
+                  JSON_ARRAYAGG(JSON_OBJECT(
+                    'id',kpi_entry.id,
+                    'value', kpi_entry.value,
+                    'date', kpi_entry.date
+                  ))
+                END
+                FROM kpi_entry
+                WHERE kpi_entry.kpiId = kpis.id
+              )
+            )
+          )
+          END AS kpis
+        FROM
+          kpis
+        WHERE
+          kpis.tacticId = ?
+      ) AS kpis
       FROM tactics
       LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
       LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
-      LEFT JOIN kpis ON kpis.tacticId = tactics.id
       LEFT JOIN users ON users.id = tactics.userId
       WHERE tactics.id = ?
       GROUP BY tactics.id;
@@ -349,25 +360,47 @@ export class TacticRepository {
       'theOrder', tactic_step.theOrder
       ))
     END AS steps,
-    CASE WHEN COUNT(kpis.id) = 0 THEN null
-    ELSE
-    JSON_ARRAYAGG(JSON_OBJECT(
-      'id',kpis.id,
-      'name', kpis.name,
-      'unit', kpis.unit,
-      'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency
-      ))
-    END AS kpis
+    (
+      SELECT
+        CASE WHEN COUNT(kpis.id) = 0 THEN null
+        ELSE
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'id',kpis.id,
+            'name', kpis.name,
+            'unit', kpis.unit,
+            'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency,
+            'kpi_entries', (
+              SELECT
+              CASE WHEN COUNT(kpi_entry.id) = 0 THEN null
+              ELSE
+                JSON_ARRAYAGG(JSON_OBJECT(
+                  'id',kpi_entry.id,
+                  'value', kpi_entry.value,
+                  'date', kpi_entry.date
+                ))
+              END
+              FROM kpi_entry
+              WHERE kpi_entry.kpiId = kpis.id
+            )
+          )
+        )
+        END AS kpis
+      FROM
+        kpis
+      WHERE
+        kpis.tacticId = tactics.id
+    ) AS kpis
     FROM tactics
     LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
     LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
-    LEFT JOIN kpis ON kpis.tacticId = tactics.id
     LEFT JOIN users ON users.id = tactics.userId
     WHERE tactics.private = false 
     AND
     tactics.instance = false
     
   `;
+
     let filter = ``;
     if (filterOptions.name) {
       filter = filter + ` AND tactics.name LIKE '%${filterOptions.name}%' `;

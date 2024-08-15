@@ -14,7 +14,7 @@ import { Type } from 'class-transformer';
 
 export class DocumentCreateDto {
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   name: string;
 

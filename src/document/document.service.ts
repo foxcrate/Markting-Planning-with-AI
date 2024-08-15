@@ -108,8 +108,10 @@ export class DocumentService {
     //validate ownership
     await this.isOwner(documentId, userId);
 
+    let theDocument = await this.documentRepository.findById(documentId);
+
     //vallidate templates existance
-    let theTemplate = await this.templateService.getOne(updateBody.templateId);
+    let theTemplate = await this.templateService.getOne(theDocument.templateId);
 
     await this.validateTemplateRequiredData(
       theTemplate.id,
@@ -120,6 +122,7 @@ export class DocumentService {
 
     let updateDocumentBody: DocumentDto = {
       ...updateBody,
+      templateId: null,
       confirmedAnswer: null,
       userId: null,
       aiResponse: null,
