@@ -19,6 +19,7 @@ import { WorkspaceRepository } from 'src/workspace/workspace.repository';
 import { FastifyReply } from 'fastify';
 const PDFDocument = require('pdfkit');
 import * as docx from 'docx';
+import { ConfirmedAnswerDto } from './dtos/confirmed-answer.dto';
 
 @Injectable()
 export class DocumentService {
@@ -192,7 +193,7 @@ export class DocumentService {
 
   async confirmAiResponse(
     documentId: number,
-    confirmedAnswer: string,
+    body: ConfirmedAnswerDto,
     userId: number,
   ) {
     //validate ownership
@@ -202,10 +203,10 @@ export class DocumentService {
 
     let updateDocumentBody: DocumentDto = {
       requiredData: null,
-      confirmedAnswer: confirmedAnswer,
+      confirmedAnswer: body.confirmedAnswer,
       aiResponse: null,
       userId: null,
-      name: null,
+      name: body.documentName ? body.documentName : null,
       templateId: null,
     };
     await this.documentRepository.update(updateDocumentBody, documentId);

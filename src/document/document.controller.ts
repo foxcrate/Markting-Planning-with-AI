@@ -126,7 +126,7 @@ export class DocumentController {
   ) {
     return await this.documentService.confirmAiResponse(
       params.documentId,
-      body.confirmedAnswer,
+      body,
       userId,
     );
   }
