@@ -167,7 +167,8 @@ export class TacticRepository {
                 JSON_ARRAYAGG(JSON_OBJECT(
                   'id',kpi_entry.id,
                   'value', kpi_entry.value,
-                  'date', kpi_entry.date
+                  'date', kpi_entry.date,
+                  'kpiId', kpi_entry.kpiId
                 ))
               END
               FROM kpi_entry
@@ -299,7 +300,8 @@ export class TacticRepository {
                   JSON_ARRAYAGG(JSON_OBJECT(
                     'id',kpi_entry.id,
                     'value', kpi_entry.value,
-                    'date', kpi_entry.date
+                    'date', kpi_entry.date,
+                    'kpiId', kpi_entry.kpiId
                   ))
                 END
                 FROM kpi_entry
@@ -377,7 +379,8 @@ export class TacticRepository {
                 JSON_ARRAYAGG(JSON_OBJECT(
                   'id',kpi_entry.id,
                   'value', kpi_entry.value,
-                  'date', kpi_entry.date
+                  'date', kpi_entry.date,
+                  'kpiId', kpi_entry.kpiId
                 ))
               END
               FROM kpi_entry

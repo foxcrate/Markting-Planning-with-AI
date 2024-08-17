@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -14,6 +15,7 @@ import {
   ApiBody,
   ApiCreatedResponse,
   ApiParam,
+  ApiQuery,
   ApiTags,
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
@@ -30,6 +32,7 @@ import { DocumentIdDto } from './dtos/document-id.dto';
 import { DocumentUpdateDto } from './dtos/document-update.dto';
 import { ConfirmedAnswerDto } from './dtos/confirmed-answer.dto';
 import { FastifyReply } from 'fastify';
+import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 
 @Controller({ path: 'document', version: '1' })
 export class DocumentController {
@@ -131,6 +134,8 @@ export class DocumentController {
     );
   }
 
+  @ApiQuery({ name: 'templateId', required: false })
+  @ApiQuery({ name: 'name', required: false })
   @ApiCreatedResponse({
     type: DocumentReturnDto,
     isArray: true,
@@ -143,8 +148,8 @@ export class DocumentController {
   @Get()
   @Roles(UserRoleEnum.CUSTOMER)
   @UseGuards(AuthGuard, RoleGuard)
-  async getAll(@UserId() userId: number) {
-    return await this.documentService.getAllByUserId(userId);
+  async getAll(@Query() filter: GetAllFilterDto, @UserId() userId: number) {
+    return await this.documentService.getAllByUserId(filter, userId);
   }
 
   @ApiParam({

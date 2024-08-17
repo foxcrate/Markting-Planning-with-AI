@@ -4,6 +4,7 @@ import { TemplateTypeEnum } from 'src/enums/template-type.enum';
 import { TemplateDto } from './dtos/template.dto';
 import { Pool } from 'mariadb';
 import { DB_PROVIDER } from 'src/db/constants';
+import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 
 @Injectable()
 export class TemplateRepository {
@@ -116,27 +117,38 @@ export class TemplateRepository {
     const templates = await this.db.query(query, [templateId]);
   }
 
-  async getAll(): Promise<TemplateReturnDto[]> {
-    const query = `
-    SELECT
-      templates.id,
-      templates.name,
-      templates.type,
-      templates.description,
-      templates.example,
-      templates.maxCharacters,
-      templates.generatedDocumentsNum,
-      templates.profilePicture,
-      templates.categoryId,
-      templates.parameters,
-      templates.requiredData,
-      templates.openaiAssistantId
-    FROM templates
-    WHERE
-      templates.type = 'custom'
-   `;
+  async getAll(filterOptions: GetAllFilterDto): Promise<TemplateReturnDto[]> {
+    const queryStart = `
+      SELECT
+        templates.id,
+        templates.name,
+        templates.type,
+        templates.description,
+        templates.example,
+        templates.maxCharacters,
+        templates.generatedDocumentsNum,
+        templates.profilePicture,
+        templates.categoryId,
+        templates.parameters,
+        templates.requiredData,
+        templates.openaiAssistantId
+      FROM templates
+      WHERE
+        templates.type = 'custom'
+      `;
 
-    const templates = await this.db.query(query);
+    let filter = ``;
+    if (filterOptions.name) {
+      filter = filter + ` AND templates.name LIKE '%${filterOptions.name}%' `;
+    }
+    if (filterOptions.categoryId) {
+      filter =
+        filter + ` AND templates.categoryId =${filterOptions.categoryId} `;
+    }
+
+    const queryEnd = ``;
+
+    const templates = await this.db.query(queryStart + filter + queryEnd);
 
     // loop over templates
     for (const template of templates) {

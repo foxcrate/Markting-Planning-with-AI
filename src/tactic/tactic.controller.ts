@@ -113,7 +113,10 @@ export class TacticController {
     name: 'kpiId',
     required: false,
   })
-  @ApiBody({ type: TacticKpiEntryCreateDto })
+  @ApiBody({
+    type: TacticKpiEntryCreateDto,
+    description: 'date-format: yyyy-mm-dd',
+  })
   @ApiCreatedResponse({
     type: TacticReturnDto,
   })

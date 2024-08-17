@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UnprocessableEntityException,
   UseGuards,
 } from '@nestjs/common';
@@ -16,15 +17,13 @@ import { UserId } from 'src/decorators/user-id.decorator';
 import { AuthGuard } from 'src/gurads/auth.guard';
 import { TemplateRepository } from './template.repository';
 import { OnboardingQuestionAnswer } from './dtos/onboarding-question-answer.dto';
-import { FunnelTemplateDto } from './dtos/funnel-template.dto';
-import { StartTacticTemplateDto } from './dtos/start-tactic-template.dto';
-import { TacticQuestionAnswer } from 'src/tactic/dtos/tactic-question-answer.dto';
 import { WorkspaceService } from 'src/workspace/workspace.service';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiParam,
+  ApiQuery,
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -37,6 +36,7 @@ import { RoleGuard } from 'src/gurads/role.guard';
 import { TemplateCreateDto } from './dtos/template-create.dto';
 import { TemplateIdDto } from './dtos/template-id.dto';
 import { TemplateUpdateDto } from './dtos/template-update.dto';
+import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 
 // @ApiTags('Template')
 @Controller({ path: 'template', version: '1' })
@@ -147,6 +147,8 @@ export class TemplateController {
     return this.templateService.delete(paramsId.templateId);
   }
 
+  @ApiQuery({ name: 'categoryId', required: false })
+  @ApiQuery({ name: 'name', required: false })
   @ApiCreatedResponse({
     type: TemplateReturnDto,
     isArray: true,
@@ -159,8 +161,8 @@ export class TemplateController {
   @Get()
   @Roles('admin', 'customer')
   @UseGuards(AuthGuard, RoleGuard)
-  async getAll() {
-    return this.templateService.getAll();
+  async getAll(@Query() filter: GetAllFilterDto) {
+    return this.templateService.getAll(filter);
   }
 
   @ApiCreatedResponse({

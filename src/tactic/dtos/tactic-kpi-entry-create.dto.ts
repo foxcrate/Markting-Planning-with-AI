@@ -7,8 +7,8 @@ export class TacticKpiEntryCreateDto {
   @IsString()
   value: string;
 
-  @ApiProperty()
+  @ApiProperty({ description: 'yyyy-mm-dd' })
   @IsNotEmpty()
-  @IsDateString()
-  date: Date;
+  @IsString()
+  date: String;
 }

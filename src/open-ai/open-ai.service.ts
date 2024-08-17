@@ -700,6 +700,7 @@ export class OpenAiService implements OnModuleInit {
         unit: aiCreatedTactic.kpi_unit,
         kpiMeasuringFrequency: aiCreatedTactic.kpi_measuring_frequency,
         tacticId: null,
+        kpi_entries: null,
       });
     }
 

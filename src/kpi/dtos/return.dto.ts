@@ -1,6 +1,7 @@
-import { IsEnum, IsString } from 'class-validator';
+import { IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { KpiMeasuringFrequencyEnum } from 'src/enums/kpi-measuring-frequency.enum';
+import { KpiEntryReturnDto } from './kpi-entry-return.dto';
 
 export class KpiReturnDto {
   @ApiProperty()
@@ -21,4 +22,7 @@ export class KpiReturnDto {
 
   @ApiProperty()
   tacticId: number;
+
+  @ApiProperty({ type: KpiEntryReturnDto, isArray: true })
+  kpi_entries: KpiEntryReturnDto[];
 }

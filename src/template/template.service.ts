@@ -21,6 +21,7 @@ import { TemplateCreateDto } from './dtos/template-create.dto';
 import { TemplateCategoryService } from 'src/template-category/template-category.service';
 import { TemplateUpdateDto } from './dtos/template-update.dto';
 import { DocumentService } from 'src/document/document.service';
+import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 
 @Injectable()
 export class TemplateService {
@@ -221,6 +222,7 @@ export class TemplateService {
       "charactersNumber"
       }
       ]
+      the content in the return object should be in html format
     `;
 
     let assistance = await this.openAiService.createTemplateAssistance(
@@ -275,6 +277,7 @@ export class TemplateService {
       "charactersNumber"
       }
       ]
+      the content in the return object should be in html format
     `;
     }
 
@@ -326,8 +329,8 @@ export class TemplateService {
     return template;
   }
 
-  async getAll(): Promise<TemplateReturnDto[]> {
-    return await this.templateRepository.getAll();
+  async getAll(filter: GetAllFilterDto): Promise<TemplateReturnDto[]> {
+    return await this.templateRepository.getAll(filter);
   }
 
   async getOneByType(type: string): Promise<TemplateReturnDto> {
