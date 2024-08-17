@@ -275,7 +275,10 @@ export class DocumentService {
   async pdfExport(res: FastifyReply, documentId: number, userId: number) {
     let theDocument = await this.getOne(documentId, userId);
 
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disabled-setupid-sandbox'],
+    });
+
     const page = await browser.newPage();
 
     await page.setContent(theDocument.confirmedAnswer);
