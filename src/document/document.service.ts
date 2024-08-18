@@ -275,7 +275,10 @@ export class DocumentService {
   async pdfExport(res: FastifyReply, documentId: number, userId: number) {
     let theDocument = await this.getOne(documentId, userId);
 
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      executablePath: '/usr/bin/chromium-browser', // Adjust path if needed
+      headless: true, // Optional, run in headless mode
+    });
 
     console.log({ browser });
 
