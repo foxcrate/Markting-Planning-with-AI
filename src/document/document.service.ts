@@ -278,7 +278,9 @@ export class DocumentService {
     // const browser = await puppeteer.launch();
 
     const browser = await puppeteer.launch({
-      executablePath: '/usr/bin/chromium-browser',
+      env: {
+        DISPLAY: ':0',
+      },
     });
 
     const page = await browser.newPage();
