@@ -8,6 +8,14 @@ export class RequiredDataDto {
   @IsString()
   name: string;
 
+  @ApiProperty()
+  @IsString()
+  placeHolder: string;
+
+  @ApiProperty()
+  @IsString()
+  toolTip: string;
+
   @ApiProperty({ enum: RequiredDataDataTypeEnum })
   @IsEnum(RequiredDataDataTypeEnum)
   type: RequiredDataDataTypeEnum;
