@@ -276,8 +276,8 @@ export class DocumentService {
     let theDocument = await this.getOne(documentId, userId);
 
     const browser = await puppeteer.launch({
-      executablePath: '/usr/bin/chromium-browser', // Adjust path if needed
-      headless: true, // Optional, run in headless mode
+      headless: true, // Ensure it runs in headless mode
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
     console.log({ browser });
