@@ -246,22 +246,22 @@ export class DocumentService {
   // async pdfExport2(res: FastifyReply, documentId: number, userId: number) {
   //   let theDocument = await this.getOne(documentId, userId);
 
-  //   const pdfBuffer: Buffer = await new Promise((resolve) => {
-  //     const doc = new PDFDocument({
-  //       size: 'LETTER',
-  //       bufferPages: true,
-  //     });
-
-  //     doc.text(theDocument.confirmedAnswer, 100, 50);
-  //     doc.end();
-
-  //     const buffer = [];
-  //     doc.on('data', buffer.push.bind(buffer));
-  //     doc.on('end', () => {
-  //       const data = Buffer.concat(buffer);
-  //       resolve(data);
-  //     });
+  // const pdfBuffer: Buffer = await new Promise((resolve) => {
+  //   const doc = new PDFDocument({
+  //     size: 'LETTER',
+  //     bufferPages: true,
   //   });
+
+  //   doc.text(theDocument.confirmedAnswer, 100, 50);
+  //   doc.end();
+
+  //   const buffer = [];
+  //   doc.on('data', buffer.push.bind(buffer));
+  //   doc.on('end', () => {
+  //     const data = Buffer.concat(buffer);
+  //     resolve(data);
+  //   });
+  // });
 
   //   res.headers({
   //     'Content-Type': 'application/pdf',
@@ -275,13 +275,9 @@ export class DocumentService {
   async pdfExport(res: FastifyReply, documentId: number, userId: number) {
     let theDocument = await this.getOne(documentId, userId);
 
-    // const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch();
 
-    const browser = await puppeteer.launch({
-      env: {
-        DISPLAY: ':0',
-      },
-    });
+    console.log({ browser });
 
     const page = await browser.newPage();
 
