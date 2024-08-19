@@ -26,20 +26,20 @@ export class StageService {
 
   async getOne(
     stageId: number,
-    funnelUserId: number,
+    funnelId: number,
     userId: number,
   ): Promise<StageDetailsReturnDto> {
-    await this.isOwner(stageId, funnelUserId, userId);
+    await this.isOwner(stageId, funnelId, userId);
     return await this.stageRepository.findById(stageId);
   }
 
   async getStageTactic(
     stageId: number,
-    funnelUserId: number,
+    funnelId: number,
     tacticId: number,
     userId: number,
   ): Promise<StageTacticWithStepsReturnDto> {
-    await this.isOwner(stageId, funnelUserId, userId);
+    await this.isOwner(stageId, funnelId, userId);
     // validate the tactic is an instance tactic
     await this.stageRepository.validateTacticBelongToStage(stageId, tacticId);
     return await this.stageRepository.findStageTacticById(tacticId);
@@ -47,11 +47,11 @@ export class StageService {
 
   async updateStageTacticsOrder(
     stageId: number,
-    funnelUserId: number,
+    funnelId: number,
     userId: number,
     tacticsAndOrders: TacticIdAndOrderDto[],
   ) {
-    await this.isOwner(stageId, funnelUserId, userId);
+    await this.isOwner(stageId, funnelId, userId);
 
     await this.updateStageTacticsOrderValidations(stageId, tacticsAndOrders);
 
@@ -69,7 +69,7 @@ export class StageService {
     userId: number,
   ) {
     let theFunnel = await this.funnelService.getOne(funnelId, userId);
-    await this.stageRepository.isOwner(stageId, theFunnel.userId, userId);
+    await this.isOwner(stageId, theFunnel.id, userId);
     let theTactic = await this.tacticService.getOne(tacticId, userId);
 
     // create new tactic record
@@ -120,7 +120,7 @@ export class StageService {
     userId: number,
   ) {
     let theFunnel = await this.funnelService.getOne(funnelId, userId);
-    await this.isOwner(stageId, theFunnel.userId, userId);
+    await this.isOwner(stageId, theFunnel.id, userId);
     // let theTactic = await this.tacticService.getOne(tacticId, userId);
 
     // validate the tactic is an instance tactic
@@ -155,7 +155,7 @@ export class StageService {
     userId: number,
   ) {
     let theFunnel = await this.funnelService.getOne(funnelId, userId);
-    await this.isOwner(stageId, theFunnel.userId, userId);
+    await this.isOwner(stageId, theFunnel.id, userId);
     // let theTactic = await this.tacticService.getOne(tacticId, userId);
 
     // validate the tactic is an instance tactic
@@ -190,7 +190,7 @@ export class StageService {
     userId: number,
   ): Promise<any> {
     let theFunnel = await this.funnelService.getOne(funnelId, userId);
-    await this.stageRepository.isOwner(stageId, theFunnel.userId, userId);
+    await this.isOwner(stageId, theFunnel.id, userId);
     await this.tacticService.getOne(tacticId, userId);
     // validate tactic is in the stage
     await this.stageRepository.validateTacticBelongToStage(stageId, tacticId);
@@ -229,10 +229,21 @@ export class StageService {
     await this.addStagesToFunnel(funnelId, allGlobalStages);
   }
 
-  async isOwner(stageId: number, funnelUserId: number, userId: number) {
-    if (!(await this.stageRepository.isOwner(stageId, funnelUserId, userId))) {
-      throw new ForbiddenException('You are not the owner of this funnel');
+  async isOwner(stageId: number, funnelId: number, userId: number) {
+    let theFunnel = await this.funnelService.getOne(funnelId, userId);
+    let stage = await this.stageRepository.findById(stageId);
+    if (!stage) {
+      throw new UnprocessableEntityException('Stage not found');
     }
+
+    if (theFunnel.userId !== userId) {
+      throw new ForbiddenException('You are not the owner of this stage');
+    }
+
+    if (stage.funnelId !== funnelId) {
+      throw new ForbiddenException('Stage does not belong to this funnel');
+    }
+
     return true;
   }
 

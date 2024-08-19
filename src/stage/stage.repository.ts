@@ -142,17 +142,17 @@ export class StageRepository {
     );
   }
 
-  async isOwner(stageId: number, funnelUserId: number, userId: number) {
-    let stage = await this.findById(stageId);
-    if (!stage) {
-      throw new UnprocessableEntityException('Stage not found');
-    }
+  // async isOwner(stageId: number, funnelUserId: number, userId: number) {
+  //   let stage = await this.findById(stageId);
+  //   if (!stage) {
+  //     throw new UnprocessableEntityException('Stage not found');
+  //   }
 
-    if (funnelUserId !== userId) {
-      return false;
-    }
-    return true;
-  }
+  //   if (funnelUserId !== userId) {
+  //     return false;
+  //   }
+  //   return true;
+  // }
 
   async addTacticToStage(stageId: number, tacticId: number, theOrder: number) {
     // check if tactic_stage exists

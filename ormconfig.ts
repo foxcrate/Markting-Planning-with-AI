@@ -16,6 +16,8 @@ import { KpiEntity } from 'src/kpi/kpi.entity';
 import { KpiEntryEntity } from 'src/kpi/kpi-entry.entity';
 import { TemplateCategoryEntity } from 'src/template-category/template-category.entity';
 import { DocumentEntity } from 'src/document/document.entity';
+import { FlowEntity } from 'src/flow/flow.entity';
+import { CommentEntity } from 'src/comment/comment.entity';
 require('dotenv').config({
   path: `${process.env.NODE_ENV ? process.env.NODE_ENV : ''}.env`,
 });
@@ -45,6 +47,8 @@ export const typeOrmDbConfig: TypeOrmModuleOptions = {
     KpiEntryEntity,
     TemplateCategoryEntity,
     DocumentEntity,
+    FlowEntity,
+    CommentEntity,
   ],
   //migrations: [__dirname + '/migrations/**/*'],
   //migrationsTableName: 'migrations',
