@@ -561,7 +561,7 @@ export class TemplateService {
 
     ////////////////////////////////get stage data
     let stageData;
-    let stage = await this.stageService.getOne(stageId, funnel.userId, userId);
+    let stage = await this.stageService.getOne(stageId, funnel.id, userId);
     //if no stage
     if (!stage) {
       throw new UnprocessableEntityException('Stage not found');

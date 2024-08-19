@@ -13,6 +13,8 @@ import {
 import { TacticEntity } from '../tactic/tactic.entity';
 import { UserRoleEnum } from 'src/enums/user-roles.enum';
 import { DocumentEntity } from 'src/document/document.entity';
+import { FlowEntity } from 'src/flow/flow.entity';
+import { CommentEntity } from 'src/comment/comment.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {
@@ -60,6 +62,14 @@ export class UserEntity {
   @OneToMany(() => FunnelEntity, (funnel) => funnel.user)
   @JoinColumn()
   funnels: FunnelEntity[];
+
+  @OneToMany(() => FlowEntity, (flow) => flow.user)
+  @JoinColumn()
+  flows: FlowEntity[];
+
+  @OneToMany(() => CommentEntity, (comment) => comment.user)
+  @JoinColumn()
+  comments: CommentEntity[];
 
   @OneToMany(() => WorkspaceEntity, (workspace) => workspace.user)
   @JoinColumn()

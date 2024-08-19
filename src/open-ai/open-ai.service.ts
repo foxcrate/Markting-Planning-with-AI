@@ -257,7 +257,7 @@ export class OpenAiService implements OnModuleInit {
       } else {
         theStage = await this.stageService.getOne(
           stageId,
-          theFunnel.userId,
+          theFunnel.id,
           userId,
         );
         theStage = {

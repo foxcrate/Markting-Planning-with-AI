@@ -23,6 +23,8 @@ import { StageModule } from './stage/stage.module';
 import { KpiModule } from './kpi/kpi.module';
 import { TemplateCategoryModule } from './template-category/template-category.module';
 import { DocumentModule } from './document/document.module';
+import { FlowModule } from './flow/flow.module';
+import { CommentModule } from './comment/comment.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -56,6 +58,8 @@ import { DocumentModule } from './document/document.module';
     KpiModule,
     TemplateCategoryModule,
     DocumentModule,
+    FlowModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

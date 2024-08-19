@@ -55,11 +55,7 @@ export class StageController {
   @UseGuards(AuthGuard)
   async get(@Param() params: FunnelIdAndStageIdDto, @UserId() userId: number) {
     let theFunnel = await this.funnelService.getOne(params.funnelId, userId);
-    return await this.stageService.getOne(
-      params.stageId,
-      theFunnel.userId,
-      userId,
-    );
+    return await this.stageService.getOne(params.stageId, theFunnel.id, userId);
   }
 
   @ApiParam({
@@ -89,7 +85,7 @@ export class StageController {
     let theFunnel = await this.funnelService.getOne(params.funnelId, userId);
     return await this.stageService.getStageTactic(
       params.stageId,
-      theFunnel.userId,
+      theFunnel.id,
       params.tacticId,
       userId,
     );
@@ -121,7 +117,7 @@ export class StageController {
     let theFunnel = await this.funnelService.getOne(params.funnelId, userId);
     return await this.stageService.updateStageTacticsOrder(
       params.stageId,
-      theFunnel.userId,
+      theFunnel.id,
       userId,
       body.tactics,
     );

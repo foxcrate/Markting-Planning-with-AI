@@ -10,6 +10,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { StageEntity } from '../stage/stage.entity';
+import { FlowEntity } from 'src/flow/flow.entity';
 
 @Entity({ name: 'funnels' })
 export class FunnelEntity {
@@ -34,6 +35,10 @@ export class FunnelEntity {
   @OneToMany(() => StageEntity, (stage) => stage.funnel)
   @JoinColumn()
   stages: StageEntity[];
+
+  @OneToMany(() => FlowEntity, (flow) => flow.funnel)
+  @JoinColumn()
+  flows: FlowEntity[];
 
   @CreateDateColumn()
   createdAt: Date;
