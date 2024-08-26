@@ -94,19 +94,41 @@ export class StageRepository {
         'theOrder', tactic_step.theOrder
         ))
       END AS steps,
-      CASE WHEN COUNT(kpis.id) = 0 THEN null
-      ELSE
-      JSON_ARRAYAGG(JSON_OBJECT(
-        'id',kpis.id,
-        'name', kpis.name,
-        'unit', kpis.unit,
-        'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency
-        ))
-      END AS kpis
+     (
+        SELECT
+          CASE WHEN COUNT(kpis.id) = 0 THEN null
+          ELSE
+          JSON_ARRAYAGG(
+            JSON_OBJECT(
+              'id',kpis.id,
+              'name', kpis.name,
+              'unit', kpis.unit,
+              'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency,
+              'kpi_entries', (
+                SELECT
+                CASE WHEN COUNT(kpi_entry.id) = 0 THEN null
+                ELSE
+                  JSON_ARRAYAGG(JSON_OBJECT(
+                    'id',kpi_entry.id,
+                    'value', kpi_entry.value,
+                    'date', kpi_entry.date,
+                    'kpiId', kpi_entry.kpiId
+                  ))
+                END
+                FROM kpi_entry
+                WHERE kpi_entry.kpiId = kpis.id
+              )
+            )
+          )
+          END AS kpis
+        FROM
+          kpis
+        WHERE
+          kpis.tacticId = tactics.id
+      ) AS kpis
       FROM tactics
       LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
       LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
-      LEFT JOIN kpis ON kpis.tacticId = tactics.id
       LEFT JOIN users ON users.id = tactics.userId
       WHERE tactics.id = ?
       GROUP BY tactics.id;

@@ -43,9 +43,12 @@ export class DocumentRepository {
     ]);
 
     // loop over documents
+
     for (const document of documents) {
       try {
-        document.requiredData = eval(`(${document.requiredData})`);
+        if (document.requiredData) {
+          document.requiredData = eval(`(${document.requiredData})`);
+        }
         // document.aiResponse = eval(`(${document.aiResponse})`);
       } catch (error) {
         console.error('Parsing error:', error);

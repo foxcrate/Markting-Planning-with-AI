@@ -25,6 +25,7 @@ import { TemplateCategoryModule } from './template-category/template-category.mo
 import { DocumentModule } from './document/document.module';
 import { FlowModule } from './flow/flow.module';
 import { CommentModule } from './comment/comment.module';
+import { StripeModule } from './stripe/stripe.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -60,6 +61,7 @@ import { CommentModule } from './comment/comment.module';
     DocumentModule,
     FlowModule,
     CommentModule,
+    StripeModule,
   ],
   controllers: [AppController],
   providers: [AppService],

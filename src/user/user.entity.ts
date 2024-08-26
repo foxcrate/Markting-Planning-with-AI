@@ -55,6 +55,9 @@ export class UserEntity {
   @Column()
   phoneNumber: string;
 
+  @Column({ nullable: true, default: null })
+  stripeCustomerId: string;
+
   @OneToMany(() => ThreadEntity, (thread) => thread.user)
   @JoinColumn()
   threads: ThreadEntity[];

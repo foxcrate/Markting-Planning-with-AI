@@ -8,6 +8,8 @@ export class UserDto {
   firstName?: string;
   @ApiProperty()
   lastName?: string;
+  @ApiProperty()
+  stripeCustomerId?: string;
   @ApiProperty({ enum: UserRoleEnum })
   type?: UserRoleEnum;
   @ApiProperty()

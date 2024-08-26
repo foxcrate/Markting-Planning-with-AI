@@ -22,7 +22,7 @@ export class AppController {
   @ApiInternalServerErrorResponse()
   @Get()
   getHello(@Req() req): { message: string } {
-    // console.log(req);
+    return { message: 'alo' };
 
     return this.appService.getHello();
   }

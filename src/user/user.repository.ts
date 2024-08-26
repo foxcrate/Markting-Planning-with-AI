@@ -204,6 +204,7 @@ export class UserRepository {
       users.type,
       users.authEmail,
       users.contactEmail,
+      users.stripeCustomerId,
       users.credits,
       users.profilePicture,
       users.phoneNumber,
@@ -217,5 +218,37 @@ export class UserRepository {
     const [theUser] = await this.db.query(query, [userId]);
 
     return theUser;
+  }
+
+  async findAll(): Promise<UserDto[]> {
+    const query = `
+        SELECT
+          users.id,
+          users.firstName,
+          users.lastName,
+          users.type,
+          users.authEmail,
+          users.stripeCustomerId,
+          users.contactEmail,
+          users.credits,
+          users.profilePicture,
+          users.phoneNumber,
+          users.googleId,
+          users.facebookId,
+          users.forgetPasswordOtp
+        FROM users
+      `;
+    const users = await this.db.query(query);
+    return users;
+  }
+
+  async setStripeCustomerId(stripeCustomerId: string, userId: number) {
+    const query = `
+        UPDATE users
+        SET
+        stripeCustomerId = ?
+        WHERE id = ?
+      `;
+    await this.db.query(query, [stripeCustomerId, userId]);
   }
 }
