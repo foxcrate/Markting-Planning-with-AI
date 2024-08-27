@@ -33,6 +33,7 @@ import { TacticKpiEntryCreateDto } from './dtos/tactic-kpi-entry-create.dto';
 import { TacticKpiIdDto } from './dtos/tactic-kpi-id.dto';
 import { TacticKpiEntryUpdateDto } from './dtos/tactic-kpi-entry-update.dto';
 import { TacticKpiEntryDeleteDto } from './dtos/tactic-kpi-entry-delete.dto';
+import { KpiCreateDto } from 'src/kpi/dtos/create.dto';
 
 @Controller({ path: 'tactic', version: '1' })
 export class TacticController {
@@ -56,6 +57,38 @@ export class TacticController {
   @UseGuards(AuthGuard)
   async create(@Body() tacticBody: TacticCreateDto, @UserId() userId: number) {
     return await this.tacticService.create(tacticBody, userId);
+  }
+
+  @ApiParam({
+    name: 'tacticId',
+    required: false,
+  })
+  @ApiBody({
+    type: KpiCreateDto,
+    description:
+      'KpiMeasuringFrequency enum: [ daily, weekly, biWeekly, monthly, quarterly, annually ]',
+  })
+  @ApiCreatedResponse({
+    type: TacticReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Tactic: Create KPI')
+  //
+  @Post('/:tacticId/kpi')
+  @UseGuards(AuthGuard)
+  async createKpi(
+    @Body() kpiBody: KpiCreateDto,
+    @UserId() userId: number,
+    @Param() paramsId: TacticIdDto,
+  ) {
+    return await this.tacticService.createKpi(
+      userId,
+      paramsId.tacticId,
+      kpiBody,
+    );
   }
 
   //get all tactics

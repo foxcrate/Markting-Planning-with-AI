@@ -13,6 +13,7 @@ import { TacticKpiEntryCreateDto } from './dtos/tactic-kpi-entry-create.dto';
 import { KpiService } from 'src/kpi/kpi.service';
 import { TacticKpiEntryUpdateDto } from './dtos/tactic-kpi-entry-update.dto';
 import { TacticKpiEntryDeleteDto } from './dtos/tactic-kpi-entry-delete.dto';
+import { KpiCreateDto } from 'src/kpi/dtos/create.dto';
 
 @Injectable()
 export class TacticService {
@@ -85,6 +86,18 @@ export class TacticService {
     await this.validateKpiBelongToTactic(tacticId, kpiId);
 
     await this.kpiService.createKpiEntry(kpiId, tacticKpiEntryBody);
+
+    return await this.tacticRepository.findById(tacticId);
+  }
+
+  async createKpi(
+    userId: number,
+    tacticId: number,
+    kpiCreateBody: KpiCreateDto,
+  ): Promise<TacticReturnDto> {
+    await this.isOwner(tacticId, userId);
+
+    await this.tacticRepository.addKpi(tacticId, kpiCreateBody);
 
     return await this.tacticRepository.findById(tacticId);
   }

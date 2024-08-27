@@ -59,6 +59,15 @@ export class TacticRepository {
     );
   }
 
+  async addKpi(tacticId: number, kpi: KpiCreateDto) {
+    const query = `
+    INSERT INTO kpis (tacticId,name,unit,kpiMeasuringFrequency) VALUES (?,?,?,?)
+  `;
+    const params = [tacticId, kpi.name, kpi.unit, kpi.kpiMeasuringFrequency];
+
+    await this.db.query(query, params);
+  }
+
   async addSteps(tacticId: number, steps: TacticStepCreateDto[]) {
     let stepsArray = [];
     for (let i = 0; i < steps.length; i++) {

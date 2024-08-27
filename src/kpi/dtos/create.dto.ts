@@ -9,6 +9,7 @@ export class KpiCreateDto {
   name: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
   unit: string;
 
