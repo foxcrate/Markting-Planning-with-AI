@@ -22,6 +22,8 @@ export class AuthUserDto {
   @ApiProperty()
   profilePicture?: string;
   @ApiProperty()
+  roleId?: number;
+  @ApiProperty()
   googleId?: string;
   @ApiProperty()
   facebookId?: string;

@@ -206,6 +206,7 @@ export class UserRepository {
       users.contactEmail,
       users.stripeCustomerId,
       users.credits,
+      users.roleId,
       users.profilePicture,
       users.phoneNumber,
       users.googleId,
@@ -233,6 +234,7 @@ export class UserRepository {
           users.credits,
           users.profilePicture,
           users.phoneNumber,
+          users.roleId,
           users.googleId,
           users.facebookId,
           users.forgetPasswordOtp

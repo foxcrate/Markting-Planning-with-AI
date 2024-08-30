@@ -10,9 +10,10 @@ export class TemplateCategoryRepository {
   async getAll(): Promise<any> {
     const query = `
       SELECT
-      template_category.id,
-      template_category.name
-      FROM template_category
+        template_category.id,
+        template_category.name
+      FROM
+        template_category
     `;
     let templateCategories = await this.db.query(query);
 
@@ -21,7 +22,12 @@ export class TemplateCategoryRepository {
 
   async create(reqBody: TemplateCategoryCreateDto) {
     const query = `
-    INSERT INTO template_category (name) VALUES (?)
+    INSERT
+    INTO
+    template_category
+      (name)
+    VALUES
+      (?)
   `;
 
     let { insertId } = await this.db.query(query, [reqBody.name]);

@@ -9,12 +9,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToOne,
 } from 'typeorm';
 import { TacticEntity } from '../tactic/tactic.entity';
 import { UserRoleEnum } from 'src/enums/user-roles.enum';
 import { DocumentEntity } from 'src/document/document.entity';
 import { FlowEntity } from 'src/flow/flow.entity';
 import { CommentEntity } from 'src/comment/comment.entity';
+import { RoleEntity } from 'src/role/role.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {
@@ -57,6 +59,16 @@ export class UserEntity {
 
   @Column({ nullable: true, default: null })
   stripeCustomerId: string;
+
+  @Column({ nullable: true, default: null })
+  roleId: number | null;
+
+  @ManyToOne(() => RoleEntity, (role) => role.users, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'roleId' })
+  role: RoleEntity;
 
   @OneToMany(() => ThreadEntity, (thread) => thread.user)
   @JoinColumn()

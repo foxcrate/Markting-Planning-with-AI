@@ -23,7 +23,7 @@ export class RoleGuard implements CanActivate {
     }
     const request = context.switchToHttp().getRequest();
     const authType = request['authType'];
-    // console.log({ authType });
+    // console.log(request);
 
     let accepted = this.matchRoles(roles, authType);
     // console.log('roles:', roles);

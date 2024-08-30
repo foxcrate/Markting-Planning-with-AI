@@ -120,6 +120,7 @@ export class AuthService {
         ...restProperties,
         userOnboarded: await this.userService.userOnboarded(restProperties.id),
       };
+
       return {
         user: user,
         token: this.createNormalToken(user),

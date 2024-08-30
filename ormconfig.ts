@@ -18,6 +18,7 @@ import { TemplateCategoryEntity } from 'src/template-category/template-category.
 import { DocumentEntity } from 'src/document/document.entity';
 import { FlowEntity } from 'src/flow/flow.entity';
 import { CommentEntity } from 'src/comment/comment.entity';
+import { RoleEntity } from 'src/role/role.entity';
 require('dotenv').config({
   path: `${process.env.NODE_ENV ? process.env.NODE_ENV : ''}.env`,
 });
@@ -49,6 +50,7 @@ export const typeOrmDbConfig: TypeOrmModuleOptions = {
     DocumentEntity,
     FlowEntity,
     CommentEntity,
+    RoleEntity,
   ],
   //migrations: [__dirname + '/migrations/**/*'],
   //migrationsTableName: 'migrations',

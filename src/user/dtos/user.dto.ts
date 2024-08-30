@@ -23,6 +23,8 @@ export class UserDto {
   @ApiProperty()
   forgetPasswordOtp?: string;
   @ApiProperty()
+  roleId?: number;
+  @ApiProperty()
   credits?: number;
   @ApiProperty()
   profilePicture?: string;
