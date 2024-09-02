@@ -21,4 +21,9 @@ export class UsersPermissionsDto {
   @IsNotEmpty()
   @IsBoolean()
   delete: boolean;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsBoolean()
+  block: boolean;
 }

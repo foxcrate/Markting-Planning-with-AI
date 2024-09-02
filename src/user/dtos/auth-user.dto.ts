@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { UserRoleDto } from './user-role.dto';
 
 export class AuthUserDto {
   @ApiProperty()
@@ -8,21 +9,22 @@ export class AuthUserDto {
   @ApiProperty()
   lastName?: string;
   @ApiProperty()
+  blocked?: boolean;
+  @ApiProperty()
   authEmail?: string;
   @ApiProperty()
   contactEmail?: string;
   @ApiProperty()
-  password?: string;
-  @ApiProperty()
   phoneNumber?: string;
-  @ApiProperty()
-  forgetPasswordOtp?: string;
   @ApiProperty()
   credits?: number;
   @ApiProperty()
   profilePicture?: string;
   @ApiProperty()
   roleId?: number;
+
+  @ApiProperty({ type: UserRoleDto })
+  role?: UserRoleDto;
   @ApiProperty()
   googleId?: string;
   @ApiProperty()

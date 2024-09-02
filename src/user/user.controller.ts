@@ -31,6 +31,28 @@ import { MessageReturnDto } from '../dtos/message-return.dto';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  // @ApiBody({ type: ChangePhoneNumberDto })
+  // @ApiCreatedResponse({
+  //   type: MessageReturnDto,
+  // })
+  // @ApiUnprocessableEntityResponse({
+  //   type: ErrorResponseDto,
+  // })
+  // @ApiBearerAuth()
+  // @ApiTags('User: Admin: Create')
+  // @Post('change/phone-number')
+  // @UseGuards(AuthGuard)
+  // async create(
+  //   @Body() changePhoneNumberBody: ChangePhoneNumberDto,
+  //   @UserId() userId: number,
+  // ) {
+  //   return this.userService.changePhoneNumber(
+  //     changePhoneNumberBody.phoneNumber,
+  //     changePhoneNumberBody.newPhoneNumber,
+  //     userId,
+  //   );
+  // }
+
   @ApiBody({
     schema: {
       type: 'object',
@@ -61,7 +83,7 @@ export class UserController {
     @Body() UpdateProfileBody: UpdateProfileDto,
     @UserId() userId: number,
   ) {
-    return this.userService.update(UpdateProfileBody, userId);
+    return this.userService.userUpdate(UpdateProfileBody, userId);
   }
 
   @ApiCreatedResponse({

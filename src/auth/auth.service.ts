@@ -115,7 +115,7 @@ export class AuthService {
       if (!theUser) {
         throw new NotFoundException('User not found');
       }
-      const { password, ...restProperties } = theUser;
+      const restProperties = theUser;
       let user = {
         ...restProperties,
         userOnboarded: await this.userService.userOnboarded(restProperties.id),
@@ -137,9 +137,14 @@ export class AuthService {
       // throw new HttpException('Forbidden', HttpStatus.SEE_OTHER);
     }
 
+    //check blocked user
+    if (theUser.blocked) {
+      throw new UnauthorizedException('User is blocked');
+    }
+
     await this.otpService.verifyFirebaseOTP(signIn.phoneNumber);
 
-    const { password, ...restProperties } = theUser;
+    const restProperties = theUser;
     let user = {
       ...restProperties,
       userOnboarded: await this.userService.userOnboarded(restProperties.id),
@@ -168,7 +173,7 @@ export class AuthService {
       ...signUp,
     });
 
-    const { password, ...restProperties } = createdUser;
+    const restProperties = createdUser;
     // let user = restProperties;
     let user = {
       ...restProperties,
@@ -293,7 +298,7 @@ export class AuthService {
       facebookId: socialSignUp.facebookId,
     });
 
-    const { password, ...restProperties } = createdUser;
+    const restProperties = createdUser;
     // let user = restProperties;
     let user = {
       ...restProperties,
@@ -343,7 +348,7 @@ export class AuthService {
       userId,
     );
 
-    const { password, ...restProperties } = updatesUser;
+    const restProperties = updatesUser;
     // let user = restProperties;
     let user = {
       ...restProperties,
@@ -378,7 +383,12 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    const { password, ...restProperties } = theUser;
+    //check blocked user
+    if (theUser.blocked) {
+      throw new UnauthorizedException('User is blocked');
+    }
+
+    const restProperties = theUser;
 
     let newUser = {
       ...restProperties,
@@ -430,7 +440,7 @@ export class AuthService {
       connectSocial.mobileNumber,
     );
 
-    const { password, ...restProperties } = updatedUser;
+    const restProperties = updatedUser;
     let user = restProperties;
 
     let newUser = {

@@ -29,6 +29,9 @@ export class UserEntity {
   @Column({ nullable: true })
   lastName: string;
 
+  @Column({ default: false })
+  blocked: boolean;
+
   @Column({
     type: 'enum',
     enum: UserRoleEnum,
@@ -45,14 +48,8 @@ export class UserEntity {
   @Column({ nullable: true })
   profilePicture: string;
 
-  @Column({ nullable: true })
-  password: string;
-
   @Column({ default: 0 })
   credits: number;
-
-  @Column({ nullable: true })
-  forgetPasswordOtp: string;
 
   @Column()
   phoneNumber: string;

@@ -4,6 +4,7 @@ export const PermissionDictionary = {
     read: 'users.read',
     update: 'users.update',
     delete: 'users.delete',
+    block: 'users.block',
   },
   funnels: {
     create: 'funnels.create',
