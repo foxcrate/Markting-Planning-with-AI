@@ -5,6 +5,7 @@ import { FunnelsPermissionsDto } from './permissions-dtos/funnels-permissions.dt
 import { Type } from 'class-transformer';
 import { TacticsPermissionsDto } from './permissions-dtos/tactics-permissions.dto';
 import { FlowsPermissionsDto } from './permissions-dtos/flows-permissions.dto';
+import { LogsPermissionsDto } from './permissions-dtos/logs-permissions.dto';
 
 export class PermissionsCreateDto {
   @ApiProperty({ type: UsersPermissionsDto })
@@ -14,24 +15,31 @@ export class PermissionsCreateDto {
   @Type(() => UsersPermissionsDto)
   users: UsersPermissionsDto;
 
-  @ApiProperty({ type: FunnelsPermissionsDto })
+  @ApiProperty({ type: LogsPermissionsDto })
   @IsNotEmpty()
   @ValidateNested()
   @IsObject()
-  @Type(() => FunnelsPermissionsDto)
-  funnels: FunnelsPermissionsDto;
+  @Type(() => LogsPermissionsDto)
+  logs: LogsPermissionsDto;
 
-  @ApiProperty({ type: TacticsPermissionsDto })
-  @IsNotEmpty()
-  @ValidateNested()
-  @IsObject()
-  @Type(() => TacticsPermissionsDto)
-  tactics: TacticsPermissionsDto;
+  // @ApiProperty({ type: FunnelsPermissionsDto })
+  // @IsNotEmpty()
+  // @ValidateNested()
+  // @IsObject()
+  // @Type(() => FunnelsPermissionsDto)
+  // funnels: FunnelsPermissionsDto;
 
-  @ApiProperty({ type: FlowsPermissionsDto })
-  @IsNotEmpty()
-  @ValidateNested()
-  @IsObject()
-  @Type(() => FlowsPermissionsDto)
-  flows: FlowsPermissionsDto;
+  // @ApiProperty({ type: TacticsPermissionsDto })
+  // @IsNotEmpty()
+  // @ValidateNested()
+  // @IsObject()
+  // @Type(() => TacticsPermissionsDto)
+  // tactics: TacticsPermissionsDto;
+
+  // @ApiProperty({ type: FlowsPermissionsDto })
+  // @IsNotEmpty()
+  // @ValidateNested()
+  // @IsObject()
+  // @Type(() => FlowsPermissionsDto)
+  // flows: FlowsPermissionsDto;
 }

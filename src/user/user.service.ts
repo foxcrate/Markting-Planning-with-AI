@@ -16,6 +16,9 @@ import { UserCreateForAdminDto } from './dtos/admin/user-create-for-admin.dto';
 import { UserRoleEnum } from 'src/enums/user-roles.enum';
 import { RoleService } from 'src/role/role.service';
 import { UserUpdateForAdminDto } from './dtos/admin/user-update-for-admin.dto';
+import { LogService } from 'src/log/log.service';
+import { LogEntityEnum } from 'src/enums/log-entity.enum';
+import { LogOperationEnum } from 'src/enums/log-operation.enum';
 
 @Injectable()
 export class UserService {
@@ -24,6 +27,7 @@ export class UserService {
     private readonly workspaceService: WorkspaceService,
     private readonly otpService: OtpService,
     private readonly roleService: RoleService,
+    private readonly logService: LogService,
   ) {}
   async userUpdate(
     UpdateProfileBody: UpdateProfileDto,
@@ -150,6 +154,18 @@ export class UserService {
 
     let createdUser = await this.userRepository.create(reqBody);
 
+    await this.logService.create(
+      {
+        entity: LogEntityEnum.USER,
+        entityId: createdUser.id,
+        operation: LogOperationEnum.CREATE,
+        oldObject: null,
+        newObject: createdUser,
+        changesObject: null,
+      },
+      adminId,
+    );
+
     return createdUser;
   }
 
@@ -210,6 +226,18 @@ export class UserService {
 
     let updatedUser = await this.userRepository.update(reqBody, userId);
 
+    await this.logService.create(
+      {
+        entity: LogEntityEnum.USER,
+        entityId: userId,
+        operation: LogOperationEnum.UPDATE,
+        oldObject: theChangedUser,
+        newObject: updatedUser,
+        changesObject: reqBody,
+      },
+      adminId,
+    );
+
     return updatedUser;
   }
 
@@ -227,6 +255,18 @@ export class UserService {
     let deletedUser = await this.userRepository.findById(userId);
 
     await this.userRepository.delete(userId);
+
+    await this.logService.create(
+      {
+        entity: LogEntityEnum.USER,
+        entityId: deletedUser.id,
+        operation: LogOperationEnum.DELETE,
+        oldObject: deletedUser,
+        newObject: null,
+        changesObject: null,
+      },
+      adminId,
+    );
 
     return deletedUser;
   }
@@ -257,6 +297,18 @@ export class UserService {
     }
 
     let theUpdatedUser = await this.userRepository.findById(userId);
+
+    await this.logService.create(
+      {
+        entity: LogEntityEnum.USER,
+        entityId: theUpdatedUser.id,
+        operation: LogOperationEnum.UPDATE,
+        oldObject: theBlockedUser,
+        newObject: theUpdatedUser,
+        changesObject: { blocked: false },
+      },
+      adminId,
+    );
 
     return theUpdatedUser;
   }

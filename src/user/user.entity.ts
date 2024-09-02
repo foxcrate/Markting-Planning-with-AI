@@ -17,6 +17,7 @@ import { DocumentEntity } from 'src/document/document.entity';
 import { FlowEntity } from 'src/flow/flow.entity';
 import { CommentEntity } from 'src/comment/comment.entity';
 import { RoleEntity } from 'src/role/role.entity';
+import { LogEntity } from 'src/log/log.entity';
 
 @Entity({ name: 'users' })
 export class UserEntity {
@@ -70,6 +71,10 @@ export class UserEntity {
   @OneToMany(() => ThreadEntity, (thread) => thread.user)
   @JoinColumn()
   threads: ThreadEntity[];
+
+  @OneToMany(() => LogEntity, (log) => log.admin)
+  @JoinColumn()
+  logs: LogEntity[];
 
   @OneToMany(() => FunnelEntity, (funnel) => funnel.user)
   @JoinColumn()
