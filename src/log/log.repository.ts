@@ -3,6 +3,7 @@ import { DB_PROVIDER } from 'src/db/constants';
 import { Pool } from 'mariadb';
 import { LogCreateDto } from './dtos/log-create.dto';
 import { LogReturnDto } from './dtos/log-return.dto';
+import { PaginationDto } from 'src/dtos/pagination.dto';
 
 @Injectable()
 export class LogRepository {
@@ -58,8 +59,9 @@ export class LogRepository {
     return log;
   }
 
-  async findAll(): Promise<LogReturnDto[]> {
-    const query = `
+  async findAll(pagination: PaginationDto): Promise<LogReturnDto[]> {
+    let queryParameters = [];
+    const queryStart = `
     SELECT
         logs.id,
         logs.entity,
@@ -79,7 +81,17 @@ export class LogRepository {
         logs
     LEFT JOIN users ON logs.adminId = users.id
     `;
-    let logs = await this.db.query(query);
+
+    let paginationQuery = ``;
+    if (pagination) {
+      paginationQuery = `LIMIT ? OFFSET ?`;
+      queryParameters = [pagination.limit, pagination.offset];
+    }
+
+    let logs = await this.db.query(
+      queryStart + paginationQuery,
+      queryParameters,
+    );
 
     return logs;
   }

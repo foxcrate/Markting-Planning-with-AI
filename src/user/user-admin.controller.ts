@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
@@ -16,6 +17,7 @@ import {
   ApiBody,
   ApiCreatedResponse,
   ApiParam,
+  ApiQuery,
   ApiTags,
   ApiUnprocessableEntityResponse,
 } from '@nestjs/swagger';
@@ -27,6 +29,7 @@ import { UserIdDto } from './dtos/userId.dto';
 import { PermissionsGuard } from 'src/gurads/permissions.guard';
 import { PermissionDictionary } from 'src/role/permission.dictionary';
 import { Permissions } from 'src/decorators/permissions.decorator';
+import { PaginationGuard } from 'src/gurads/pagination.guard';
 
 @Controller({ path: 'admin/user', version: '1' })
 export class UserAdminController {
@@ -128,6 +131,14 @@ export class UserAdminController {
     return this.userService.adminBlock(paramsId.userId, adminId);
   }
 
+  @ApiQuery({
+    name: 'page',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+  })
   @ApiCreatedResponse({
     type: UserDto,
   })
@@ -138,8 +149,8 @@ export class UserAdminController {
   @ApiTags('User: Admin: GetAll')
   @Get('')
   @Permissions(PermissionDictionary.users.read)
-  @UseGuards(AuthGuard, PermissionsGuard)
-  async AdminGetAll(@UserId() adminId: number) {
-    return this.userService.adminGetAll(adminId);
+  @UseGuards(AuthGuard, PermissionsGuard, PaginationGuard)
+  async AdminGetAll(@Req() request: any, @UserId() adminId: number) {
+    return this.userService.adminGetAll(request.pagination, adminId);
   }
 }

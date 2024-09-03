@@ -19,6 +19,7 @@ import { UserUpdateForAdminDto } from './dtos/admin/user-update-for-admin.dto';
 import { LogService } from 'src/log/log.service';
 import { LogEntityEnum } from 'src/enums/log-entity.enum';
 import { LogOperationEnum } from 'src/enums/log-operation.enum';
+import { PaginationDto } from 'src/dtos/pagination.dto';
 
 @Injectable()
 export class UserService {
@@ -277,8 +278,11 @@ export class UserService {
     return theDesiredUser;
   }
 
-  async adminGetAll(adminId: number): Promise<UserDto[]> {
-    let allUsers = await this.userRepository.findAll();
+  async adminGetAll(
+    pagination: PaginationDto,
+    adminId: number,
+  ): Promise<UserDto[]> {
+    let allUsers = await this.userRepository.findAll(pagination);
 
     return allUsers;
   }

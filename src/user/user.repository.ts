@@ -4,6 +4,7 @@ import { DB_PROVIDER } from 'src/db/constants';
 import { Pool } from 'mariadb';
 import { UpdateSocialDto } from 'src/auth/dtos/update-social.dto';
 import { UserRoleEnum } from 'src/enums/user-roles.enum';
+import { PaginationDto } from 'src/dtos/pagination.dto';
 
 @Injectable()
 export class UserRepository {
@@ -371,8 +372,9 @@ export class UserRepository {
     return theUser;
   }
 
-  async findAll(): Promise<UserDto[]> {
-    const query = `
+  async findAll(pagination: PaginationDto): Promise<UserDto[]> {
+    let queryParameters = [];
+    const queryStart = `
         SELECT
           users.id,
           users.firstName,
@@ -399,7 +401,17 @@ export class UserRepository {
         FROM users
         LEFT JOIN roles ON users.roleId = roles.id
       `;
-    const users = await this.db.query(query);
+
+    let paginationQuery = ``;
+    if (pagination) {
+      paginationQuery = `LIMIT ? OFFSET ?`;
+      queryParameters = [pagination.limit, pagination.offset];
+    }
+
+    const users = await this.db.query(
+      queryStart + paginationQuery,
+      queryParameters,
+    );
     return users;
   }
 

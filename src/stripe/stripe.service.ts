@@ -30,7 +30,7 @@ export class StripeService {
   }
 
   async createCustomerIdForAllUsers() {
-    let allUsers: any[] = await this.userRepository.findAll();
+    let allUsers: any[] = await this.userRepository.findAll(null);
     allUsers.forEach(async (user) => {
       const customer = await this.stripe.customers.create({
         email: user.contactEmail,
