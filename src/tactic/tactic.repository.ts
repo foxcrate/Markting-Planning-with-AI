@@ -8,6 +8,8 @@ import { Pool } from 'mariadb';
 import { GetMineFilterDto } from './dtos/get-mine-filter.dto';
 import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 import { KpiCreateDto } from 'src/kpi/dtos/create.dto';
+import { PaginationDto } from 'src/dtos/pagination.dto';
+import { TacticDto } from './dtos/tactic.dto';
 
 @Injectable()
 export class TacticRepository {
@@ -123,6 +125,7 @@ export class TacticRepository {
     tactics.name,
     tactics.description,
     tactics.private,
+    tactics.hidden,
     tactics.userId,
     CASE WHEN COUNT(users.id) = 0 THEN null
     ELSE
@@ -198,6 +201,8 @@ export class TacticRepository {
     WHERE tactics.userId = ?
     AND
     tactics.instance = false
+    AND
+    tactics.hidden = false 
     
   `;
     let filter = ``;
@@ -219,17 +224,16 @@ export class TacticRepository {
 
   //update global_stage
   async update(
-    updateBody: TacticUpdateDto,
+    updateBody: TacticDto,
     tacticId: number,
   ): Promise<TacticReturnDto> {
-    // updateBody.stages[0].
-    console.log(updateBody);
     const query = `
       UPDATE tactics
       SET
       name = IFNULL(?,tactics.name),
       description = IFNULL(?,tactics.description),
       private = IFNULL(?,tactics.private),
+      hidden = IFNULL(?,tactics.hidden),
       globalStageId = IFNULL(?,tactics.globalStageId)
       WHERE id = ?
     `;
@@ -237,6 +241,7 @@ export class TacticRepository {
       updateBody.name,
       updateBody.description,
       updateBody.private,
+      updateBody.hidden,
       updateBody.globalStageId,
       tacticId,
     ]);
@@ -264,6 +269,7 @@ export class TacticRepository {
       tactics.name,
       tactics.description,
       tactics.private,
+      tactics.hidden,
       tactics.userId,
       CASE WHEN COUNT(users.id) = 0 THEN null
       ELSE
@@ -271,7 +277,8 @@ export class TacticRepository {
         'id',users.id,
         'firstName', users.firstName,
         'lastName', users.lastName,
-        'profilePicture', users.profilePicture
+        'profilePicture', users.profilePicture,
+        'type', users.type
       )
       END AS user,
       CASE WHEN COUNT(global_stages.id) = 0 THEN null
@@ -337,12 +344,17 @@ export class TacticRepository {
   }
 
   //find all tactics
-  async findAll(filterOptions: GetAllFilterDto): Promise<TacticReturnDto[]> {
+  async findAll(
+    filterOptions: GetAllFilterDto,
+    pagination: PaginationDto,
+  ): Promise<TacticReturnDto[]> {
+    let queryParameters = [];
     const queryStart = `
     SELECT tactics.id,
     tactics.name,
     tactics.description,
     tactics.private,
+    tactics.hidden,
     tactics.userId,
     CASE WHEN COUNT(users.id) = 0 THEN null
     ELSE
@@ -350,7 +362,8 @@ export class TacticRepository {
       'id',users.id,
       'firstName', users.firstName,
       'lastName', users.lastName,
-      'profilePicture', users.profilePicture
+      'profilePicture', users.profilePicture,
+      'type', users.type
     )
     END AS user,
     CASE WHEN COUNT(global_stages.id) = 0 THEN null
@@ -410,6 +423,8 @@ export class TacticRepository {
     WHERE tactics.private = false 
     AND
     tactics.instance = false
+    AND
+    tactics.hidden = false
     
   `;
 
@@ -422,12 +437,22 @@ export class TacticRepository {
       filter =
         filter + ` AND global_stages.name = '${filterOptions.globalStage}' `;
     }
-    let queryEnd = `GROUP BY tactics.id`;
+
+    let paginationQuery = ``;
+    if (pagination) {
+      paginationQuery = `LIMIT ? OFFSET ?`;
+      queryParameters = [pagination.limit, pagination.offset];
+    }
+
+    let queryEnd = `GROUP BY tactics.id `;
 
     // console.log(queryStart + filter + queryEnd);
     // console.log('---------------------------------');
 
-    return await this.db.query(queryStart + filter + queryEnd);
+    return await this.db.query(
+      queryStart + filter + queryEnd + paginationQuery,
+      queryParameters,
+    );
   }
 
   //delete global_stage

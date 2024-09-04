@@ -29,6 +29,9 @@ export class TacticEntity {
   private: boolean;
 
   @Column({ type: 'boolean', default: false })
+  hidden: boolean;
+
+  @Column({ type: 'boolean', default: false })
   instance: boolean;
 
   @Column({ type: 'boolean', default: false })

@@ -1,26 +1,26 @@
 import {
   ArrayNotEmpty,
   IsArray,
-  IsBoolean,
+  IsNotEmpty,
   IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { TacticStepCreateDto } from './tactic-step-create.dto';
+import { TacticStepCreateDto } from '.././tactic-step-create.dto';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { Transform, Type } from 'class-transformer';
 import { KpiCreateDto } from 'src/kpi/dtos/create.dto';
 
-export class TacticUpdateDto {
+export class TacticCreateForAdminDto {
   @ApiProperty()
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  name?: string;
+  name: string;
 
   @ApiProperty()
-  @IsOptional()
+  @IsNotEmpty()
   @IsString()
-  description?: string;
+  description: string;
 
   @ApiProperty({
     type: KpiCreateDto,
@@ -31,16 +31,11 @@ export class TacticUpdateDto {
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => KpiCreateDto)
-  kpis?: KpiCreateDto[];
+  kpis: KpiCreateDto[];
 
   @ApiProperty()
-  @IsBoolean()
-  @IsOptional()
-  private?: boolean;
-
-  @ApiProperty()
-  @IsOptional()
-  globalStageId?: number;
+  @IsNotEmpty()
+  globalStageId: number;
 
   @ApiProperty({
     type: TacticStepCreateDto,
@@ -51,5 +46,5 @@ export class TacticUpdateDto {
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => TacticStepCreateDto)
-  steps?: TacticStepCreateDto[];
+  steps: TacticStepCreateDto[];
 }

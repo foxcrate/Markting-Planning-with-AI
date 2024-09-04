@@ -25,7 +25,12 @@ async function bootstrap() {
     type: VersioningType.URI,
   });
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   await app.register(require('@fastify/static'), {

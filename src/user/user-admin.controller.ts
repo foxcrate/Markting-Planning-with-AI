@@ -113,24 +113,6 @@ export class UserAdminController {
     return this.userService.adminGetOne(paramsId.userId, adminId);
   }
 
-  @ApiParam({
-    name: 'userId',
-  })
-  @ApiCreatedResponse({
-    type: UserDto,
-  })
-  @ApiUnprocessableEntityResponse({
-    type: ErrorResponseDto,
-  })
-  @ApiBearerAuth()
-  @ApiTags('User: Admin: Block')
-  @Put('/:userId/block')
-  @Permissions(PermissionDictionary.users.block)
-  @UseGuards(AuthGuard, PermissionsGuard)
-  async AdminBlock(@Param() paramsId: UserIdDto, @UserId() adminId: number) {
-    return this.userService.adminBlock(paramsId.userId, adminId);
-  }
-
   @ApiQuery({
     name: 'page',
     required: false,
@@ -152,5 +134,23 @@ export class UserAdminController {
   @UseGuards(AuthGuard, PermissionsGuard, PaginationGuard)
   async AdminGetAll(@Req() request: any, @UserId() adminId: number) {
     return this.userService.adminGetAll(request.pagination, adminId);
+  }
+
+  @ApiParam({
+    name: 'userId',
+  })
+  @ApiCreatedResponse({
+    type: UserDto,
+  })
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('User: Admin: Block')
+  @Put('/:userId/block')
+  @Permissions(PermissionDictionary.users.block)
+  @UseGuards(AuthGuard, PermissionsGuard)
+  async AdminBlock(@Param() paramsId: UserIdDto, @UserId() adminId: number) {
+    return this.userService.adminBlock(paramsId.userId, adminId);
   }
 }

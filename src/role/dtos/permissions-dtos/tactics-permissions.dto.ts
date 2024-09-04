@@ -21,4 +21,9 @@ export class TacticsPermissionsDto {
   @IsNotEmpty()
   @IsBoolean()
   delete: boolean;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsBoolean()
+  hide: boolean;
 }

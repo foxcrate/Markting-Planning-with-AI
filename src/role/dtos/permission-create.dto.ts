@@ -29,12 +29,12 @@ export class PermissionsCreateDto {
   // @Type(() => FunnelsPermissionsDto)
   // funnels: FunnelsPermissionsDto;
 
-  // @ApiProperty({ type: TacticsPermissionsDto })
-  // @IsNotEmpty()
-  // @ValidateNested()
-  // @IsObject()
-  // @Type(() => TacticsPermissionsDto)
-  // tactics: TacticsPermissionsDto;
+  @ApiProperty({ type: TacticsPermissionsDto })
+  @IsNotEmpty()
+  @ValidateNested()
+  @IsObject()
+  @Type(() => TacticsPermissionsDto)
+  tactics: TacticsPermissionsDto;
 
   // @ApiProperty({ type: FlowsPermissionsDto })
   // @IsNotEmpty()

@@ -3,9 +3,10 @@ import { TacticService } from './tactic.service';
 import { TacticController } from './tactic.controller';
 import { TacticRepository } from './tactic.repository';
 import { KpiModule } from 'src/kpi/kpi.module';
+import { TacticAdminController } from './tactic-admin.controller';
 
 @Module({
-  controllers: [TacticController],
+  controllers: [TacticController, TacticAdminController],
   providers: [TacticService, TacticRepository],
   exports: [TacticService],
   imports: [KpiModule],

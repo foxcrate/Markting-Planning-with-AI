@@ -9,4 +9,11 @@ export const PermissionDictionary = {
   logs: {
     read: 'logs.read',
   },
+  tactics: {
+    create: 'tactics.create',
+    read: 'tactics.read',
+    update: 'tactics.update',
+    delete: 'tactics.delete',
+    hide: 'tactics.hide',
+  },
 };
