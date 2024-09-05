@@ -1,9 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UserDto } from './dtos/user.dto';
-import { UpdateProfileDto } from './dtos/update-profile-dto';
 import { DB_PROVIDER } from 'src/db/constants';
 import { Pool } from 'mariadb';
 import { UpdateSocialDto } from 'src/auth/dtos/update-social.dto';
+import { UserRoleEnum } from 'src/enums/user-roles.enum';
+import { PaginationDto } from 'src/dtos/pagination.dto';
 
 @Injectable()
 export class UserRepository {
@@ -14,7 +15,31 @@ export class UserRepository {
     facebookId: string,
   ): Promise<UserDto> {
     const query = `
-        SELECT * FROM users
+        SELECT
+          users.id,
+          users.firstName,
+          users.lastName,
+          users.blocked,
+          users.type,
+          users.authEmail,
+          users.contactEmail,
+          users.stripeCustomerId,
+          users.credits,
+          users.roleId,
+          users.profilePicture,
+          users.phoneNumber,
+          users.googleId,
+          users.facebookId,
+          CASE WHEN roles.id is null THEN null
+          ELSE
+          JSON_OBJECT(
+            'id',roles.id,
+            'name', roles.name,
+            'permissions', JSON_EXTRACT(roles.permissions,'$')
+          )
+          END AS role
+        FROM users
+        LEFT JOIN roles ON users.roleId = roles.id
         WHERE (googleId = ? OR facebookId = ?)
       `;
     let users = await this.db.query(query, [googleId, facebookId]);
@@ -25,7 +50,31 @@ export class UserRepository {
 
   async findUsersByGoogleId(googleId): Promise<UserDto> {
     const query = `
-        SELECT * FROM users
+        SELECT
+          users.id,
+          users.firstName,
+          users.lastName,
+          users.blocked,
+          users.type,
+          users.authEmail,
+          users.contactEmail,
+          users.stripeCustomerId,
+          users.credits,
+          users.roleId,
+          users.profilePicture,
+          users.phoneNumber,
+          users.googleId,
+          users.facebookId,
+          CASE WHEN roles.id is null THEN null
+          ELSE
+          JSON_OBJECT(
+            'id',roles.id,
+            'name', roles.name,
+            'permissions', JSON_EXTRACT(roles.permissions,'$')
+          )
+          END AS role
+        FROM users
+        LEFT JOIN roles ON users.roleId = roles.id
         WHERE googleId = ?
       `;
     let users = await this.db.query(query, [googleId]);
@@ -36,7 +85,31 @@ export class UserRepository {
 
   async findUsersByFacebookId(facebookId): Promise<UserDto[]> {
     const query = `
-        SELECT * FROM users
+        SELECT
+          users.id,
+          users.firstName,
+          users.lastName,
+          users.blocked,
+          users.type,
+          users.authEmail,
+          users.contactEmail,
+          users.stripeCustomerId,
+          users.credits,
+          users.roleId,
+          users.profilePicture,
+          users.phoneNumber,
+          users.googleId,
+          users.facebookId,
+          CASE WHEN roles.id is null THEN null
+          ELSE
+          JSON_OBJECT(
+            'id',roles.id,
+            'name', roles.name,
+            'permissions', JSON_EXTRACT(roles.permissions,'$')
+          )
+          END AS role
+        FROM users
+        LEFT JOIN roles ON users.roleId = roles.id
         WHERE facebookId = ?
       `;
     let users = this.db.query(query, [facebookId]);
@@ -47,24 +120,30 @@ export class UserRepository {
     const {
       firstName,
       lastName,
+      type,
+      profilePicture,
+      credits,
+      roleId,
       authEmail,
       contactEmail,
-      password,
       phoneNumber,
       googleId,
       facebookId,
     } = user;
 
     const query = `
-      INSERT INTO users (firstName, lastName, authEmail,contactEmail, phoneNumber, password${googleId ? ', googleId' : ''}${facebookId ? ', facebookId' : ''}) VALUES (?, ?,?, ?, ?, ?${googleId ? ', ?' : ''}${facebookId ? ', ?' : ''})
+      INSERT INTO users (firstName, lastName, type,profilePicture,credits,roleId,authEmail,contactEmail, phoneNumber${googleId ? ', googleId' : ''}${facebookId ? ', facebookId' : ''}) VALUES (?, ?,?,?,?,?, ?, ?, ?${googleId ? ', ?' : ''}${facebookId ? ', ?' : ''})
     `;
     const params = [
       firstName,
       lastName,
+      type ? type : UserRoleEnum.CUSTOMER,
+      profilePicture,
+      credits ? credits : 0,
+      roleId,
       authEmail,
       contactEmail,
       phoneNumber,
-      password,
     ];
     if (googleId) {
       params.push(googleId);
@@ -79,27 +158,39 @@ export class UserRepository {
     return await this.findById(createdUser.insertId);
   }
 
-  async update(UpdateProfileBody: UpdateProfileDto, userId: number) {
+  async update(updatedUser: UserDto, userId: number): Promise<UserDto> {
     // updateBody.stages[0].
     const query = `
         UPDATE users
         SET
         firstName = IFNULL(?,users.firstName),
         lastName = IFNULL(?,users.lastName),
-        profilePicture = IFNULL(?,users.profilePicture)
+        blocked = IFNULL(?,users.blocked),
+        profilePicture = IFNULL(?,users.profilePicture),
+        type = IFNULL(?,users.type),
+        contactEmail = IFNULL(?,users.contactEmail),
+        credits = IFNULL(?,users.credits),
+        phoneNumber = IFNULL(?,users.phoneNumber),
+        roleId = IFNULL(?,users.roleId)
         WHERE id = ?
       `;
     await this.db.query(query, [
-      UpdateProfileBody.firstName,
-      UpdateProfileBody.lastName,
-      UpdateProfileBody.profilePicture,
+      updatedUser.firstName,
+      updatedUser.lastName,
+      updatedUser.blocked,
+      updatedUser.profilePicture,
+      updatedUser.type,
+      updatedUser.contactEmail,
+      updatedUser.credits,
+      updatedUser.phoneNumber,
+      updatedUser.roleId,
       userId,
     ]);
 
     return await this.findById(userId);
   }
 
-  async delete(userId: number) {
+  async delete(userId: number): Promise<UserDto> {
     let deletedUser = await this.findById(userId);
     const query = `
       DELETE FROM users
@@ -110,7 +201,10 @@ export class UserRepository {
     return deletedUser;
   }
 
-  async updateSocial(UpdateBody: UpdateSocialDto, userId: number) {
+  async updateSocial(
+    UpdateBody: UpdateSocialDto,
+    userId: number,
+  ): Promise<UserDto> {
     // updateBody.stages[0].
     const query = `
         UPDATE users
@@ -150,7 +244,31 @@ export class UserRepository {
 
   async findUserByPhoneNumber(phoneNumber): Promise<UserDto> {
     const query = `
-        SELECT * FROM users
+        SELECT
+          users.id,
+          users.firstName,
+          users.lastName,
+          users.blocked,
+          users.type,
+          users.authEmail,
+          users.contactEmail,
+          users.stripeCustomerId,
+          users.credits,
+          users.roleId,
+          users.profilePicture,
+          users.phoneNumber,
+          users.googleId,
+          users.facebookId,
+          CASE WHEN roles.id is null THEN null
+          ELSE
+          JSON_OBJECT(
+            'id',roles.id,
+            'name', roles.name,
+            'permissions', JSON_EXTRACT(roles.permissions,'$')
+          )
+          END AS role
+        FROM users
+        LEFT JOIN roles ON users.roleId = roles.id
         WHERE phoneNumber = ? LIMIT 1
       `;
     const [user] = await this.db.query(query, [phoneNumber]);
@@ -160,7 +278,31 @@ export class UserRepository {
 
   async findUserByCommunicateEmail(contactEmail): Promise<UserDto> {
     const query = `
-        SELECT * FROM users
+        SELECT
+          users.id,
+          users.firstName,
+          users.lastName,
+          users.blocked,
+          users.type,
+          users.authEmail,
+          users.contactEmail,
+          users.stripeCustomerId,
+          users.credits,
+          users.roleId,
+          users.profilePicture,
+          users.phoneNumber,
+          users.googleId,
+          users.facebookId,
+          CASE WHEN roles.id is null THEN null
+          ELSE
+          JSON_OBJECT(
+            'id',roles.id,
+            'name', roles.name,
+            'permissions', JSON_EXTRACT(roles.permissions,'$')
+          )
+          END AS role
+        FROM users
+        LEFT JOIN roles ON users.roleId = roles.id
         WHERE contactEmail = ? LIMIT 1
       `;
     const [user] = await this.db.query(query, [contactEmail]);
@@ -201,17 +343,27 @@ export class UserRepository {
       users.id,
       users.firstName,
       users.lastName,
+      users.blocked,
       users.type,
       users.authEmail,
       users.contactEmail,
       users.stripeCustomerId,
       users.credits,
+      users.roleId,
       users.profilePicture,
       users.phoneNumber,
       users.googleId,
       users.facebookId,
-      users.forgetPasswordOtp
+      CASE WHEN roles.id is null THEN null
+      ELSE
+      JSON_OBJECT(
+        'id',roles.id,
+        'name', roles.name,
+        'permissions', JSON_EXTRACT(roles.permissions,'$')
+      )
+      END AS role
     FROM users
+    LEFT JOIN roles ON users.roleId = roles.id
     WHERE users.id = ?
   `;
 
@@ -220,12 +372,14 @@ export class UserRepository {
     return theUser;
   }
 
-  async findAll(): Promise<UserDto[]> {
-    const query = `
+  async findAll(pagination: PaginationDto): Promise<UserDto[]> {
+    let queryParameters = [];
+    const queryStart = `
         SELECT
           users.id,
           users.firstName,
           users.lastName,
+          users.blocked,
           users.type,
           users.authEmail,
           users.stripeCustomerId,
@@ -233,12 +387,31 @@ export class UserRepository {
           users.credits,
           users.profilePicture,
           users.phoneNumber,
+          users.roleId,
           users.googleId,
           users.facebookId,
-          users.forgetPasswordOtp
+          CASE WHEN roles.id is null THEN null
+          ELSE
+          JSON_OBJECT(
+            'id',roles.id,
+            'name', roles.name,
+            'permissions', JSON_EXTRACT(roles.permissions,'$')
+          )
+          END AS role
         FROM users
+        LEFT JOIN roles ON users.roleId = roles.id
       `;
-    const users = await this.db.query(query);
+
+    let paginationQuery = ``;
+    if (pagination) {
+      paginationQuery = `LIMIT ? OFFSET ?`;
+      queryParameters = [pagination.limit, pagination.offset];
+    }
+
+    const users = await this.db.query(
+      queryStart + paginationQuery,
+      queryParameters,
+    );
     return users;
   }
 

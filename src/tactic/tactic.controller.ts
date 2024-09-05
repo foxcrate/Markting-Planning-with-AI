@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { TacticService } from './tactic.service';
@@ -34,6 +35,7 @@ import { TacticKpiIdDto } from './dtos/tactic-kpi-id.dto';
 import { TacticKpiEntryUpdateDto } from './dtos/tactic-kpi-entry-update.dto';
 import { TacticKpiEntryDeleteDto } from './dtos/tactic-kpi-entry-delete.dto';
 import { KpiCreateDto } from 'src/kpi/dtos/create.dto';
+import { PaginationGuard } from 'src/gurads/pagination.guard';
 
 @Controller({ path: 'tactic', version: '1' })
 export class TacticController {
@@ -94,6 +96,14 @@ export class TacticController {
   //get all tactics
   @ApiQuery({ name: 'name', required: false })
   @ApiQuery({ name: 'globalStage', required: false, enum: GlobalStagesEnum })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+  })
   @ApiCreatedResponse({
     type: TacticReturnDto,
     isArray: true,
@@ -105,9 +115,9 @@ export class TacticController {
   @ApiTags('Tactic: Get All')
   //
   @Get('')
-  @UseGuards(AuthGuard)
-  async getAll(@Query() filter: GetAllFilterDto) {
-    return await this.tacticService.getAll(filter);
+  @UseGuards(AuthGuard, PaginationGuard)
+  async getAll(@Req() request: any, @Query() filter: GetAllFilterDto) {
+    return await this.tacticService.getAll(filter, request.pagination);
   }
 
   @ApiParam({

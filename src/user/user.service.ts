@@ -1,6 +1,8 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { UserRepository } from './user.repository';
@@ -10,6 +12,14 @@ import { WorkspaceService } from 'src/workspace/workspace.service';
 import { OtpService } from 'src/otp/otp.service';
 import { OtpTypeEnum } from 'src/enums/otp-types.enum';
 import { MessageReturnDto } from '../dtos/message-return.dto';
+import { UserCreateForAdminDto } from './dtos/admin/user-create-for-admin.dto';
+import { UserRoleEnum } from 'src/enums/user-roles.enum';
+import { RoleService } from 'src/role/role.service';
+import { UserUpdateForAdminDto } from './dtos/admin/user-update-for-admin.dto';
+import { LogService } from 'src/log/log.service';
+import { LogEntityEnum } from 'src/enums/log-entity.enum';
+import { LogOperationEnum } from 'src/enums/log-operation.enum';
+import { PaginationDto } from 'src/dtos/pagination.dto';
 
 @Injectable()
 export class UserService {
@@ -17,8 +27,13 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private readonly workspaceService: WorkspaceService,
     private readonly otpService: OtpService,
+    private readonly roleService: RoleService,
+    private readonly logService: LogService,
   ) {}
-  async update(UpdateProfileBody: UpdateProfileDto, userId): Promise<UserDto> {
+  async userUpdate(
+    UpdateProfileBody: UpdateProfileDto,
+    userId,
+  ): Promise<UserDto> {
     return await this.userRepository.update(UpdateProfileBody, userId);
   }
 
@@ -91,5 +106,214 @@ export class UserService {
     return {
       message: 'Email updated successfully',
     };
+  }
+
+  async adminCreate(
+    reqBody: UserCreateForAdminDto,
+    adminId: number,
+  ): Promise<UserDto> {
+    //validate createrUserType
+    let adminUser = await this.userRepository.findById(adminId);
+
+    if (reqBody.type === UserRoleEnum.ADMIN) {
+      if (adminUser.type !== UserRoleEnum.ADMIN) {
+        throw new UnauthorizedException('Only admin can create admin');
+      }
+    }
+
+    //validate roleId if createdUser type is moderator
+    if (reqBody.type === UserRoleEnum.MODERATOR) {
+      if (!reqBody.roleId) {
+        throw new UnprocessableEntityException(
+          'roleId is required when creating a moderator',
+        );
+      }
+    }
+
+    //validate existence of the role
+    await this.roleService.getOne(reqBody.roleId);
+
+    //validate repeated phone number
+    const existingUser = await this.userRepository.findUserByPhoneNumber(
+      reqBody.phoneNumber,
+    );
+    if (existingUser) {
+      throw new BadRequestException('phone number already exists');
+    }
+
+    //validate repeated email
+    const existingEmail = await this.userRepository.findUserByCommunicateEmail(
+      reqBody.contactEmail,
+    );
+    if (existingEmail) {
+      throw new BadRequestException('email already exists');
+    }
+
+    //create stripeId
+
+    //create user
+
+    let createdUser = await this.userRepository.create(reqBody);
+
+    await this.logService.create(
+      {
+        entity: LogEntityEnum.USER,
+        entityId: createdUser.id,
+        operation: LogOperationEnum.CREATE,
+        oldObject: null,
+        newObject: createdUser,
+        changesObject: null,
+      },
+      adminId,
+    );
+
+    return createdUser;
+  }
+
+  async adminUpdate(
+    userId: number,
+    reqBody: UserUpdateForAdminDto,
+    adminId: number,
+  ): Promise<UserDto> {
+    let adminUser = await this.userRepository.findById(adminId);
+
+    let theChangedUser = await this.userRepository.findById(userId);
+
+    if (theChangedUser.type === UserRoleEnum.ADMIN) {
+      if (adminUser.type !== UserRoleEnum.ADMIN) {
+        throw new UnauthorizedException('Only admin can create admin');
+      }
+    }
+
+    if (reqBody.type) {
+      if (reqBody.type === UserRoleEnum.MODERATOR) {
+        if (!reqBody.roleId) {
+          throw new UnprocessableEntityException(
+            'roleId is required when creating a moderator',
+          );
+        }
+      }
+    }
+
+    if (reqBody.roleId) {
+      //validate existence of the role
+      await this.roleService.getOne(reqBody.roleId);
+    }
+
+    if (reqBody.phoneNumber) {
+      //validate repeated phone number
+      const existingUser = await this.userRepository.findUserByPhoneNumber(
+        reqBody.phoneNumber,
+      );
+      if (existingUser) {
+        if (existingUser.id !== Number(userId)) {
+          throw new BadRequestException('phone number already exists');
+        }
+      }
+    }
+
+    if (reqBody.contactEmail) {
+      //validate repeated email
+      const existingEmail =
+        await this.userRepository.findUserByCommunicateEmail(
+          reqBody.contactEmail,
+        );
+      if (existingEmail) {
+        if (existingEmail.id !== Number(userId)) {
+          throw new BadRequestException('email already exists');
+        }
+      }
+    }
+
+    let updatedUser = await this.userRepository.update(reqBody, userId);
+
+    await this.logService.create(
+      {
+        entity: LogEntityEnum.USER,
+        entityId: userId,
+        operation: LogOperationEnum.UPDATE,
+        oldObject: theChangedUser,
+        newObject: updatedUser,
+        changesObject: reqBody,
+      },
+      adminId,
+    );
+
+    return updatedUser;
+  }
+
+  async adminDelete(userId: number, adminId: number): Promise<UserDto> {
+    let adminUser = await this.userRepository.findById(adminId);
+
+    let theChangedUser = await this.userRepository.findById(userId);
+
+    if (theChangedUser.type === UserRoleEnum.ADMIN) {
+      if (adminUser.type !== UserRoleEnum.ADMIN) {
+        throw new UnauthorizedException('Only admin can delete admin');
+      }
+    }
+
+    let deletedUser = await this.userRepository.findById(userId);
+
+    await this.userRepository.delete(userId);
+
+    await this.logService.create(
+      {
+        entity: LogEntityEnum.USER,
+        entityId: deletedUser.id,
+        operation: LogOperationEnum.DELETE,
+        oldObject: deletedUser,
+        newObject: null,
+        changesObject: null,
+      },
+      adminId,
+    );
+
+    return deletedUser;
+  }
+
+  async adminGetOne(userId: number, adminId: number): Promise<UserDto> {
+    let theDesiredUser = await this.userRepository.findById(userId);
+
+    return theDesiredUser;
+  }
+
+  async adminGetAll(
+    pagination: PaginationDto,
+    adminId: number,
+  ): Promise<UserDto[]> {
+    let allUsers = await this.userRepository.findAll(pagination);
+
+    return allUsers;
+  }
+
+  async adminBlock(userId: number, adminId: number): Promise<UserDto> {
+    let theBlockedUser = await this.userRepository.findById(userId);
+
+    if (theBlockedUser.type === UserRoleEnum.ADMIN) {
+      throw new UnauthorizedException("You can't block an admin");
+    }
+
+    if (theBlockedUser.blocked == true) {
+      await this.userRepository.update({ blocked: false }, theBlockedUser.id);
+    } else if (theBlockedUser.blocked == false) {
+      await this.userRepository.update({ blocked: true }, theBlockedUser.id);
+    }
+
+    let theUpdatedUser = await this.userRepository.findById(userId);
+
+    await this.logService.create(
+      {
+        entity: LogEntityEnum.USER,
+        entityId: theUpdatedUser.id,
+        operation: LogOperationEnum.UPDATE,
+        oldObject: theBlockedUser,
+        newObject: theUpdatedUser,
+        changesObject: { blocked: false },
+      },
+      adminId,
+    );
+
+    return theUpdatedUser;
   }
 }

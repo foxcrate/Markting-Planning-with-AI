@@ -38,12 +38,12 @@ export class TacticCreateDto {
   @ApiProperty()
   @IsBoolean()
   @IsOptional()
-  private: boolean;
+  private?: boolean;
 
   // @ApiProperty()
   @IsBoolean()
   @IsOptional()
-  instance: boolean;
+  instance?: boolean;
 
   @ApiProperty()
   @IsNotEmpty()

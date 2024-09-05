@@ -8,19 +8,19 @@ import {
 } from 'class-validator';
 import { TacticStepCreateDto } from './tactic-step-create.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import { KpiCreateDto } from 'src/kpi/dtos/create.dto';
 
 export class TacticUpdateDto {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  name: string;
+  name?: string;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  description: string;
+  description?: string;
 
   @ApiProperty({
     type: KpiCreateDto,
@@ -31,16 +31,16 @@ export class TacticUpdateDto {
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => KpiCreateDto)
-  kpis: KpiCreateDto[];
+  kpis?: KpiCreateDto[];
 
   @ApiProperty()
   @IsBoolean()
   @IsOptional()
-  private: boolean;
+  private?: boolean;
 
   @ApiProperty()
   @IsOptional()
-  globalStageId: number;
+  globalStageId?: number;
 
   @ApiProperty({
     type: TacticStepCreateDto,
@@ -51,5 +51,5 @@ export class TacticUpdateDto {
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => TacticStepCreateDto)
-  steps: TacticStepCreateDto[];
+  steps?: TacticStepCreateDto[];
 }

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserRoleEnum } from 'src/enums/user-roles.enum';
+import { UserRoleDto } from './user-role.dto';
 
 export class UserDto {
   @ApiProperty()
@@ -9,6 +10,8 @@ export class UserDto {
   @ApiProperty()
   lastName?: string;
   @ApiProperty()
+  blocked?: boolean;
+  @ApiProperty()
   stripeCustomerId?: string;
   @ApiProperty({ enum: UserRoleEnum })
   type?: UserRoleEnum;
@@ -17,11 +20,11 @@ export class UserDto {
   @ApiProperty()
   contactEmail?: string;
   @ApiProperty()
-  password?: string;
-  @ApiProperty()
   phoneNumber?: string;
   @ApiProperty()
-  forgetPasswordOtp?: string;
+  roleId?: number;
+  @ApiProperty({ type: UserRoleDto })
+  role?: UserRoleDto;
   @ApiProperty()
   credits?: number;
   @ApiProperty()

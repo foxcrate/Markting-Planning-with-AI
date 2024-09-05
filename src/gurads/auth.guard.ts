@@ -35,10 +35,16 @@ export class AuthGuard implements CanActivate {
     request['id'] = payload.sub;
     request['authType'] = payload.authType;
 
-    // console.log(await this.userAvailable(request['id']));
+    let theUser = await this.findUserById(request['id']);
 
-    if (!(await this.userAvailable(request['id']))) {
+    if (!theUser) {
       throw new UnauthorizedException('Wrong Credentials');
+    }
+
+    if (theUser.role == null) {
+      request['permissions'] = null;
+    } else {
+      request['permissions'] = theUser.role.permissions;
     }
 
     return true;
@@ -67,20 +73,20 @@ export class AuthGuard implements CanActivate {
     }
   }
 
-  private async userAvailable(userId) {
-    let theUser = await this.findUserById(userId);
-
-    if (!theUser) {
-      return false;
-    }
-    return true;
-  }
-
   private async findUserById(userId) {
     let query = `
     SELECT
-      users.id
+      users.id,
+    CASE WHEN roles.id is null THEN null
+    ELSE
+    JSON_OBJECT(
+      'id',roles.id,
+      'name', roles.name,
+      'permissions', JSON_EXTRACT(roles.permissions,'$')
+    )
+    END AS role
     FROM users
+    LEFT JOIN roles ON users.roleId = roles.id
     WHERE users.id = ?
   `;
 

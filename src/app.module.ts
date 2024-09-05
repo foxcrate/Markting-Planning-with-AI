@@ -26,6 +26,8 @@ import { DocumentModule } from './document/document.module';
 import { FlowModule } from './flow/flow.module';
 import { CommentModule } from './comment/comment.module';
 import { StripeModule } from './stripe/stripe.module';
+import { RoleModule } from './role/role.module';
+import { LogModule } from './log/log.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -62,6 +64,8 @@ import { StripeModule } from './stripe/stripe.module';
     FlowModule,
     CommentModule,
     StripeModule,
+    RoleModule,
+    LogModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -2,6 +2,7 @@ import { GlobalStageReturnDto } from 'src/global-stage/dtos/global-stage-return.
 import { TacticStepEntity } from '../tactic-step.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { KpiReturnDto } from 'src/kpi/dtos/return.dto';
+import { TacticUserDto } from './tactic-user.dto';
 
 export class TacticReturnDto {
   @ApiProperty()
@@ -19,8 +20,16 @@ export class TacticReturnDto {
 
   @ApiProperty()
   private: boolean;
+
+  @ApiProperty()
+  hidden: boolean;
+
   @ApiProperty()
   userId: number;
+
+  @ApiProperty({ type: TacticUserDto })
+  user: TacticUserDto;
+
   @ApiProperty({ type: TacticStepEntity, isArray: true })
   steps: TacticStepEntity[];
   @ApiProperty()
