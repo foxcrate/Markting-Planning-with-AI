@@ -15,5 +15,7 @@ export const PermissionDictionary = {
     update: 'tactics.update',
     delete: 'tactics.delete',
     hide: 'tactics.hide',
+    export: 'tactics.export',
+    import: 'tactics.import',
   },
 };

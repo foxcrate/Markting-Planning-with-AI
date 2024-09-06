@@ -8,13 +8,17 @@ import {
   Put,
   Query,
   Req,
+  Res,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserId } from 'src/decorators/user-id.decorator';
 import { AuthGuard } from 'src/gurads/auth.guard';
+import { join } from 'node:path';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiCreatedResponse,
   ApiParam,
   ApiQuery,
@@ -33,6 +37,9 @@ import { GlobalStagesEnum } from 'src/enums/global-stages.enum';
 import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 import { TacticUpdateForAdminDto } from './dtos/admin/tactic-update-for-admin.dto';
 import { TacticIdDto } from './dtos/tactic-id.dto';
+import { FastifyReply } from 'fastify/types/reply';
+import { MultipartInterceptor } from '../file/interceptors/multipart.interceptor';
+import { FastifyRequest } from 'fastify';
 
 @Controller({ path: 'admin/tactic', version: '1' })
 export class TacticAdminController {
@@ -161,5 +168,45 @@ export class TacticAdminController {
   @UseGuards(AuthGuard, PermissionsGuard)
   async AdminBlock(@Param() paramsId: TacticIdDto, @UserId() adminId: number) {
     return this.tacticService.adminHide(paramsId.tacticId, adminId);
+  }
+
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Tactic: Admin: Excel Export')
+  @Get('/excel-export')
+  @Permissions(PermissionDictionary.tactics.export)
+  @UseGuards(AuthGuard, PermissionsGuard)
+  async ExcelExport(@Res() res: FastifyReply, @UserId() adminId: number) {
+    return await this.tacticService.excelExportAllTactics(res, adminId);
+  }
+
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+    },
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiUnprocessableEntityResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Tactic: Admin: Excel Import')
+  @Post('/excel-import')
+  @UseGuards(AuthGuard, PermissionsGuard)
+  @Permissions(PermissionDictionary.tactics.import)
+  @UseInterceptors(MultipartInterceptor(join(process.cwd(), 'public/uploads')))
+  async excelImport(@Req() req: FastifyRequest, @UserId() adminId: number) {
+    return await this.tacticService.excelImportAllTactics(adminId, req.uploads);
   }
 }

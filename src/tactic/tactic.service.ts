@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   UnauthorizedException,
@@ -22,6 +23,14 @@ import { LogOperationEnum } from 'src/enums/log-operation.enum';
 import { TacticCreateForAdminDto } from './dtos/admin/tactic-create-for-admin.dto';
 import { TacticUpdateForAdminDto } from './dtos/admin/tactic-update-for-admin.dto';
 import { UserRoleEnum } from 'src/enums/user-roles.enum';
+import { FastifyReply } from 'fastify';
+import { join } from 'path';
+const XLSX = require('xlsx');
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
+import { TacticExcelImportForAdminDto } from './dtos/admin/tactic-excel-import-for-admin.dto';
+import { GlobalStageService } from 'src/global-stage/global-stage.service';
+import { unlinkSync } from 'fs';
 
 @Injectable()
 export class TacticService {
@@ -29,6 +38,7 @@ export class TacticService {
     private readonly tacticRepository: TacticRepository,
     private readonly kpiService: KpiService,
     private readonly logService: LogService,
+    private readonly globalStageService: GlobalStageService,
   ) {}
   async create(
     tacticCreateBody: TacticCreateDto,
@@ -357,5 +367,150 @@ export class TacticService {
     );
 
     return theUpdatedTactic;
+  }
+
+  async excelExportAllTactics(res: FastifyReply, userId: number) {
+    let allTactics = await this.tacticRepository.findAllSystem(null, null);
+
+    let data = [
+      ['id', 'name', 'description', 'globalStageName', 'steps', 'kpis'],
+    ];
+
+    allTactics.forEach((tactic) => {
+      data.push([
+        tactic.id.toString(),
+        tactic.name,
+        tactic.description,
+        tactic.globalStage.name,
+        JSON.stringify(tactic.steps),
+        JSON.stringify(tactic.kpis),
+      ]);
+    });
+
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(data);
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+
+    const excelFile = XLSX.write(workbook, {
+      bookType: 'xlsx',
+      type: 'buffer',
+    });
+
+    res
+      .header(
+        'Content-Disposition',
+        'attachment; filename="exported_tactics.xlsx"',
+      )
+      .header(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      )
+      .header('Content-Length', excelFile.length);
+
+    return res.send(excelFile);
+  }
+
+  async excelImportAllTactics(
+    adminId: number,
+    uploads: {
+      filename: string;
+      path: string;
+    }[],
+  ) {
+    this.validateExcelFile(uploads);
+
+    const filePath = join(__dirname, '../../..', uploads[0].path);
+
+    const workbook = XLSX.readFile(filePath);
+
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    let data: any = XLSX.utils.sheet_to_json(worksheet);
+
+    let tacticsObjects = await this.validateExcelFileContent(data);
+
+    for (let index = 0; index < tacticsObjects.length; index++) {
+      let tactic = tacticsObjects[index];
+      let globalStage = await this.globalStageService.getOneByName(
+        tactic.globalStageName,
+      );
+      let mappedTactic = {
+        description: tactic.description ? tactic.description : null,
+        globalStageId: globalStage.id,
+        ...tactic,
+      };
+      if (!tactic.id) {
+        await this.adminCreate(mappedTactic, adminId);
+      } else if (tactic.id) {
+        await this.adminUpdate(Number(tactic.id), mappedTactic, adminId);
+      }
+    }
+
+    unlinkSync(filePath);
+
+    return true;
+  }
+
+  private validateExcelFile(
+    uploads: {
+      filename: string;
+      path: string;
+    }[],
+  ) {
+    if (uploads.length > 1) {
+      throw new BadRequestException('Only one excel file is permitted');
+    }
+    const allowedExtensions = ['.xlsx'];
+    const fileExtension = uploads[0].filename.split('.').pop();
+
+    if (!allowedExtensions.includes(`.${fileExtension}`)) {
+      throw new BadRequestException('Only xlsx files is permitted');
+    }
+  }
+
+  private async validateExcelFileContent(
+    data: any,
+  ): Promise<TacticExcelImportForAdminDto[]> {
+    data.forEach((tacticObject) => {
+      if (!tacticObject.kpis) {
+        tacticObject.kpis = null;
+      } else {
+        tacticObject.kpis = JSON.parse(tacticObject.kpis);
+      }
+
+      if (!tacticObject.steps) {
+        tacticObject.steps = null;
+      } else {
+        tacticObject.steps = JSON.parse(tacticObject.steps);
+      }
+
+      if (
+        !this.globalStageService.globalStagesArray.includes(
+          tacticObject.globalStageName,
+        )
+      ) {
+        throw new BadRequestException(
+          'One of tactics has invalid global stage name',
+        );
+      }
+    });
+
+    // console.log(data);
+
+    const tacticsObjects: any = plainToInstance(
+      TacticExcelImportForAdminDto,
+      data,
+    );
+
+    for (const tacticObject of tacticsObjects) {
+      const errors = await validate(tacticObject);
+      if (errors.length > 0) {
+        console.log('Validation errors: ', errors[0]);
+        throw new BadRequestException('Tactics validation error');
+      }
+    }
+
+    return tacticsObjects;
   }
 }

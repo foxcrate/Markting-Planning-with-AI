@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { TacticCreateDto } from './dtos/tactic-create.dto';
 import { TacticStepCreateDto } from './dtos/tactic-step-create.dto';
-import { TacticUpdateDto } from './dtos/tactic-update.dto';
 import { TacticReturnDto } from './dtos/tactic-return.dto';
 import { DB_PROVIDER } from 'src/db/constants';
 import { Pool } from 'mariadb';
@@ -10,6 +9,7 @@ import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 import { KpiCreateDto } from 'src/kpi/dtos/create.dto';
 import { PaginationDto } from 'src/dtos/pagination.dto';
 import { TacticDto } from './dtos/tactic.dto';
+import { TacticReturnForExcelDto } from './dtos/admin/tactic-return-for-excel.dto';
 
 @Injectable()
 export class TacticRepository {
@@ -429,13 +429,15 @@ export class TacticRepository {
   `;
 
     let filter = ``;
-    if (filterOptions.name) {
-      filter = filter + ` AND tactics.name LIKE '%${filterOptions.name}%' `;
-    }
+    if (filterOptions) {
+      if (filterOptions.name) {
+        filter = filter + ` AND tactics.name LIKE '%${filterOptions.name}%' `;
+      }
 
-    if (filterOptions.globalStage) {
-      filter =
-        filter + ` AND global_stages.name = '${filterOptions.globalStage}' `;
+      if (filterOptions.globalStage) {
+        filter =
+          filter + ` AND global_stages.name = '${filterOptions.globalStage}' `;
+      }
     }
 
     let paginationQuery = ``;
@@ -446,13 +448,100 @@ export class TacticRepository {
 
     let queryEnd = `GROUP BY tactics.id `;
 
-    // console.log(queryStart + filter + queryEnd);
-    // console.log('---------------------------------');
-
     return await this.db.query(
       queryStart + filter + queryEnd + paginationQuery,
       queryParameters,
     );
+  }
+
+  async findAllSystem(
+    filterOptions: GetAllFilterDto,
+    pagination: PaginationDto,
+  ): Promise<TacticReturnForExcelDto[]> {
+    let queryParameters = [];
+    const queryStart = `
+    SELECT tactics.id,
+    tactics.name,
+    tactics.description,
+    tactics.private,
+    tactics.hidden,
+    tactics.userId,
+    CASE WHEN COUNT(global_stages.id) = 0 THEN null
+    ELSE
+    JSON_OBJECT(
+      'id',global_stages.id,
+      'name', global_stages.name,
+      'description', global_stages.description
+    )
+    END AS globalStage,
+    CASE WHEN COUNT(tactic_step.id) = 0 THEN null
+    ELSE
+    JSON_ARRAYAGG(JSON_OBJECT(
+      'name', tactic_step.name,
+      'description', tactic_step.description,
+      'attachment', tactic_step.attachment,
+      'theOrder', tactic_step.theOrder
+      ))
+    END AS steps,
+    (
+      SELECT
+        CASE WHEN COUNT(kpis.id) = 0 THEN null
+        ELSE
+        JSON_ARRAYAGG(
+          JSON_OBJECT(
+            'name', kpis.name,
+            'unit', kpis.unit,
+            'kpiMeasuringFrequency', kpis.kpiMeasuringFrequency
+          )
+        )
+        END AS kpis
+      FROM
+        kpis
+      WHERE
+        kpis.tacticId = tactics.id
+    ) AS kpis
+    FROM tactics
+    LEFT JOIN global_stages ON global_stages.id = tactics.globalStageId
+    LEFT JOIN tactic_step ON tactic_step.tacticId = tactics.id
+    LEFT JOIN users ON users.id = tactics.userId
+    WHERE tactics.private = false
+    AND
+    tactics.instance = false
+    AND
+    tactics.hidden = false
+    AND
+    users.type IN ('admin', 'moderator')
+
+  `;
+
+    let filter = ``;
+    if (filterOptions) {
+      if (filterOptions.name) {
+        filter = filter + ` AND tactics.name LIKE '%${filterOptions.name}%' `;
+      }
+
+      if (filterOptions.globalStage) {
+        filter =
+          filter + ` AND global_stages.name = '${filterOptions.globalStage}' `;
+      }
+    }
+
+    let paginationQuery = ``;
+    if (pagination) {
+      paginationQuery = `LIMIT ? OFFSET ?`;
+      queryParameters = [pagination.limit, pagination.offset];
+    }
+
+    let queryEnd = `GROUP BY tactics.id `;
+
+    let allSystemTactics = await this.db.query(
+      queryStart + filter + queryEnd + paginationQuery,
+      queryParameters,
+    );
+
+    // console.log(allSystemTactics);
+
+    return allSystemTactics;
   }
 
   //delete global_stage

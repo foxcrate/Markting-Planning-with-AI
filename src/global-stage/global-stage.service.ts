@@ -3,10 +3,18 @@ import { GlobalStageUpdateDto } from './dtos/global-stage-update.dto';
 import { GlobalStageCreateDto } from './dtos/global-stage-create.dto';
 import { GlobalStageRepository } from './global-stage.repository';
 import { GlobalStageReturnDto } from './dtos/global-stage-return.dto';
+import { GlobalStagesEnum } from 'src/enums/global-stages.enum';
 
 @Injectable()
 export class GlobalStageService {
   constructor(private readonly globalStageRepository: GlobalStageRepository) {}
+
+  readonly globalStagesArray = [
+    'Awareness',
+    'Consideration',
+    'Conversion',
+    'Loyalty',
+  ];
   async create(
     globalStageBody: GlobalStageCreateDto,
   ): Promise<GlobalStageReturnDto> {
@@ -21,6 +29,10 @@ export class GlobalStageService {
   //get one globalStage
   async getOne(globalStageId: number): Promise<GlobalStageReturnDto> {
     return await this.globalStageRepository.findById(globalStageId);
+  }
+
+  async getOneByName(globalStageName: string): Promise<GlobalStageReturnDto> {
+    return await this.globalStageRepository.findByName(globalStageName);
   }
 
   //get all globalStages

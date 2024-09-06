@@ -8,7 +8,6 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import OpenAI from 'openai';
-import { AssistantCreateParams } from 'openai/resources/beta/assistants/assistants';
 import { FunnelService } from 'src/funnel/funnel.service';
 import { ParameterObjectDto } from 'src/template/dtos/parameter-object.dto';
 import { ThreadService } from 'src/thread/thread.service';
@@ -30,6 +29,7 @@ import { UserService } from 'src/user/user.service';
 import { GlobalStageService } from 'src/global-stage/global-stage.service';
 import { KpiReturnDto } from 'src/kpi/dtos/return.dto';
 import { WorkspaceRepository } from 'src/workspace/workspace.repository';
+import { AssistantCreateParams } from 'openai/resources/beta/assistants';
 
 @Injectable()
 export class OpenAiService implements OnModuleInit {
@@ -70,6 +70,8 @@ export class OpenAiService implements OnModuleInit {
       body.stageId,
       userId,
     );
+
+    // console.log(JSON.stringify(serializedUserDataObject));
 
     try {
       let aiResponse = await this.runFunctionalAssistant(
@@ -318,7 +320,7 @@ export class OpenAiService implements OnModuleInit {
       templateAssistantObject = {
         name: name,
         instructions: description,
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o-mini',
         tools: [
           {
             type: 'function',
@@ -339,7 +341,7 @@ export class OpenAiService implements OnModuleInit {
       templateAssistantObject = {
         name: name,
         instructions: description,
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o-mini',
       };
     }
 
@@ -366,7 +368,7 @@ export class OpenAiService implements OnModuleInit {
       templateAssistantObject = {
         name: name,
         instructions: description,
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o-mini',
         tools: [
           {
             type: 'function',
@@ -387,7 +389,7 @@ export class OpenAiService implements OnModuleInit {
       templateAssistantObject = {
         name: name,
         instructions: description,
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o-mini',
       };
     }
 

@@ -26,6 +26,7 @@ import { RoleCreateDto } from './dtos/role-create.dto';
 import { RoleReturnDto } from './dtos/role-return.dto';
 import { RoleIdDto } from './dtos/role-id.dto';
 import { RoleUpdateDto } from './dtos/role-update.dto';
+import { UserRoleEnum } from 'src/enums/user-roles.enum';
 
 @Controller({ path: 'role', version: '1' })
 export class RoleController {
@@ -41,7 +42,7 @@ export class RoleController {
   @ApiBearerAuth()
   @ApiTags('Role: Create')
   @Post()
-  @Roles('admin')
+  @Roles(UserRoleEnum.ADMIN)
   @UseGuards(AuthGuard, RoleGuard)
   async create(@Body() reqBody: RoleCreateDto, @UserId() userId: number) {
     return await this.roleService.create(reqBody);
@@ -60,7 +61,7 @@ export class RoleController {
   @ApiBearerAuth()
   @ApiTags('Role: Update')
   @Put('/:roleId')
-  @Roles('admin')
+  @Roles(UserRoleEnum.ADMIN)
   @UseGuards(AuthGuard, RoleGuard)
   async update(
     @Body() reqBody: RoleUpdateDto,
@@ -80,7 +81,7 @@ export class RoleController {
   @ApiBearerAuth()
   @ApiTags('Role: GetAll')
   @Get()
-  @Roles('admin', 'customer')
+  @Roles(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER)
   @UseGuards(AuthGuard, RoleGuard)
   async getAll(@UserId() userId: number) {
     return await this.roleService.getAll();
@@ -98,7 +99,7 @@ export class RoleController {
   @ApiBearerAuth()
   @ApiTags('Role: GetOne')
   @Get('/:roleId')
-  @Roles('admin')
+  @Roles(UserRoleEnum.ADMIN)
   @UseGuards(AuthGuard, RoleGuard)
   async getOne(@Param() params: RoleIdDto, @UserId() userId: number) {
     return await this.roleService.getOne(params.roleId);
@@ -116,7 +117,7 @@ export class RoleController {
   @ApiBearerAuth()
   @ApiTags('Role: Delete')
   @Delete('/:roleId')
-  @Roles('admin')
+  @Roles(UserRoleEnum.ADMIN)
   @UseGuards(AuthGuard, RoleGuard)
   async delete(@Param() params: RoleIdDto, @UserId() userId: number) {
     return await this.roleService.delete(params.roleId);
@@ -132,7 +133,7 @@ export class RoleController {
   @ApiBearerAuth()
   @ApiTags('Role: Get Permissions Dictionary')
   @Get('/get-permissions')
-  @Roles('admin', 'customer')
+  @Roles(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER)
   @UseGuards(AuthGuard, RoleGuard)
   async getPermissions(@UserId() userId: number) {
     return await this.roleService.getPermissions();

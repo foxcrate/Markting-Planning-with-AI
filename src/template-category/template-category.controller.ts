@@ -25,6 +25,7 @@ import { TemplateCategoryReturnDto } from './dtos/template-category-return.dto';
 import { TemplateCategoryIdDto } from './dtos/template-category-id.dto';
 import { RoleGuard } from 'src/gurads/role.guard';
 import { Roles } from 'src/decorators/roles.decorator';
+import { UserRoleEnum } from 'src/enums/user-roles.enum';
 
 @Controller({ path: 'template-category', version: '1' })
 export class TemplateCategoryController {
@@ -42,7 +43,7 @@ export class TemplateCategoryController {
   @ApiBearerAuth()
   @ApiTags('Template Category: Create')
   @Post()
-  @Roles('admin')
+  @Roles(UserRoleEnum.ADMIN)
   @UseGuards(AuthGuard, RoleGuard)
   async create(
     @Body() templateCreateBody: TemplateCategoryCreateDto,
@@ -67,7 +68,7 @@ export class TemplateCategoryController {
   @ApiBearerAuth()
   @ApiTags('Template Category: Update')
   @Put('/:templateCategoryId')
-  @Roles('admin')
+  @Roles(UserRoleEnum.ADMIN)
   @UseGuards(AuthGuard, RoleGuard)
   async update(
     @Body() templateCreateBody: TemplateCategoryCreateDto,
@@ -91,7 +92,7 @@ export class TemplateCategoryController {
   @ApiBearerAuth()
   @ApiTags('Template Category: GetAll')
   @Get()
-  @Roles('admin', 'customer')
+  @Roles(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER)
   @UseGuards(AuthGuard, RoleGuard)
   async getAll(@UserId() userId: number) {
     return await this.templateCategoryService.getAll();
@@ -109,7 +110,7 @@ export class TemplateCategoryController {
   @ApiBearerAuth()
   @ApiTags('Template Category: GetOne')
   @Get('/:templateCategoryId')
-  @Roles('admin', 'customer')
+  @Roles(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER)
   @UseGuards(AuthGuard, RoleGuard)
   async getOne(
     @Param() params: TemplateCategoryIdDto,
@@ -130,7 +131,7 @@ export class TemplateCategoryController {
   @ApiBearerAuth()
   @ApiTags('Template Category: Delete')
   @Delete('/:templateCategoryId')
-  @Roles('admin')
+  @Roles(UserRoleEnum.ADMIN)
   @UseGuards(AuthGuard, RoleGuard)
   async delete(
     @Param() params: TemplateCategoryIdDto,

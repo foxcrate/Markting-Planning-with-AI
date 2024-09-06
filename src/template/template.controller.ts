@@ -37,6 +37,7 @@ import { TemplateCreateDto } from './dtos/template-create.dto';
 import { TemplateIdDto } from './dtos/template-id.dto';
 import { TemplateUpdateDto } from './dtos/template-update.dto';
 import { GetAllFilterDto } from './dtos/get-all-filter.dto';
+import { UserRoleEnum } from 'src/enums/user-roles.enum';
 
 // @ApiTags('Template')
 @Controller({ path: 'template', version: '1' })
@@ -47,23 +48,6 @@ export class TemplateController {
     private readonly workspaceService: WorkspaceService,
     private readonly openAiService: OpenAiService,
   ) {}
-
-  ///////////////////////// Onboarding //////////////////////////////
-
-  @ApiBody({ type: OnboardingTemplateDto })
-  @ApiCreatedResponse({
-    type: TemplateReturnDto,
-  })
-  @ApiUnauthorizedResponse({
-    type: ErrorResponseDto,
-  })
-  @ApiBearerAuth()
-  @ApiTags('Template: Onboarding: Create')
-  @Post('onboarding')
-  @UseGuards(AuthGuard)
-  async setOnboardingFlow(@Body() template: OnboardingTemplateDto) {
-    return this.templateService.setOnboardingTemplate(template);
-  }
 
   @ApiBody({
     type: TemplateCreateDto,
@@ -79,7 +63,7 @@ export class TemplateController {
   @ApiBearerAuth()
   @ApiTags('Template: CRUD: Create')
   @Post()
-  @Roles('admin')
+  @Roles(UserRoleEnum.ADMIN)
   @UseGuards(AuthGuard, RoleGuard)
   async create(@Body() template: TemplateCreateDto) {
     return this.templateService.create(template);
@@ -102,7 +86,7 @@ export class TemplateController {
   @ApiBearerAuth()
   @ApiTags('Template: CRUD: Update')
   @Put('/:templateId')
-  @Roles('admin')
+  @Roles(UserRoleEnum.ADMIN)
   @UseGuards(AuthGuard, RoleGuard)
   async udpate(
     @Body() template: TemplateUpdateDto,
@@ -123,7 +107,7 @@ export class TemplateController {
   @ApiBearerAuth()
   @ApiTags('Template: CRUD: Get One')
   @Get('/:templateId')
-  @Roles('admin', 'customer')
+  @Roles(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER)
   @UseGuards(AuthGuard, RoleGuard)
   async getOne(@Param() paramsId: TemplateIdDto) {
     return this.templateService.getOne(paramsId.templateId);
@@ -141,7 +125,7 @@ export class TemplateController {
   @ApiBearerAuth()
   @ApiTags('Template: CRUD: Delete')
   @Delete('/:templateId')
-  @Roles('admin')
+  @Roles(UserRoleEnum.ADMIN)
   @UseGuards(AuthGuard, RoleGuard)
   async delete(@Param() paramsId: TemplateIdDto) {
     return this.templateService.delete(paramsId.templateId);
@@ -159,10 +143,27 @@ export class TemplateController {
   @ApiBearerAuth()
   @ApiTags('Template: CRUD: Get All')
   @Get()
-  @Roles('admin', 'customer')
+  @Roles(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER, UserRoleEnum.MODERATOR)
   @UseGuards(AuthGuard, RoleGuard)
   async getAll(@Query() filter: GetAllFilterDto) {
     return this.templateService.getAll(filter);
+  }
+
+  ///////////////////////// Onboarding //////////////////////////////
+
+  @ApiBody({ type: OnboardingTemplateDto })
+  @ApiCreatedResponse({
+    type: TemplateReturnDto,
+  })
+  @ApiUnauthorizedResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Template: Onboarding: Create')
+  @Post('onboarding')
+  @UseGuards(AuthGuard)
+  async setOnboardingFlow(@Body() template: OnboardingTemplateDto) {
+    return this.templateService.setOnboardingTemplate(template);
   }
 
   @ApiCreatedResponse({

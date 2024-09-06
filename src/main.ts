@@ -10,7 +10,6 @@ import { FastifyStaticOptions } from '@fastify/static';
 import { join } from 'path';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import admin from 'firebase-admin';
-
 import * as serviceAccount from './crespo-c6266-firebase-adminsdk-61im5-d24b69bbf1.json';
 
 async function bootstrap() {
