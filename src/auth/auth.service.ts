@@ -24,6 +24,8 @@ import { UserService } from 'src/user/user.service';
 import { RefreshTokenReturnDto } from './dtos/refresh-token-return.dto';
 import { SendEmailReturnDto } from './dtos/send-email-return-otp.dto';
 import { UpdateSocialDto } from './dtos/update-social.dto';
+import { PermissionsCreateDto } from 'src/role/dtos/permission-create.dto';
+import { PermissionDictionary } from 'src/role/permission.dictionary';
 
 @Injectable()
 export class AuthService {
@@ -118,6 +120,7 @@ export class AuthService {
       const restProperties = theUser;
       let user = {
         ...restProperties,
+        userPermissions: this.getUserPermissions(theUser),
         userOnboarded: await this.userService.userOnboarded(restProperties.id),
       };
 
@@ -147,6 +150,7 @@ export class AuthService {
     const restProperties = theUser;
     let user = {
       ...restProperties,
+      userPermissions: this.getUserPermissions(theUser),
       userOnboarded: await this.userService.userOnboarded(restProperties.id),
     };
 
@@ -177,6 +181,7 @@ export class AuthService {
     // let user = restProperties;
     let user = {
       ...restProperties,
+      userPermissions: this.getUserPermissions(createdUser),
       userOnboarded: await this.userService.userOnboarded(restProperties.id),
     };
     return {
@@ -302,6 +307,7 @@ export class AuthService {
     // let user = restProperties;
     let user = {
       ...restProperties,
+      userPermissions: this.getUserPermissions(createdUser),
       userOnboarded: await this.userService.userOnboarded(restProperties.id),
     };
     return {
@@ -352,6 +358,7 @@ export class AuthService {
     // let user = restProperties;
     let user = {
       ...restProperties,
+      userPermissions: this.getUserPermissions(updatesUser),
       userOnboarded: await this.userService.userOnboarded(restProperties.id),
     };
     return {
@@ -392,6 +399,7 @@ export class AuthService {
 
     let newUser = {
       ...restProperties,
+      userPermissions: this.getUserPermissions(theUser),
       userOnboarded: await this.userService.userOnboarded(restProperties.id),
     };
 
@@ -445,6 +453,7 @@ export class AuthService {
 
     let newUser = {
       ...restProperties,
+      userPermissions: this.getUserPermissions(updatedUser),
       userOnboarded: await this.userService.userOnboarded(restProperties.id),
     };
     return {
@@ -471,5 +480,30 @@ export class AuthService {
 
     await this.userRepository.updateCommunicateEmail(contactEmail, userId);
     return await this.userRepository.findById(userId);
+  }
+
+  getUserPermissions(theUser: UserDto): PermissionsCreateDto {
+    let userPermissions;
+    if (theUser.type == UserRoleEnum.CUSTOMER) {
+      userPermissions = this.createAllPermissions(PermissionDictionary, false);
+    } else if (theUser.type == UserRoleEnum.ADMIN) {
+      userPermissions = this.createAllPermissions(PermissionDictionary, true);
+    } else if (theUser.type == UserRoleEnum.MODERATOR) {
+      userPermissions = theUser.role.permissions;
+    }
+    return userPermissions;
+  }
+
+  createAllPermissions(permissionDict, value: boolean) {
+    const result = {};
+
+    Object.keys(permissionDict).forEach((resource) => {
+      result[resource] = {};
+      Object.keys(permissionDict[resource]).forEach((permission) => {
+        result[resource][permission] = value;
+      });
+    });
+
+    return result;
   }
 }

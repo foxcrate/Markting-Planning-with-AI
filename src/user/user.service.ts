@@ -30,6 +30,7 @@ export class UserService {
     private readonly roleService: RoleService,
     private readonly logService: LogService,
   ) {}
+
   async userUpdate(
     UpdateProfileBody: UpdateProfileDto,
     userId,
