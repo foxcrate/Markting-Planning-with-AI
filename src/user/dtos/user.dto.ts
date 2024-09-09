@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserRoleEnum } from 'src/enums/user-roles.enum';
-import { UserRoleDto } from './user-role.dto';
+import { UserRoleWithPermissionsDto } from './user-role-with-permissions.dto';
 
 export class UserDto {
   @ApiProperty()
@@ -23,8 +23,8 @@ export class UserDto {
   phoneNumber?: string;
   @ApiProperty()
   roleId?: number;
-  @ApiProperty({ type: UserRoleDto })
-  role?: UserRoleDto;
+  @ApiProperty({ type: UserRoleWithPermissionsDto })
+  role?: UserRoleWithPermissionsDto;
   @ApiProperty()
   credits?: number;
   @ApiProperty()

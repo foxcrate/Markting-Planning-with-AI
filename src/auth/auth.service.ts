@@ -26,6 +26,7 @@ import { SendEmailReturnDto } from './dtos/send-email-return-otp.dto';
 import { UpdateSocialDto } from './dtos/update-social.dto';
 import { PermissionsCreateDto } from 'src/role/dtos/permission-create.dto';
 import { PermissionDictionary } from 'src/role/permission.dictionary';
+import { AuthUserDto } from 'src/user/dtos/auth-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -117,17 +118,13 @@ export class AuthService {
       if (!theUser) {
         throw new NotFoundException('User not found');
       }
-      const restProperties = theUser;
-      let user = {
-        ...restProperties,
-        userPermissions: this.getUserPermissions(theUser),
-        userOnboarded: await this.userService.userOnboarded(restProperties.id),
-      };
+
+      let userData = await this.getUserAdditionalData(theUser);
 
       return {
-        user: user,
-        token: this.createNormalToken(user),
-        refreshToken: this.createRefreshToken(user),
+        user: userData,
+        token: this.createNormalToken(theUser),
+        refreshToken: this.createRefreshToken(theUser),
       };
     }
 
@@ -147,19 +144,14 @@ export class AuthService {
 
     await this.otpService.verifyFirebaseOTP(signIn.phoneNumber);
 
-    const restProperties = theUser;
-    let user = {
-      ...restProperties,
-      userPermissions: this.getUserPermissions(theUser),
-      userOnboarded: await this.userService.userOnboarded(restProperties.id),
-    };
+    let userData = await this.getUserAdditionalData(theUser);
 
-    console.log('mobileSignin,user', user);
+    console.log('mobileSignin,user', userData);
 
     return {
-      user: user,
-      token: this.createNormalToken(user),
-      refreshToken: this.createRefreshToken(user),
+      user: userData,
+      token: this.createNormalToken(theUser),
+      refreshToken: this.createRefreshToken(theUser),
     };
   }
 
@@ -177,17 +169,12 @@ export class AuthService {
       ...signUp,
     });
 
-    const restProperties = createdUser;
-    // let user = restProperties;
-    let user = {
-      ...restProperties,
-      userPermissions: this.getUserPermissions(createdUser),
-      userOnboarded: await this.userService.userOnboarded(restProperties.id),
-    };
+    let userData = await this.getUserAdditionalData(createdUser);
+
     return {
-      user: user,
-      token: this.createNormalToken(user),
-      refreshToken: this.createRefreshToken(user),
+      user: userData,
+      token: this.createNormalToken(createdUser),
+      refreshToken: this.createRefreshToken(createdUser),
     };
   }
 
@@ -303,17 +290,11 @@ export class AuthService {
       facebookId: socialSignUp.facebookId,
     });
 
-    const restProperties = createdUser;
-    // let user = restProperties;
-    let user = {
-      ...restProperties,
-      userPermissions: this.getUserPermissions(createdUser),
-      userOnboarded: await this.userService.userOnboarded(restProperties.id),
-    };
+    let userData = await this.getUserAdditionalData(createdUser);
     return {
-      user: user,
-      token: this.createNormalToken(user),
-      refreshToken: this.createRefreshToken(user),
+      user: userData,
+      token: this.createNormalToken(createdUser),
+      refreshToken: this.createRefreshToken(createdUser),
     };
   }
 
@@ -354,17 +335,12 @@ export class AuthService {
       userId,
     );
 
-    const restProperties = updatesUser;
-    // let user = restProperties;
-    let user = {
-      ...restProperties,
-      userPermissions: this.getUserPermissions(updatesUser),
-      userOnboarded: await this.userService.userOnboarded(restProperties.id),
-    };
+    let userData = await this.getUserAdditionalData(updatesUser);
+
     return {
-      user: user,
-      token: this.createNormalToken(user),
-      refreshToken: this.createRefreshToken(user),
+      user: userData,
+      token: this.createNormalToken(updatesUser),
+      refreshToken: this.createRefreshToken(updatesUser),
     };
   }
 
@@ -395,20 +371,14 @@ export class AuthService {
       throw new UnauthorizedException('User is blocked');
     }
 
-    const restProperties = theUser;
+    console.log('socialSignIn User', theUser);
 
-    let newUser = {
-      ...restProperties,
-      userPermissions: this.getUserPermissions(theUser),
-      userOnboarded: await this.userService.userOnboarded(restProperties.id),
-    };
-
-    console.log('socialSignIn User', newUser);
+    let userData = await this.getUserAdditionalData(theUser);
 
     return {
-      user: newUser,
-      token: this.createNormalToken(restProperties),
-      refreshToken: this.createRefreshToken(restProperties),
+      user: userData,
+      token: this.createNormalToken(theUser),
+      refreshToken: this.createRefreshToken(theUser),
     };
   }
 
@@ -448,18 +418,12 @@ export class AuthService {
       connectSocial.mobileNumber,
     );
 
-    const restProperties = updatedUser;
-    let user = restProperties;
+    let userData = await this.getUserAdditionalData(updatedUser);
 
-    let newUser = {
-      ...restProperties,
-      userPermissions: this.getUserPermissions(updatedUser),
-      userOnboarded: await this.userService.userOnboarded(restProperties.id),
-    };
     return {
-      user: newUser,
-      token: this.createNormalToken(user),
-      refreshToken: this.createRefreshToken(user),
+      user: userData,
+      token: this.createNormalToken(updatedUser),
+      refreshToken: this.createRefreshToken(updatedUser),
     };
   }
 
@@ -480,6 +444,14 @@ export class AuthService {
 
     await this.userRepository.updateCommunicateEmail(contactEmail, userId);
     return await this.userRepository.findById(userId);
+  }
+
+  async getUserAdditionalData(user: UserDto): Promise<AuthUserDto> {
+    return {
+      ...user,
+      userPermissions: this.getUserPermissions(user),
+      userOnboarded: await this.userService.userOnboarded(user.id),
+    };
   }
 
   getUserPermissions(theUser: UserDto): PermissionsCreateDto {

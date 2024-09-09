@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserRoleDto } from './user-role.dto';
+import { PermissionsCreateDto } from 'src/role/dtos/permission-create.dto';
 
 export class AuthUserDto {
   @ApiProperty()
@@ -31,4 +32,7 @@ export class AuthUserDto {
   facebookId?: string;
   @ApiProperty()
   userOnboarded?: boolean;
+
+  @ApiProperty()
+  userPermissions?: PermissionsCreateDto;
 }
