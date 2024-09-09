@@ -30,6 +30,7 @@ import { GlobalStageService } from 'src/global-stage/global-stage.service';
 import { KpiReturnDto } from 'src/kpi/dtos/return.dto';
 import { WorkspaceRepository } from 'src/workspace/workspace.repository';
 import { AssistantCreateParams } from 'openai/resources/beta/assistants';
+import { SerializedDataObjectForChatDto } from './dtos/serialized-data-object-for-chat.dto';
 
 @Injectable()
 export class OpenAiService implements OnModuleInit {
@@ -63,13 +64,14 @@ export class OpenAiService implements OnModuleInit {
   }
 
   async aiCreateTactic(body: CreateAiTacticDto, userId: number): Promise<any> {
-    let serializedUserDataObject = await this.getFunctionalAiUserData(
-      body.library,
-      body.workspaceId,
-      body.funnelId,
-      body.stageId,
-      userId,
-    );
+    let serializedUserDataObject =
+      await this.getFunctionalAiUserDataForCreateTactic(
+        body.library,
+        body.workspaceId,
+        body.funnelId,
+        body.stageId,
+        userId,
+      );
 
     // console.log(JSON.stringify(serializedUserDataObject));
 
@@ -117,26 +119,19 @@ export class OpenAiService implements OnModuleInit {
       SenderRoleEnum.USER,
     );
 
-    let serializedUserDataObject = await this.getFunctionalAiUserData(
-      null,
+    let serializedUserDataObject = await this.getFunctionalAiUserDataForChat(
       body.workspaceId,
       body.funnelId,
       body.stageId,
       userId,
     );
 
-    //get user data
-    let theUser = await this.userService.getUserData(userId);
-
-    let newSerializedUserDataObject = {
-      user_data: { user_name: theUser.firstName + ' ' + theUser.lastName },
-      ...serializedUserDataObject,
-    };
+    // console.log(JSON.stringify(serializedUserDataObject));
 
     try {
       let aiResponse = await this.chatAssistant(
         this.configService.getOrThrow('CHAT_ASSISTANT_ID'),
-        newSerializedUserDataObject,
+        serializedUserDataObject,
         body.message,
         theThread.id,
         theThread.openAiId,
@@ -154,7 +149,7 @@ export class OpenAiService implements OnModuleInit {
 
   async chatAssistant(
     openaiAssistantId: string,
-    runInstructions: SerializedDataObjectDto,
+    runInstructions: SerializedDataObjectForChatDto,
     message: string,
     threadId: number,
     threadOpenAiId: string,
@@ -208,7 +203,74 @@ export class OpenAiService implements OnModuleInit {
     }
   }
 
-  async getFunctionalAiUserData(
+  async getFunctionalAiUserDataForChat(
+    workspaceId: number,
+    funnelId: number,
+    stageId: number,
+    userId: number,
+  ): Promise<SerializedDataObjectForChatDto> {
+    let theWorkspace: WorkspaceReturnDto;
+    if (workspaceId == 0) {
+      let userWorkspaces =
+        await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
+      theWorkspace = userWorkspaces[0];
+      if (!theWorkspace) {
+        throw new NotFoundException('User has no workspaces');
+      }
+    } else {
+      theWorkspace = await this.workspaceRepository.findById(workspaceId);
+      //if no workspace
+      if (!theWorkspace) {
+        throw new UnprocessableEntityException('Workspace not found');
+      }
+    }
+
+    // console.log('workspace:', theWorkspace);
+
+    let theFunnel: any;
+    let theStage: any;
+    let theFunnelStages: any;
+
+    if (!funnelId) {
+      theFunnel = {
+        name: null,
+        description: null,
+      };
+      theFunnelStages = null;
+    } else {
+      theFunnel = await this.funnelService.getOne(funnelId, userId);
+
+      theFunnelStages = theFunnel.stages.map((stage) => {
+        return {
+          stage_name: stage.name,
+          stage_description: stage.description,
+          stage_order: stage.order,
+          stage_tactics: stage.tactics.map((tactic) => {
+            return {
+              tactic_name: tactic.name,
+              tactic_description: tactic.description,
+              tactic_order: tactic.theOrder,
+            };
+          }),
+        };
+      });
+    }
+
+    let theUser = await this.userService.getUserData(userId);
+
+    let serializedReturnObject = {
+      user_data: { name: theUser.firstName + ' ' + theUser.lastName },
+      project_data: theWorkspace.parameters,
+      funnel_data: {
+        name: theFunnel.name,
+        description: theFunnel.description,
+        funnel_stages: theFunnelStages,
+      },
+    };
+    return serializedReturnObject;
+  }
+
+  async getFunctionalAiUserDataForCreateTactic(
     library: boolean,
     workspaceId: number,
     funnelId: number,
@@ -288,7 +350,10 @@ export class OpenAiService implements OnModuleInit {
       };
     }
 
+    let theUser = await this.userService.getUserData(userId);
+
     let serializedReturnObject = {
+      user_data: { name: theUser.firstName + ' ' + theUser.lastName },
       project_data: theWorkspace.parameters,
       funnel_data: {
         name: theFunnel.name,
