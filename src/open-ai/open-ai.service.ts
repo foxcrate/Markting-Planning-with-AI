@@ -203,6 +203,16 @@ export class OpenAiService implements OnModuleInit {
     }
   }
 
+  async getThreadMessages(threadId: number, userId: number): Promise<any> {
+    let theThread = await this.threadService.getOne(threadId, userId);
+
+    const messages = await this.messageService.getAllThreadMessages(
+      theThread.id,
+    );
+
+    return messages;
+  }
+
   async getFunctionalAiUserDataForChat(
     workspaceId: number,
     funnelId: number,

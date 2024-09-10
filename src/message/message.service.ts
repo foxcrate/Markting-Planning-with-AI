@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MessageRepository } from './message.repository';
+import { MessageReturnDto } from 'src/message/dtos/message-return.dto';
 
 @Injectable()
 export class MessageService {
@@ -28,5 +29,9 @@ export class MessageService {
 
   async create(message: string, threadId: number, role: string) {
     return await this.messageRepository.create(message, threadId, role);
+  }
+
+  async getAllThreadMessages(threadId: number): Promise<MessageReturnDto[]> {
+    return await this.messageRepository.getAllThreadMessages(threadId);
   }
 }

@@ -1,9 +1,10 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiNotFoundResponse,
+  ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from 'src/gurads/auth.guard';
@@ -14,6 +15,8 @@ import { AiCreatedTacticDto } from './dtos/ai-created-tactic.dto';
 import { ErrorResponseDto } from 'src/dtos/error-response.dto';
 import { AiChatRequestDto } from './dtos/ai-chat-request.dto';
 import { AiChatResponseDto } from './dtos/ai-chat-response.dto';
+import { ThreadIdDto } from './dtos/thread-id.dto';
+import { MessageReturnDto } from 'src/message/dtos/message-return.dto';
 
 @Controller({ path: 'ai', version: '1' })
 export class OpenAiController {
@@ -50,5 +53,26 @@ export class OpenAiController {
   @UseGuards(AuthGuard)
   async aiChat(@Body() body: AiChatRequestDto, @UserId() userId: number) {
     return this.openAiService.aiChat(body, userId);
+  }
+
+  @ApiParam({
+    name: 'threadId',
+  })
+  @ApiCreatedResponse({
+    type: MessageReturnDto,
+    isArray: true,
+  })
+  @ApiNotFoundResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiBearerAuth()
+  @ApiTags('Ai: Get Thread Messages')
+  @Post('messages/:threadId')
+  @UseGuards(AuthGuard)
+  async getThreadMessages(
+    @Param() params: ThreadIdDto,
+    @UserId() userId: number,
+  ) {
+    return this.openAiService.getThreadMessages(params.threadId, userId);
   }
 }
