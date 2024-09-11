@@ -41,6 +41,8 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('Wrong Credentials');
     }
 
+    console.log('theUser in auth guard:', theUser);
+
     if (theUser.role == null) {
       request['permissions'] = null;
     } else {
