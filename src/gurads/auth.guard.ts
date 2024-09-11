@@ -106,8 +106,6 @@ export class AuthGuard implements CanActivate {
       theUser.role = eval(`(${theUser.role})`);
     }
 
-    console.log('theUser in repository:', theUser.role.permissions);
-
-    return JSON.parse(theUser);
+    return theUser;
   }
 }
