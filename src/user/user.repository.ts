@@ -413,7 +413,15 @@ export class UserRepository {
       queryParameters,
     );
 
-    console.log('all users in admin:', users);
+    console.log(
+      'all users roles in admin:',
+      users.map((user) => user.role),
+    );
+
+    console.log(
+      'all users roles permissions in admin:',
+      users.map((user) => user.role),
+    );
 
     return users;
   }
