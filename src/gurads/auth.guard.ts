@@ -102,15 +102,11 @@ export class AuthGuard implements CanActivate {
 
     const [theUser] = await this.entityManager.query(query, [userId]);
 
+    if (theUser.role != null) {
+      theUser.role = eval(`(${theUser.role})`);
+    }
+
     console.log('theUser in repository:', theUser);
-
-    let theUser2 = JSON.stringify(theUser);
-
-    console.log('theUser2:', theUser2);
-
-    let theUser3 = JSON.parse(theUser);
-
-    console.log('theUser3:', theUser3);
 
     return JSON.parse(theUser);
   }
