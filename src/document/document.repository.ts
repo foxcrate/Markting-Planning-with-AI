@@ -44,6 +44,8 @@ export class DocumentRepository {
 
     // loop over documents
 
+    console.log(documents);
+
     for (const document of documents) {
       try {
         if (document.requiredData) {

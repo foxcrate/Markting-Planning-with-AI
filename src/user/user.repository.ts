@@ -412,6 +412,9 @@ export class UserRepository {
       queryStart + paginationQuery,
       queryParameters,
     );
+
+    console.log('all users in admin:', users);
+
     return users;
   }
 
