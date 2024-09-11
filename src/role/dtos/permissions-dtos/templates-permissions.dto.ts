@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsBoolean, IsNotEmpty, IsObject, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty } from 'class-validator';
 
-export class FlowsPermissionsDto {
+export class TemplatesPermissionsDto {
   @ApiProperty()
   @IsNotEmpty()
   @IsBoolean()
@@ -21,4 +21,9 @@ export class FlowsPermissionsDto {
   @IsNotEmpty()
   @IsBoolean()
   delete: boolean;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  @IsBoolean()
+  onboarding: boolean;
 }

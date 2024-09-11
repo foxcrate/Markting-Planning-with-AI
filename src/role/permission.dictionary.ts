@@ -18,4 +18,11 @@ export const PermissionDictionary = {
     export: 'tactics.export',
     import: 'tactics.import',
   },
+  templates: {
+    create: 'templates.create',
+    read: 'templates.read',
+    update: 'templates.update',
+    delete: 'templates.delete',
+    onboarding: 'templates.onboarding',
+  },
 };

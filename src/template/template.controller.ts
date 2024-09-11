@@ -38,6 +38,9 @@ import { TemplateIdDto } from './dtos/template-id.dto';
 import { TemplateUpdateDto } from './dtos/template-update.dto';
 import { GetAllFilterDto } from './dtos/get-all-filter.dto';
 import { UserRoleEnum } from 'src/enums/user-roles.enum';
+import { PermissionsGuard } from 'src/gurads/permissions.guard';
+import { Permissions } from 'src/decorators/permissions.decorator';
+import { PermissionDictionary } from 'src/role/permission.dictionary';
 
 // @ApiTags('Template')
 @Controller({ path: 'template', version: '1' })
@@ -63,8 +66,9 @@ export class TemplateController {
   @ApiBearerAuth()
   @ApiTags('Template: CRUD: Create')
   @Post()
-  @Roles(UserRoleEnum.ADMIN)
-  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(UserRoleEnum.ADMIN, UserRoleEnum.MODERATOR)
+  @Permissions(PermissionDictionary.templates.create)
+  @UseGuards(AuthGuard, RoleGuard, PermissionsGuard)
   async create(@Body() template: TemplateCreateDto) {
     return this.templateService.create(template);
   }
@@ -86,8 +90,9 @@ export class TemplateController {
   @ApiBearerAuth()
   @ApiTags('Template: CRUD: Update')
   @Put('/:templateId')
-  @Roles(UserRoleEnum.ADMIN)
-  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(UserRoleEnum.ADMIN, UserRoleEnum.MODERATOR)
+  @Permissions(PermissionDictionary.templates.update)
+  @UseGuards(AuthGuard, RoleGuard, PermissionsGuard)
   async udpate(
     @Body() template: TemplateUpdateDto,
     @Param() paramsId: TemplateIdDto,
@@ -107,7 +112,7 @@ export class TemplateController {
   @ApiBearerAuth()
   @ApiTags('Template: CRUD: Get One')
   @Get('/:templateId')
-  @Roles(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER)
+  @Roles(UserRoleEnum.ADMIN, UserRoleEnum.CUSTOMER, UserRoleEnum.MODERATOR)
   @UseGuards(AuthGuard, RoleGuard)
   async getOne(@Param() paramsId: TemplateIdDto) {
     return this.templateService.getOne(paramsId.templateId);
@@ -125,8 +130,9 @@ export class TemplateController {
   @ApiBearerAuth()
   @ApiTags('Template: CRUD: Delete')
   @Delete('/:templateId')
-  @Roles(UserRoleEnum.ADMIN)
-  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(UserRoleEnum.ADMIN, UserRoleEnum.MODERATOR)
+  @Permissions(PermissionDictionary.templates.delete)
+  @UseGuards(AuthGuard, RoleGuard, PermissionsGuard)
   async delete(@Param() paramsId: TemplateIdDto) {
     return this.templateService.delete(paramsId.templateId);
   }
@@ -161,8 +167,11 @@ export class TemplateController {
   @ApiBearerAuth()
   @ApiTags('Template: Onboarding: Create')
   @Post('onboarding')
-  @UseGuards(AuthGuard)
-  async setOnboardingFlow(@Body() template: OnboardingTemplateDto) {
+  @Permissions(PermissionDictionary.templates.onboarding)
+  @UseGuards(AuthGuard, PermissionsGuard)
+  async setOnboardingFlow(
+    @Body() template: OnboardingTemplateDto,
+  ): Promise<any> {
     return this.templateService.setOnboardingTemplate(template);
   }
 
@@ -241,130 +250,4 @@ export class TemplateController {
       null,
     );
   }
-
-  ///////////////////////// Funnels //////////////////////////////
-
-  // @Post('funnel')
-  // @UseGuards(AuthGuard)
-  // async setFunnelFlow(@Body() template: FunnelTemplateDto) {
-  //   return this.templateService.setFunnelTemplate(template);
-  // }
-
-  // @Post('funnel/start')
-  // @UseGuards(AuthGuard)
-  // async startFunnelTemplate(@UserId() userId: number) {
-  //   let funnelTemplate = await this.templateRepository.findByType(
-  //     TemplateTypeEnum.FUNNEL,
-  //   );
-  //   if (!funnelTemplate) {
-  //     throw new UnprocessableEntityException('There is no funnel template');
-  //   }
-  //   // let userWorkspace = await this.workspaceService.userWorkspace(userId);
-  //   return await this.templateService.startTemplateFlow(
-  //     funnelTemplate.id,
-  //     userId,
-  //     8,
-  //     null,
-  //     null,
-  //   );
-  // }
-
-  // @Post('funnel/answer')
-  // @UseGuards(AuthGuard)
-  // async funnelAnswer(
-  //   @Body() questionAnswer: OnboardingQuestionAnswer,
-  //   @UserId() userId: number,
-  // ) {
-  //   let funnelTemplate = await this.templateRepository.findByType(
-  //     TemplateTypeEnum.FUNNEL,
-  //   );
-  //   return await this.templateService.answerTemplateQuestion(
-  //     funnelTemplate.id,
-  //     questionAnswer.answer,
-  //     userId,
-  //     8,
-  //     null,
-  //     null,
-  //   );
-  // }
-
-  ///////////////////////// Tactics //////////////////////////////
-
-  // @ApiBody({ type: FunnelTemplateDto })
-  // @ApiCreatedResponse({
-  //   type: TemplateReturnDto,
-  // })
-  // @ApiUnauthorizedResponse({
-  //   type: ErrorResponseDto,
-  // })
-  // @ApiBearerAuth()
-  // @ApiTags('Template: Tactic: Create')
-  // @Post('tactic')
-  // @UseGuards(AuthGuard)
-  // async setTacticFlow(@Body() template: FunnelTemplateDto) {
-  //   return this.templateService.setTacticTemplate(template);
-  // }
-
-  // @ApiBody({
-  //   type: StartTacticTemplateDto,
-  // })
-  // @ApiCreatedResponse({
-  //   type: NotEndedThreadAiResponseDto,
-  // })
-  // @ApiUnauthorizedResponse({
-  //   type: ErrorResponseDto,
-  // })
-  // @ApiBearerAuth()
-  // @ApiTags('Template: Tactic: Start')
-  // @Post('tactic/start')
-  // @UseGuards(AuthGuard)
-  // async startTacticTemplate(
-  //   @Body() startTacticTemplateBody: StartTacticTemplateDto,
-  //   @UserId() userId: number,
-  // ) {
-  //   let tacticTemplate = await this.templateRepository.findByType(
-  //     TemplateTypeEnum.TACTIC,
-  //   );
-  //   if (!tacticTemplate) {
-  //     throw new UnprocessableEntityException('There is no tactic template');
-  //   }
-  //   return await this.templateService.startTemplateFlow(
-  //     tacticTemplate.id,
-  //     userId,
-  //     null,
-  //     startTacticTemplateBody.funnelId,
-  //     startTacticTemplateBody.stageId,
-  //   );
-  // }
-
-  // @ApiBody({
-  //   type: TacticQuestionAnswer,
-  // })
-  // @ApiCreatedResponse({
-  //   type: NotEndedThreadAiResponseDto,
-  //   description: 'ThreadEnd boolean will be true when the thread is ended',
-  // })
-  // @ApiUnauthorizedResponse({
-  //   type: ErrorResponseDto,
-  // })
-  // @ApiBearerAuth()
-  // @ApiTags('Template: Tactic: Answer')
-  // @Post('tactic/answer')
-  // @UseGuards(AuthGuard)
-  // async tacticAnswer(
-  //   @Body() questionAnswer: TacticQuestionAnswer,
-  //   @UserId() userId: number,
-  // ) {
-  //   let tacticTemplate = await this.templateRepository.findByType(
-  //     TemplateTypeEnum.TACTIC,
-  //   );
-  //   return await this.templateService.answerTemplateQuestion(
-  //     tacticTemplate.id,
-  //     questionAnswer.answer,
-  //     userId,
-  //     null,
-  //     questionAnswer.funnelId,
-  //     questionAnswer.stageId,
-  //   );
-  // }
 }
