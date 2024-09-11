@@ -50,7 +50,7 @@ export class AuthGuard implements CanActivate {
     } else {
       console.log('second condition');
 
-      console.log('theUser.role.permissions:', theUser.role.permissions);
+      console.log('theUser.role:', theUser.role);
 
       request['permissions'] = theUser.role.permissions;
     }
