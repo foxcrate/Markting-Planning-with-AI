@@ -420,7 +420,7 @@ export class UserRepository {
 
     console.log(
       'all users roles permissions in admin:',
-      users.map((user) => user.role),
+      users.map((user) => user.role.permissions),
     );
 
     return users;
