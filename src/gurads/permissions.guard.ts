@@ -16,6 +16,11 @@ export class PermissionsGuard implements CanActivate {
     requiredPermissions: string[],
     userPermissions: Record<string, any>,
   ): boolean {
+    // console.log(requiredPermissions);
+
+    if (!requiredPermissions) {
+      return true;
+    }
     return requiredPermissions.every((permission) => {
       const [resource, action] = permission.split('.');
 

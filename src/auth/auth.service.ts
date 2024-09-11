@@ -461,6 +461,8 @@ export class AuthService {
     } else if (theUser.type == UserRoleEnum.ADMIN) {
       userPermissions = this.createAllPermissions(PermissionDictionary, true);
     } else if (theUser.type == UserRoleEnum.MODERATOR) {
+      console.log({ theUser });
+
       userPermissions = theUser.role.permissions;
     }
     return userPermissions;
