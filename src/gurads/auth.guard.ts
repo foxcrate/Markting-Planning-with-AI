@@ -102,8 +102,12 @@ export class AuthGuard implements CanActivate {
 
     const [theUser] = await this.entityManager.query(query, [userId]);
 
-    if (theUser.role != null) {
-      theUser.role = eval(`(${theUser.role})`);
+    if (theUser.role.permissions != null) {
+      try {
+        theUser.role.permissions = eval(`(${theUser.role.permissions})`);
+      } catch (error) {
+        console.error('Parsing error:', error);
+      }
     }
 
     return theUser;
