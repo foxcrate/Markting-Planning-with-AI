@@ -102,6 +102,6 @@ export class AuthGuard implements CanActivate {
 
     const [theUser] = await this.entityManager.query(query, [userId]);
 
-    return theUser;
+    return JSON.parse(theUser);
   }
 }
