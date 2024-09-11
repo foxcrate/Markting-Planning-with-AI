@@ -49,6 +49,8 @@ export class AuthGuard implements CanActivate {
       request['permissions'] = theUser.role.permissions;
     }
 
+    console.log('request in auth guard:', request);
+
     return true;
   }
 
