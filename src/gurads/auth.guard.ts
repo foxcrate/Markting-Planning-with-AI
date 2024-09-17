@@ -104,13 +104,6 @@ export class AuthGuard implements CanActivate {
 
     console.log('theUser in auth service:', theUser);
 
-    console.log('theUser.role in auth service:', theUser.role);
-
-    console.log(
-      'theUser.role.permissions in auth service:',
-      theUser.role.permissions,
-    );
-
     if (theUser.role != null) {
       try {
         theUser.role = eval(`(${theUser.role})`);
