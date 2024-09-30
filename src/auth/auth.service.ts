@@ -27,6 +27,9 @@ import { UpdateSocialDto } from './dtos/update-social.dto';
 import { PermissionsCreateDto } from 'src/role/dtos/permission-create.dto';
 import { PermissionDictionary } from 'src/role/permission.dictionary';
 import { AuthUserDto } from 'src/user/dtos/auth-user.dto';
+import { SettingService } from 'src/settings/setting.service';
+import { SettingsEnum } from 'src/enums/settings.enum';
+import { StripeService } from 'src/stripe/stripe.service';
 
 @Injectable()
 export class AuthService {
@@ -37,6 +40,8 @@ export class AuthService {
     private readonly otpService: OtpService,
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
+    private readonly settingService: SettingService,
+    private readonly stripeService: StripeService,
     private config: ConfigService,
   ) {}
 
@@ -146,7 +151,7 @@ export class AuthService {
 
     let userData = await this.getUserAdditionalData(theUser);
 
-    console.log('mobileSignin,user', userData);
+    // console.log('mobileSignin,user', userData);
 
     return {
       user: userData,
@@ -165,8 +170,20 @@ export class AuthService {
 
     await this.otpService.verifyFirebaseOTP(signUp.phoneNumber);
 
+    let userStartCoins = (
+      await this.settingService.getOneByName(SettingsEnum.USER_START_COINS)
+    ).value;
+
+    const stripeCustomer = await this.stripeService.createCustomer(
+      signUp.firstName + ' ' + signUp.lastName,
+      null,
+      signUp.phoneNumber,
+    );
+
     const createdUser = await this.userRepository.create({
       ...signUp,
+      credits: Number(userStartCoins),
+      stripeCustomerId: stripeCustomer.id,
     });
 
     let userData = await this.getUserAdditionalData(createdUser);
@@ -280,6 +297,16 @@ export class AuthService {
       }
     }
 
+    let userStartCoins = (
+      await this.settingService.getOneByName(SettingsEnum.USER_START_COINS)
+    ).value;
+
+    const stripeCustomer = await this.stripeService.createCustomer(
+      socialSignUp.firstName + ' ' + socialSignUp.lastName,
+      socialSignUp.authEmail,
+      socialSignUp.phoneNumber,
+    );
+
     const createdUser = await this.userRepository.create({
       firstName: socialSignUp.firstName,
       lastName: socialSignUp.lastName,
@@ -288,6 +315,8 @@ export class AuthService {
       phoneNumber: socialSignUp.phoneNumber,
       googleId: socialSignUp.googleId,
       facebookId: socialSignUp.facebookId,
+      credits: Number(userStartCoins),
+      stripeCustomerId: stripeCustomer.id,
     });
 
     let userData = await this.getUserAdditionalData(createdUser);
@@ -371,7 +400,7 @@ export class AuthService {
       throw new UnauthorizedException('User is blocked');
     }
 
-    console.log('socialSignIn User', theUser);
+    // console.log('socialSignIn User', theUser);
 
     let userData = await this.getUserAdditionalData(theUser);
 
@@ -449,7 +478,7 @@ export class AuthService {
   async getUserAdditionalData(user: UserDto): Promise<AuthUserDto> {
     return {
       ...user,
-      userPermissions: this.getUserPermissions(user),
+      // userPermissions: this.getUserPermissions(user),
       userOnboarded: await this.userService.userOnboarded(user.id),
     };
   }
@@ -461,7 +490,7 @@ export class AuthService {
     } else if (theUser.type == UserRoleEnum.ADMIN) {
       userPermissions = this.createAllPermissions(PermissionDictionary, true);
     } else if (theUser.type == UserRoleEnum.MODERATOR) {
-      console.log({ theUser });
+      // console.log({ theUser });
 
       userPermissions = theUser.role.permissions;
     }

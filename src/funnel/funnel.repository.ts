@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { FunnelCreateDto } from './dtos/funnel-create.dto';
 import { FunnelReturnDto } from './dtos/funnel-return.dto';
-import { FunnelUpdateDto } from './dtos/funnel-update.dto';
+import { FunnelUpdateDto } from '../funnel/dtos/funnel-update.dto';
 import { DB_PROVIDER } from 'src/db/constants';
 import { Pool } from 'mariadb';
 import { GetAllFilterDto } from './dtos/get-all-filter.dto';

@@ -20,6 +20,9 @@ import { LogService } from 'src/log/log.service';
 import { LogEntityEnum } from 'src/enums/log-entity.enum';
 import { LogOperationEnum } from 'src/enums/log-operation.enum';
 import { PaginationDto } from 'src/dtos/pagination.dto';
+import { SettingService } from 'src/settings/setting.service';
+import { SettingsEnum } from 'src/enums/settings.enum';
+import { StripeService } from 'src/stripe/stripe.service';
 
 @Injectable()
 export class UserService {
@@ -29,6 +32,8 @@ export class UserService {
     private readonly otpService: OtpService,
     private readonly roleService: RoleService,
     private readonly logService: LogService,
+    private readonly settingService: SettingService,
+    private readonly stripeService: StripeService,
   ) {}
 
   async userUpdate(
@@ -129,10 +134,17 @@ export class UserService {
           'roleId is required when creating a moderator',
         );
       }
-    }
 
-    //validate existence of the role
-    await this.roleService.getOne(reqBody.roleId);
+      //validate existence of the role
+
+      await this.roleService.getOne(reqBody.roleId);
+    } else {
+      if (reqBody.roleId) {
+        throw new UnprocessableEntityException(
+          'roleId is required only when creating a moderator',
+        );
+      }
+    }
 
     //validate repeated phone number
     const existingUser = await this.userRepository.findUserByPhoneNumber(
@@ -152,9 +164,25 @@ export class UserService {
 
     //create stripeId
 
-    //create user
+    // const stripeCustomer = await this.stripeService.createCustomer(
+    //   reqBody.firstName + ' ' + reqBody.lastName,
+    //   reqBody.contactEmail,
+    //   reqBody.phoneNumber,
+    // );
 
-    let createdUser = await this.userRepository.create(reqBody);
+    const stripeCustomer = {
+      id: 'cus_1Mw6l3IyqgJbZQ',
+    };
+
+    let userStartCoins = (
+      await this.settingService.getOneByName(SettingsEnum.USER_START_COINS)
+    ).value;
+
+    let createdUser = await this.userRepository.create({
+      ...reqBody,
+      credits: Number(userStartCoins),
+      stripeCustomerId: stripeCustomer.id,
+    });
 
     await this.logService.create(
       {

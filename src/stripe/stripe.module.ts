@@ -8,5 +8,6 @@ import { UserModule } from 'src/user/user.module';
   controllers: [StripeController],
   providers: [StripeService],
   imports: [UserModule],
+  exports: [StripeService],
 })
 export class StripeModule {}

@@ -3,6 +3,7 @@ import { StripeService } from './stripe.service';
 import { ApiBody } from '@nestjs/swagger';
 import { FastifyReply } from 'fastify';
 import { join } from 'path';
+import * as fs from 'fs';
 
 @Controller({ path: 'stripe', version: '1' })
 export class StripeController {
@@ -31,7 +32,36 @@ export class StripeController {
   })
   @Post('/customer-data')
   async customerData(@Body() body: { customerId: string }) {
+    console.log('aloo');
+
     return await this.stripeService.customerData(body.customerId);
+  }
+
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        meterId: { type: 'string' },
+        customerId: { type: 'string' },
+      },
+    },
+  })
+  @Post('/meter-data')
+  async meterData(@Body() body: { meterId: string; customerId: string }) {
+    return await this.stripeService.meterData(body.meterId, body.customerId);
+  }
+
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        subsItemId: { type: 'string' },
+      },
+    },
+  })
+  @Post('/subsItem-data')
+  async subsItemData(@Body() body: { subsItemId: string }) {
+    return await this.stripeService.subsItemData(body.subsItemId);
   }
 
   @ApiBody({
@@ -57,6 +87,11 @@ export class StripeController {
     return await this.stripeService.createCheckoutSession(12);
   }
 
+  @Post('/create-customer-session')
+  async createCustomerSession() {
+    return await this.stripeService.createCustomerSession();
+  }
+
   @Get('/success-checkout')
   async successCheckoutSession(@Query() query: { session_id: number }) {
     return await this.stripeService.successCheckoutSession(query.session_id);
@@ -68,18 +103,18 @@ export class StripeController {
   }
 
   @ApiBody({
-    schema: { type: 'object', properties: { session_id: { type: 'number' } } },
+    schema: { type: 'object', properties: { customerId: { type: 'number' } } },
   })
   @Post('/portal-session')
-  async getPortalSession(@Body() body: { session_id: string }) {
-    return await this.stripeService.getPortalSession(body.session_id);
+  async getPortalSession(@Body() body: { customerId: string }) {
+    return await this.stripeService.getPortalSession(body.customerId);
   }
 
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        stripe_customer_id: { type: 'number' },
+        stripe_customer_id: { type: 'string' },
       },
     },
   })
@@ -100,7 +135,7 @@ export class StripeController {
 
   @Get('/products')
   async allProducts() {
-    return await this.stripeService.allPrices();
+    return await this.stripeService.allProducts();
   }
 
   @Get('/subscriptions')
@@ -120,16 +155,8 @@ export class StripeController {
       'views',
       'stripe.html',
     );
-    // const stream = fs.createReadStream(resolvePath('index.html'));
-    // return res.type('text/html').send(stream);
-
-    // const filePath = join(__dirname, 'views', 'stripe.html');
     console.log(filePath);
-
-    res.header('Content-Type', 'text/html');
-
-    return res.send(filePath);
-
-    res.sendFile(filePath);
+    const stream = fs.createReadStream(filePath);
+    return res.type('text/html').send(stream);
   }
 }

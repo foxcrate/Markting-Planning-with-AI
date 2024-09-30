@@ -33,6 +33,9 @@ export class UserEntity {
   @Column({ default: false })
   blocked: boolean;
 
+  @Column({ default: false })
+  finishStartCoins: boolean;
+
   @Column({
     type: 'enum',
     enum: UserRoleEnum,

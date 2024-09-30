@@ -282,7 +282,7 @@ export class DocumentService {
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
-    console.log({ browser });
+    // console.log({ browser });
 
     const page = await browser.newPage();
 

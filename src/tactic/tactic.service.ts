@@ -506,7 +506,7 @@ export class TacticService {
     for (const tacticObject of tacticsObjects) {
       const errors = await validate(tacticObject);
       if (errors.length > 0) {
-        console.log('Validation errors: ', errors[0]);
+        // console.log('Validation errors: ', errors[0]);
         throw new BadRequestException('Tactics validation error');
       }
     }

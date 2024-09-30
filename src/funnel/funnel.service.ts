@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { FunnelRepository } from './funnel.repository';
 import { FunnelCreateDto } from './dtos/funnel-create.dto';
-import { FunnelUpdateDto } from './dtos/funnel-update.dto';
+import { FunnelUpdateDto } from '../funnel/dtos/funnel-update.dto';
 import { StageService } from 'src/stage/stage.service';
 import { FunnelReturnDto } from './dtos/funnel-return.dto';
 import { GetAllFilterDto } from './dtos/get-all-filter.dto';

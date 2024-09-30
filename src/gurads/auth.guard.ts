@@ -41,16 +41,16 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('Wrong Credentials');
     }
 
-    console.log('theUser in auth guard:', theUser);
+    // console.log('theUser in auth guard:', theUser);
 
     if (theUser.role == null) {
-      console.log('first condition');
+      // console.log('first condition');
 
       request['permissions'] = null;
     } else {
-      console.log('second condition');
+      // console.log('second condition');
 
-      console.log('theUser.role.permissions:', theUser.role.permissions);
+      // console.log('theUser.role.permissions:', theUser.role.permissions);
 
       request['permissions'] = theUser.role.permissions;
     }
@@ -102,7 +102,7 @@ export class AuthGuard implements CanActivate {
 
     const [theUser] = await this.entityManager.query(query, [userId]);
 
-    console.log('theUser in auth service:', theUser);
+    // console.log('theUser in auth service:', theUser);
 
     if (theUser.role != null) {
       try {

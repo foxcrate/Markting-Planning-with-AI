@@ -29,6 +29,7 @@ export class UserRepository {
           users.profilePicture,
           users.phoneNumber,
           users.googleId,
+          users.finishStartCoins,
           users.facebookId,
           CASE WHEN roles.id is null THEN null
           ELSE
@@ -64,6 +65,7 @@ export class UserRepository {
           users.profilePicture,
           users.phoneNumber,
           users.googleId,
+          users.finishStartCoins,
           users.facebookId,
           CASE WHEN roles.id is null THEN null
           ELSE
@@ -99,6 +101,7 @@ export class UserRepository {
           users.profilePicture,
           users.phoneNumber,
           users.googleId,
+          users.finishStartCoins,
           users.facebookId,
           CASE WHEN roles.id is null THEN null
           ELSE
@@ -129,10 +132,11 @@ export class UserRepository {
       phoneNumber,
       googleId,
       facebookId,
+      stripeCustomerId,
     } = user;
 
     const query = `
-      INSERT INTO users (firstName, lastName, type,profilePicture,credits,roleId,authEmail,contactEmail, phoneNumber${googleId ? ', googleId' : ''}${facebookId ? ', facebookId' : ''}) VALUES (?, ?,?,?,?,?, ?, ?, ?${googleId ? ', ?' : ''}${facebookId ? ', ?' : ''})
+      INSERT INTO users (firstName, lastName, type,profilePicture,credits,roleId,authEmail,stripeCustomerId,contactEmail, phoneNumber${googleId ? ', googleId' : ''}${facebookId ? ', facebookId' : ''}) VALUES (?, ?,?,?,?,?,?, ?, ?, ?${googleId ? ', ?' : ''}${facebookId ? ', ?' : ''})
     `;
     const params = [
       firstName,
@@ -142,6 +146,7 @@ export class UserRepository {
       credits ? credits : 0,
       roleId,
       authEmail,
+      stripeCustomerId,
       contactEmail,
       phoneNumber,
     ];
@@ -258,6 +263,7 @@ export class UserRepository {
           users.profilePicture,
           users.phoneNumber,
           users.googleId,
+          users.finishStartCoins,
           users.facebookId,
           CASE WHEN roles.id is null THEN null
           ELSE
@@ -292,6 +298,7 @@ export class UserRepository {
           users.profilePicture,
           users.phoneNumber,
           users.googleId,
+          users.finishStartCoins,
           users.facebookId,
           CASE WHEN roles.id is null THEN null
           ELSE
@@ -353,6 +360,7 @@ export class UserRepository {
       users.profilePicture,
       users.phoneNumber,
       users.googleId,
+      users.finishStartCoins,
       users.facebookId,
       CASE WHEN roles.id is null THEN null
       ELSE
@@ -389,6 +397,7 @@ export class UserRepository {
           users.phoneNumber,
           users.roleId,
           users.googleId,
+          users.finishStartCoins,
           users.facebookId,
           CASE WHEN roles.id is null THEN null
           ELSE
@@ -413,15 +422,15 @@ export class UserRepository {
       queryParameters,
     );
 
-    console.log(
-      'all users roles in admin:',
-      users.map((user) => user.role),
-    );
+    // console.log(
+    //   'all users roles in admin:',
+    //   users.map((user) => user.role),
+    // );
 
-    console.log(
-      'all users roles permissions in admin:',
-      users.map((user) => (user.role ? user.role.permissions : null)),
-    );
+    // console.log(
+    //   'all users roles permissions in admin:',
+    //   users.map((user) => (user.role ? user.role.permissions : null)),
+    // );
 
     return users;
   }

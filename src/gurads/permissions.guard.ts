@@ -54,9 +54,9 @@ export class PermissionsGuard implements CanActivate {
       );
     }
 
-    console.log('userPermissions:', userPermissions);
-    console.log('requiredPermissions:', requiredPermissions);
-    console.log('userId:', userId);
+    // console.log('userPermissions:', userPermissions);
+    // console.log('requiredPermissions:', requiredPermissions);
+    // console.log('userId:', userId);
 
     if (!this.checkPermissions(requiredPermissions, userPermissions)) {
       throw new ForbiddenException(

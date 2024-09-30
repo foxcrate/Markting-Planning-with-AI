@@ -5,6 +5,7 @@ import Stripe from 'stripe';
 import { ConfigService } from '@nestjs/config';
 import { UserRepository } from 'src/user/user.repository';
 import { FastifyRequest } from 'fastify';
+import moment from 'moment';
 
 @Injectable()
 export class StripeService {
@@ -22,9 +23,11 @@ export class StripeService {
     );
   }
 
-  async createCustomer(customerEmail: string) {
+  async createCustomer(name?: string, email?: string, phone?: string) {
     const customer = await this.stripe.customers.create({
-      email: customerEmail,
+      name: name,
+      email: email,
+      phone: phone,
     });
     return customer;
   }
@@ -53,13 +56,61 @@ export class StripeService {
     const customerSubscriptions = await this.stripe.subscriptions.list({
       customer: customer.id,
     });
-    console.log('customerSubscriptions:', customerSubscriptions);
-    console.log('customerSubscription:', customerSubscriptions.data[0]);
+    console.log('----------------------');
+
     console.log(
-      'customerSubscriptionItems:',
-      customerSubscriptions.data[0].items.data,
+      'customerSubscriptions:',
+      JSON.stringify(customerSubscriptions),
     );
+    // console.log('customerSubscription:', customerSubscriptions.data[0]);
+    // console.log(
+    //   'customerSubscriptionItems:',
+    //   customerSubscriptions.data[0].items.data,
+    // );
     // console.log('customerSubscriptions.items:', customerSubscriptions[0].data);
+    return true;
+  }
+
+  async meterData(meterId: string, customerId: string) {
+    // console.log('meterId:', meterId);
+
+    // const meter = await this.stripe.billing.meters.retrieve(meterId);
+    // console.log('meter:', meter);
+    // let customerId = 'cus_QjJIDRyYbz9ig3';
+
+    let fromTimestamp = moment().startOf('day').unix();
+    let toTimestamp = moment().add(1, 'months').endOf('month').unix();
+
+    console.log('fromTimestamp:', fromTimestamp);
+    console.log('toTimestamp:', toTimestamp);
+
+    const meterEvent = await this.stripe.billing.meters.listEventSummaries(
+      meterId,
+      {
+        customer: customerId,
+        start_time: fromTimestamp,
+        end_time: toTimestamp,
+        // value_grouping_window: 'month',
+      },
+    );
+
+    console.log('meterEvent:', meterEvent);
+
+    return meterEvent;
+  }
+
+  async subsItemData(subsItemId: string) {
+    console.log('subsItemId:', subsItemId);
+
+    // const meter = await this.stripe.billing.meters.retrieve(meterId);
+    // console.log('meter:', meter);
+    // let customerId = 'cus_QjJIDRyYbz9ig3';
+
+    const subsItem =
+      await this.stripe.subscriptionItems.listUsageRecordSummaries(subsItemId);
+
+    console.log('meterEvent:', subsItem);
+
     return true;
   }
 
@@ -94,7 +145,7 @@ export class StripeService {
     const returnUrl = 'https://www.google.com/';
 
     const portalSession = await this.stripe.billingPortal.sessions.create({
-      customer: theCustomer.id,
+      customer: 'cus_QjEsI4qBvfpiiQ',
       return_url: returnUrl,
     });
 
@@ -170,10 +221,9 @@ export class StripeService {
     const meterEvent = await this.stripe.billing.meterEvents.create({
       event_name: 'token_used',
       payload: {
-        value: '5',
+        value: '10',
         stripe_customer_id: stripeCustomerId,
       },
-      identifier: '222222444',
     });
     console.log('meterEvent:', meterEvent);
 
@@ -181,17 +231,23 @@ export class StripeService {
   }
 
   async allPrices() {
-    // const prices = await this.stripe.prices.list({
-    //   // limit: 3,
-    // });
-    // return prices;
+    const prices = await this.stripe.prices.list({
+      active: true,
+      // limit: 10,
+      expand: ['data.product'],
+    });
+    return prices;
 
-    const subscriptions = await this.stripe.subscriptions.list();
-    return subscriptions;
+    // const subscriptions = await this.stripe.subscriptions.list();
+    // return subscriptions;
   }
 
   async allProducts() {
-    const products = await this.stripe.products.list();
+    const products = await this.stripe.products.list({
+      active: true,
+      // limit: 10,
+      expand: ['data.price'],
+    });
     return products;
   }
 
@@ -201,6 +257,7 @@ export class StripeService {
   }
 
   async createCheckoutSession(userId: number) {
+    //////////////////////
     // const prices = await this.stripe.prices.list({
     // lookup_keys: [req.body.lookup_key],
     // expand: ['data.product'],
@@ -213,11 +270,13 @@ export class StripeService {
     //   console.log('product:', product);
     // });
     // return prices;
+    //////////////
 
     let theUser = await this.userRepository.findById(userId);
 
     const session = await this.stripe.checkout.sessions.create({
-      customer: theUser.stripeCustomerId,
+      // customer: theUser.stripeCustomerId,
+      customer: 'cus_QjEsI4qBvfpiiQ',
       billing_address_collection: 'auto',
       line_items: [
         {
@@ -242,6 +301,20 @@ export class StripeService {
     console.log('----session checkout----');
     console.log(session);
 
+    return session;
+  }
+
+  async createCustomerSession() {
+    const session = await this.stripe.customerSessions.create({
+      customer: 'cus_QjEsI4qBvfpiiQ',
+      components: {
+        pricing_table: {
+          enabled: true,
+        },
+      },
+    });
+    console.log('----session----');
+    console.log(session);
     return session;
   }
 }

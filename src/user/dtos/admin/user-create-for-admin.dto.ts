@@ -34,10 +34,10 @@ export class UserCreateForAdminDto {
   @IsString()
   profilePicture: string;
 
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  credits: number;
+  // @ApiProperty()
+  // @IsOptional()
+  // @IsString()
+  // credits: number;
 
   @ApiProperty()
   @IsNotEmpty()
@@ -45,7 +45,7 @@ export class UserCreateForAdminDto {
   phoneNumber: string;
 
   @ApiProperty()
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   roleId: number;
 }

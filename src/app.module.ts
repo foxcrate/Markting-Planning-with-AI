@@ -28,6 +28,7 @@ import { CommentModule } from './comment/comment.module';
 import { StripeModule } from './stripe/stripe.module';
 import { RoleModule } from './role/role.module';
 import { LogModule } from './log/log.module';
+import { SettingModule } from './settings/setting.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -66,6 +67,7 @@ import { LogModule } from './log/log.module';
     StripeModule,
     RoleModule,
     LogModule,
+    SettingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

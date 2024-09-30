@@ -179,6 +179,8 @@ export class OpenAiService implements OnModuleInit {
     }
 
     if (run.status === 'completed') {
+      // console.log('run:', run);
+
       const messages: any = await this.instance.beta.threads.messages.list(
         run.thread_id,
       );
@@ -504,6 +506,7 @@ export class OpenAiService implements OnModuleInit {
     }
 
     if (run.status === 'completed') {
+      // console.log('run:', run);
       const messages: any = await this.instance.beta.threads.messages.list(
         run.thread_id,
       );
@@ -541,6 +544,7 @@ export class OpenAiService implements OnModuleInit {
     }
 
     if (run.status === 'completed') {
+      // console.log('run:', run);
       const messages: any = await this.instance.beta.threads.messages.list(
         run.thread_id,
       );
@@ -598,6 +602,13 @@ export class OpenAiService implements OnModuleInit {
         threadEnd: false,
       };
     } else if (run.status === 'requires_action') {
+      const endRun = await this.instance.beta.threads.runs.cancel(
+        run.thread_id,
+        run.id,
+      );
+
+      // console.log('endRun: ', endRun);
+
       let assistantMessage = null;
       switch (
         run.required_action.submit_tool_outputs.tool_calls[0].function.name
@@ -677,6 +688,8 @@ export class OpenAiService implements OnModuleInit {
     }
 
     if (run.status === 'completed') {
+      // console.log('run:', run);
+
       const messages: any = await this.instance.beta.threads.messages.list(
         run.thread_id,
       );
