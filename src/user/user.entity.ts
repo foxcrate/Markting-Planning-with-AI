@@ -34,7 +34,7 @@ export class UserEntity {
   blocked: boolean;
 
   @Column({ default: false })
-  finishStartCoins: boolean;
+  finishStartCredits: boolean;
 
   @Column({
     type: 'enum',
@@ -52,7 +52,7 @@ export class UserEntity {
   @Column({ nullable: true })
   profilePicture: string;
 
-  @Column({ default: 0 })
+  @Column({ type: 'decimal', precision: 10, scale: 3, default: 0 })
   credits: number;
 
   @Column()

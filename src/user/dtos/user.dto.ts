@@ -20,6 +20,8 @@ export class UserDto {
   @ApiProperty()
   contactEmail?: string;
   @ApiProperty()
+  finishStartCredits?: boolean;
+  @ApiProperty()
   phoneNumber?: string;
   @ApiProperty()
   roleId?: number;

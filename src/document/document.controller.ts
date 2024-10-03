@@ -33,6 +33,7 @@ import { DocumentUpdateDto } from './dtos/document-update.dto';
 import { ConfirmedAnswerDto } from './dtos/confirmed-answer.dto';
 import { FastifyReply } from 'fastify';
 import { GetAllFilterDto } from './dtos/get-all-filter.dto';
+import { CreditGuard } from 'src/gurads/credit.guard';
 
 @Controller({ path: 'document', version: '1' })
 export class DocumentController {
@@ -47,8 +48,8 @@ export class DocumentController {
   @ApiBearerAuth()
   @ApiTags('Document: Create')
   @Post()
-  @Roles(UserRoleEnum.CUSTOMER)
-  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(UserRoleEnum.CUSTOMER, UserRoleEnum.ADMIN)
+  @UseGuards(AuthGuard, RoleGuard, CreditGuard)
   async create(
     @Body() documentCreateBody: DocumentCreateDto,
     @UserId() userId: number,
@@ -95,8 +96,8 @@ export class DocumentController {
   @ApiBearerAuth()
   @ApiTags('Document: Regenerate Ai Response')
   @Put('regenerate/:documentId')
-  @Roles(UserRoleEnum.CUSTOMER)
-  @UseGuards(AuthGuard, RoleGuard)
+  @Roles(UserRoleEnum.CUSTOMER, UserRoleEnum.ADMIN)
+  @UseGuards(AuthGuard, RoleGuard, CreditGuard)
   async regenerateAiResponse(
     @Param() params: DocumentIdDto,
     @UserId() userId: number,

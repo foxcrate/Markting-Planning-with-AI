@@ -31,6 +31,9 @@ import { KpiReturnDto } from 'src/kpi/dtos/return.dto';
 import { WorkspaceRepository } from 'src/workspace/workspace.repository';
 import { AssistantCreateParams } from 'openai/resources/beta/assistants';
 import { SerializedDataObjectForChatDto } from './dtos/serialized-data-object-for-chat.dto';
+import { UserRepository } from 'src/user/user.repository';
+import { SettingService } from 'src/settings/setting.service';
+import { SettingsEnum } from 'src/enums/settings.enum';
 
 @Injectable()
 export class OpenAiService implements OnModuleInit {
@@ -42,7 +45,9 @@ export class OpenAiService implements OnModuleInit {
     private messageService: MessageService,
     private globalStageService: GlobalStageService,
     private userService: UserService,
+    private userRepository: UserRepository,
     private stageService: StageService,
+    private settingService: SettingService,
     @Inject(forwardRef(() => TemplateService))
     private readonly templateService: TemplateService,
     private configService: ConfigService,
@@ -135,6 +140,7 @@ export class OpenAiService implements OnModuleInit {
         body.message,
         theThread.id,
         theThread.openAiId,
+        userId,
       );
 
       return aiResponse;
@@ -153,6 +159,7 @@ export class OpenAiService implements OnModuleInit {
     message: string,
     threadId: number,
     threadOpenAiId: string,
+    userId: number,
   ): Promise<AiChatResponseDto> {
     //add "(reply to me in html format)" after the message
 
@@ -180,12 +187,17 @@ export class OpenAiService implements OnModuleInit {
 
     if (run.status === 'completed') {
       // console.log('run:', run);
-
       const messages: any = await this.instance.beta.threads.messages.list(
         run.thread_id,
       );
 
       let aiMessage = messages.data[0].content[0].text.value;
+
+      let usage = run.usage.total_tokens;
+
+      console.log('usage in chat:', usage);
+
+      await this.decreaseUserCredits(userId, Number(usage));
 
       //save ai message
       await this.messageService.create(
@@ -526,6 +538,7 @@ export class OpenAiService implements OnModuleInit {
     openaiAssistantId: string,
     threadOpenaiId: string,
     runInstructions: string,
+    userId: number,
   ): Promise<{
     assistantMessage: string;
     threadEnd: boolean;
@@ -548,6 +561,12 @@ export class OpenAiService implements OnModuleInit {
       const messages: any = await this.instance.beta.threads.messages.list(
         run.thread_id,
       );
+
+      let usage = run.usage.total_tokens;
+
+      console.log('usage in create document:', usage);
+
+      await this.decreaseUserCredits(userId, Number(usage));
 
       return {
         assistantMessage: messages.data[0].content[0].text.value,
@@ -621,19 +640,17 @@ export class OpenAiService implements OnModuleInit {
               .arguments,
           );
 
-          // console.log(aiCratedObject);
-
-          // if (
-          //   !aiCratedObject ||
-          //   !aiCratedObject.tactic ||
-          //   Object.keys(aiCratedObject).length === 0 ||
-          //   Object.keys(aiCratedObject.tactic).length === 0
-          // )
           if (!aiCratedObject || Object.keys(aiCratedObject).length === 0) {
             console.log('-- empty object from openai --');
 
             throw new ServiceUnavailableException('OpenAI API Error');
           }
+
+          let usage = endRun.usage.total_tokens;
+
+          console.log('usage in create tactic:', usage);
+
+          await this.decreaseUserCredits(userId, Number(usage));
 
           assistantMessage = this.addTacticToWorkspaceHandler(
             prompt,
@@ -909,5 +926,20 @@ export class OpenAiService implements OnModuleInit {
 
     await this.instance.beta.threads.runs.cancel(run.thread_id, run.id);
     return functionReturnJsonObject.tactics;
+  }
+
+  private async decreaseUserCredits(userId: number, usedTokens: number) {
+    let user = await this.userService.getUserData(userId);
+    let tokensPerOneCredit = await this.settingService.getOneByName(
+      SettingsEnum.TOKENS_PER_ONE_CREDIT,
+    );
+    let decreasedCredits = usedTokens / Number(tokensPerOneCredit.value);
+    console.log('decreasedCredits:', decreasedCredits);
+
+    let newCredits = user.credits - decreasedCredits;
+
+    console.log('newCredits:', newCredits);
+
+    await this.userRepository.update({ credits: newCredits }, user.id);
   }
 }
