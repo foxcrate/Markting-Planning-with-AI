@@ -26,6 +26,9 @@ export class OtpEntity {
   })
   otpType: OtpTypeEnum | null;
 
+  @Column({ default: null, nullable: true })
+  signedAt: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

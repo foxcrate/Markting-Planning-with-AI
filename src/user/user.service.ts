@@ -70,7 +70,11 @@ export class UserService {
       throw new UnprocessableEntityException(`new phone number already exists`);
     }
 
-    await this.otpService.verifyFirebaseOTP(newPhoneNumber);
+    // await this.otpService.verifyFirebaseOTP(newPhoneNumber);
+    await this.otpService.verifyOTP(
+      newPhoneNumber,
+      OtpTypeEnum.CHANGE_PHONE_NUMBER,
+    );
 
     await this.userRepository.updatePhoneNumber(newPhoneNumber, userId);
 
@@ -98,7 +102,7 @@ export class UserService {
     otp: string,
     userId: number,
   ): Promise<MessageReturnDto> {
-    await this.otpService.verifyOTP(
+    await this.otpService.oldVerifyOTP(
       newCommunicateEmail,
       otp,
       OtpTypeEnum.CHANGE_EMAIL,

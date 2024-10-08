@@ -33,6 +33,8 @@ import { RefreshTokenReturnDto } from './dtos/refresh-token-return.dto';
 import { SendEmailReturnDto } from './dtos/send-email-return-otp.dto';
 import { UserDto } from 'src/user/dtos/user.dto';
 import { UpdateSocialDto } from './dtos/update-social.dto';
+import { SendOtpDto } from './dtos/send-otp.dto';
+import { SignOtpDto } from './dtos/sign-otp.dto';
 
 @Controller({ path: 'auth', version: '1' })
 export class AuthController {
@@ -68,6 +70,38 @@ export class AuthController {
   @Post('mobile-sign-in')
   async mobileSignIn(@Body() signInDto: MobileSignInDto) {
     return this.authService.mobileSignIn(signInDto);
+  }
+
+  @ApiBody({
+    type: SendOtpDto,
+  })
+  @ApiCreatedResponse({
+    type: Boolean,
+    description: 'return true if otp is sent successfully',
+  })
+  @ApiNotFoundResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiTags('Auth: Send Phone OTP')
+  @Post('phone-otp')
+  async sendPhoneOtp(@Body() body: SendOtpDto) {
+    return this.authService.sendPhoneOtp(body.phoneNumber, body.type);
+  }
+
+  @ApiBody({
+    type: SignOtpDto,
+  })
+  @ApiCreatedResponse({
+    type: Boolean,
+    description: 'return true if otp is sent successfully',
+  })
+  @ApiNotFoundResponse({
+    type: ErrorResponseDto,
+  })
+  @ApiTags('Auth: Sign Phone OTP')
+  @Post('sign-phone-otp')
+  async signPhoneOtp(@Body() body: SignOtpDto) {
+    return this.authService.signPhoneOTP(body.phoneNumber, body.otp, body.type);
   }
 
   @ApiBody({

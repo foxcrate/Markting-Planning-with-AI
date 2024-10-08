@@ -113,7 +113,6 @@ export class AuthService {
   /////////////////// Mobile Auth //////////////////////////
 
   async mobileSignIn(signIn: MobileSignInDto): Promise<AuthReturnDto> {
-    // return await this.otpService.verifyFirebaseOTP(signIn.phoneNumber);
     if (signIn.phoneNumber[0] == '$') {
       // remove $
       signIn.phoneNumber = signIn.phoneNumber.substring(1);
@@ -193,6 +192,25 @@ export class AuthService {
       token: this.createNormalToken(createdUser),
       refreshToken: this.createRefreshToken(createdUser),
     };
+  }
+
+  async sendPhoneOtp(phoneNumber: string, type: OtpTypeEnum): Promise<Boolean> {
+    return await this.otpService.sendMobileOtp(phoneNumber, type);
+  }
+
+  async verifyPhoneOTP(
+    phoneNumber: string,
+    type: OtpTypeEnum,
+  ): Promise<Boolean> {
+    return await this.otpService.verifyOTP(phoneNumber, type);
+  }
+
+  async signPhoneOTP(
+    phoneNumber: string,
+    otp: string,
+    type: OtpTypeEnum,
+  ): Promise<Boolean> {
+    return await this.otpService.signOTP(phoneNumber, otp, type);
   }
 
   async checkSavedPhone(phoneNumber: string): Promise<boolean> {
@@ -468,7 +486,11 @@ export class AuthService {
     otp: string,
     userId: number,
   ): Promise<UserDto> {
-    await this.otpService.verifyOTP(contactEmail, otp, OtpTypeEnum.ADD_EMAIL);
+    await this.otpService.oldVerifyOTP(
+      contactEmail,
+      otp,
+      OtpTypeEnum.ADD_EMAIL,
+    );
     // add the email to user data
 
     await this.userRepository.updateCommunicateEmail(contactEmail, userId);
