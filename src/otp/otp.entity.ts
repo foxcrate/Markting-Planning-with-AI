@@ -1,4 +1,3 @@
-import { OtpTypeEnum } from '../enums/otp-types.enum';
 import {
   Entity,
   Column,
@@ -17,14 +16,6 @@ export class OtpEntity {
 
   @Column()
   otp: string;
-
-  @Column({
-    type: 'enum',
-    enum: OtpTypeEnum,
-    nullable: true,
-    default: null,
-  })
-  otpType: OtpTypeEnum | null;
 
   @Column({ default: null, nullable: true })
   signedAt: Date;

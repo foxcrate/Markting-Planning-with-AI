@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { OtpTypeEnum } from 'src/enums/otp-types.enum';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class SignOtpDto {
   @ApiProperty()
@@ -12,9 +11,4 @@ export class SignOtpDto {
   @IsNotEmpty()
   @IsString()
   otp: string;
-
-  @ApiProperty({ enum: OtpTypeEnum })
-  @IsNotEmpty()
-  @IsEnum(OtpTypeEnum)
-  type: OtpTypeEnum;
 }

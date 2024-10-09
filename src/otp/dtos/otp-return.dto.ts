@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { OtpTypeEnum } from 'src/enums/otp-types.enum';
 
 export class OtpReturnDto {
   @ApiProperty()
@@ -10,9 +9,6 @@ export class OtpReturnDto {
 
   @ApiProperty()
   otp: string;
-
-  @ApiProperty({ enum: OtpTypeEnum })
-  otpType: OtpTypeEnum;
 
   @ApiProperty()
   signedAt: Date;

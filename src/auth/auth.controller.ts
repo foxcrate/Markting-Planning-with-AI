@@ -85,7 +85,7 @@ export class AuthController {
   @ApiTags('Auth: Send Phone OTP')
   @Post('phone-otp')
   async sendPhoneOtp(@Body() body: SendOtpDto) {
-    return this.authService.sendPhoneOtp(body.phoneNumber, body.type);
+    return this.authService.sendPhoneOtp(body.phoneNumber);
   }
 
   @ApiBody({
@@ -101,7 +101,7 @@ export class AuthController {
   @ApiTags('Auth: Sign Phone OTP')
   @Post('sign-phone-otp')
   async signPhoneOtp(@Body() body: SignOtpDto) {
-    return this.authService.signPhoneOTP(body.phoneNumber, body.otp, body.type);
+    return this.authService.signPhoneOTP(body.phoneNumber, body.otp);
   }
 
   @ApiBody({

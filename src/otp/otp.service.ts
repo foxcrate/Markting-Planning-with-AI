@@ -5,7 +5,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { OtpRepository } from './otp.repository';
-import { OtpTypeEnum } from 'src/enums/otp-types.enum';
 import { EmailService } from 'src/email/email.service';
 import emailVerificationOtp from 'src/email/templates/email-verification-otp.template';
 import * as admin from 'firebase-admin';
@@ -23,9 +22,9 @@ export class OtpService {
     private readonly configService: ConfigService,
   ) {}
 
-  async sendMobileOtp(phoneNumber: string, type: OtpTypeEnum) {
+  async sendMobileOtp(phoneNumber: string) {
     const createdOtp = this.createOtp();
-    await this.otpRepository.saveOTP(phoneNumber, createdOtp, type);
+    await this.otpRepository.saveMobileOTP(phoneNumber, createdOtp);
     //send otp
 
     await this.twilioService.client.messages.create({
@@ -37,10 +36,10 @@ export class OtpService {
     return true;
   }
 
-  async sendEmailOtp(email: string, type: OtpTypeEnum) {
+  async sendEmailOtp(email: string) {
     // const createdOtp = this.createOtp();
     const createdOtp = this.createOtp();
-    await this.otpRepository.saveOTP(email, createdOtp, type);
+    await this.otpRepository.saveEmailOTP(email, createdOtp);
     this.emailService.sendEmail(
       email,
       'Crespo Email Verification',
@@ -49,24 +48,23 @@ export class OtpService {
     return 'OTP sent successfully';
   }
 
-  async oldVerifyOTP(phoneNumber, otp, type: OtpTypeEnum) {
-    await this.otpRepository.oldCheckSavedOTP(phoneNumber, otp, type);
+  async emailVerifyOTP(phoneNumber, otp) {
+    await this.otpRepository.emailCheckSavedOTP(phoneNumber, otp);
 
-    await this.otpRepository.deletePastOTP(phoneNumber, type);
+    await this.otpRepository.deletePastOTP(phoneNumber);
 
     return true;
   }
 
-  async verifyOTP(phoneNumber, type: OtpTypeEnum) {
-    if (phoneNumber === '01550307033') {
-      return true;
-    }
-    return await this.otpRepository.checkSavedOTP(phoneNumber, type);
+  async verifyOTP(phoneNumber) {
+    return await this.otpRepository.checkSavedOTP(phoneNumber);
   }
 
-  async signOTP(phoneNumber: string, otp: string, type: OtpTypeEnum) {
-    let lastOtp = await this.otpRepository.findOtp(phoneNumber, type, false);
-    if (!lastOtp[0] || lastOtp[0].otp != otp) {
+  async signOTP(phoneNumber: string, otp: string) {
+    let lastOtp = await this.otpRepository.findOtp(phoneNumber, false);
+    // console.log({ lastOtp });
+
+    if (!lastOtp || lastOtp.otp != otp) {
       throw new BadRequestException('Invalid OTP');
     }
     await this.otpRepository.signOTP(lastOtp.id);

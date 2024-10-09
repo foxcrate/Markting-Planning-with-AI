@@ -71,10 +71,7 @@ export class UserService {
     }
 
     // await this.otpService.verifyFirebaseOTP(newPhoneNumber);
-    await this.otpService.verifyOTP(
-      newPhoneNumber,
-      OtpTypeEnum.CHANGE_PHONE_NUMBER,
-    );
+    await this.otpService.verifyOTP(newPhoneNumber);
 
     await this.userRepository.updatePhoneNumber(newPhoneNumber, userId);
 
@@ -90,7 +87,7 @@ export class UserService {
       throw new UnprocessableEntityException(`email already exists`);
     }
 
-    await this.otpService.sendEmailOtp(contactEmail, OtpTypeEnum.CHANGE_EMAIL);
+    await this.otpService.sendEmailOtp(contactEmail);
 
     return {
       message: 'Please check your new email for an otp',
@@ -102,11 +99,7 @@ export class UserService {
     otp: string,
     userId: number,
   ): Promise<MessageReturnDto> {
-    await this.otpService.oldVerifyOTP(
-      newCommunicateEmail,
-      otp,
-      OtpTypeEnum.CHANGE_EMAIL,
-    );
+    await this.otpService.emailVerifyOTP(newCommunicateEmail, otp);
 
     await this.userRepository.updateCommunicateEmail(
       newCommunicateEmail,
