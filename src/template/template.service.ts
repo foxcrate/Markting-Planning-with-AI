@@ -601,15 +601,20 @@ export class TemplateService {
       workspaceData = userWorkspaces[0].parameters;
     }
 
-    const requiredDataJsonObject = theDocument.requiredData.reduce(
-      (acc, curr) => {
-        acc[curr.key] = curr.value;
-        return acc;
-      },
-      {},
-    );
-
-    let documentRequiredData = requiredDataJsonObject;
+    let  documentRequiredData;
+    if(theDocument.requiredData){
+      
+      const requiredDataJsonObject = theDocument.requiredData.reduce(
+        (acc, curr) => {
+          acc[curr.key] = curr.value;
+          return acc;
+        },
+        {},
+      );
+      documentRequiredData = requiredDataJsonObject;
+    }else{
+      documentRequiredData = [];
+    }
 
     return {
       ...workspaceData,
