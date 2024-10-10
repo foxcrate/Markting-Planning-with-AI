@@ -80,7 +80,7 @@ export class DocumentService {
       null,
     );
 
-    // console.log('runInstruction:', runInstruction);
+    console.log('runInstruction:', runInstruction);
 
     //call ai
     let aiResponse = await this.openAiService.runDocumentTemplateAssistant(
