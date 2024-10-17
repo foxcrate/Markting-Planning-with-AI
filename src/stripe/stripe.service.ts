@@ -171,20 +171,30 @@ export class StripeService {
         const theSubscription =
           await this.stripe.subscriptions.retrieve(subscriptionId);
 
-        // console.log('theSubscription:', theSubscription);
+        console.log('theSubscription:', theSubscription);
 
         let item = theSubscription.items.data[0];
 
-        // console.log('item:', item);
+        console.log('item:', item);
 
-        let productId = item.price.product;
+        let priceCredits = item.price.metadata.credits;
 
-        const theProduct = await this.stripe.products.retrieve(productId);
+        if (!priceCredits) {
+          console.error('priceCredits not found');
+          break;
+        }
+
+        let theCredits = priceCredits;
+        console.log('theCredits:', theCredits);
+
+        // let productId = item.price.product;
+
+        // const theProduct = await this.stripe.products.retrieve(productId);
 
         // console.log('thProduct:', theProduct);
 
-        let theCredits = theProduct.metadata.credits;
-        console.log('theCredits:', theCredits);
+        // let theCredits = theProduct.metadata.credits;
+        // console.log('theCredits:', theCredits);
 
         let theUser =
           await this.userRepository.findByStripeCustomerId(customerId);
