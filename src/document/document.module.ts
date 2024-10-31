@@ -6,6 +6,7 @@ import { TemplateModule } from 'src/template/template.module';
 import { OpenAiModule } from 'src/open-ai/open-ai.module';
 import { ThreadModule } from 'src/thread/thread.module';
 import { WorkspaceModule } from 'src/workspace/workspace.module';
+import { UserModule } from 'src/user/user.module';
 
 @Module({
   controllers: [DocumentController],
@@ -16,6 +17,7 @@ import { WorkspaceModule } from 'src/workspace/workspace.module';
     forwardRef(() => OpenAiModule),
     ThreadModule,
     WorkspaceModule,
+    UserModule,
   ],
 })
 export class DocumentModule {}

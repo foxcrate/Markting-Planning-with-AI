@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  ServiceUnavailableException,
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { DocumentCreateDto } from './dtos/document-create.dto';
@@ -14,14 +15,12 @@ import { DocumentDto } from './dtos/document.dto';
 import { DocumentUpdateDto } from './dtos/document-update.dto';
 import { TemplateService } from 'src/template/template.service';
 import { OpenAiService } from 'src/open-ai/open-ai.service';
-import { ThreadRepository } from 'src/thread/thread.repository';
 import { WorkspaceRepository } from 'src/workspace/workspace.repository';
 import { FastifyReply } from 'fastify';
 const puppeteer = require('puppeteer');
 const htmlToDocx = require('html-to-docx');
 import { ConfirmedAnswerDto } from './dtos/confirmed-answer.dto';
 import { GetAllFilterDto } from './dtos/get-all-filter.dto';
-import { executablePath } from 'puppeteer';
 
 @Injectable()
 export class DocumentService {
@@ -32,7 +31,6 @@ export class DocumentService {
     @Inject(forwardRef(() => OpenAiService))
     private readonly openAiService: OpenAiService,
     private readonly workspaceRepository: WorkspaceRepository,
-    private readonly threadRepository: ThreadRepository,
   ) {}
   async create(
     reqBody: DocumentCreateDto,
@@ -58,11 +56,6 @@ export class DocumentService {
 
     //create thread
     let openAiThread = await this.openAiService.createUserThread();
-    // let theThread = await this.threadRepository.create(
-    //   userId,
-    //   reqBody.templateId,
-    //   openAiThread.id,
-    // );
 
     //formulate the run instructions
     let userWorkspaces =
@@ -83,11 +76,23 @@ export class DocumentService {
     console.log('runInstruction:', runInstruction);
 
     //call ai
-    let aiResponse = await this.openAiService.runDocumentTemplateAssistant(
-      theTemplate.openaiAssistantId,
-      openAiThread.id,
-      runInstruction,
-    );
+
+    let aiResponse: any;
+
+    try {
+      aiResponse = await this.openAiService.runDocumentTemplateAssistant(
+        theTemplate.openaiAssistantId,
+        openAiThread.id,
+        runInstruction,
+        userId,
+      );
+    } catch (error: any) {
+      console.log('---------- create document error -----------');
+
+      console.log(error.message);
+
+      throw new ServiceUnavailableException(error.code);
+    }
 
     await this.documentRepository.update(
       {
@@ -146,12 +151,6 @@ export class DocumentService {
     //create thread
     let openAiThread = await this.openAiService.createUserThread();
 
-    // let theThread = await this.threadRepository.create(
-    //   userId,
-    //   theDocument.templateId,
-    //   openAiThread.id,
-    // );
-
     //formulate the run instructions
     let userWorkspaces =
       await this.workspaceRepository.findUserConfirmedWorkspaces(userId);
@@ -171,11 +170,22 @@ export class DocumentService {
     // console.log('runInstruction:', runInstruction);
 
     //call ai
-    let aiResponse = await this.openAiService.runDocumentTemplateAssistant(
-      theTemplate.openaiAssistantId,
-      openAiThread.id,
-      runInstruction,
-    );
+    let aiResponse: any;
+
+    try {
+      aiResponse = await this.openAiService.runDocumentTemplateAssistant(
+        theTemplate.openaiAssistantId,
+        openAiThread.id,
+        runInstruction,
+        userId,
+      );
+    } catch (error: any) {
+      console.log('---------- create document error -----------');
+
+      console.log(error.message);
+
+      throw new ServiceUnavailableException(error.code);
+    }
 
     //update document aiResponse and return whole document
 

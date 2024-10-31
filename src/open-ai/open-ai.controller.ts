@@ -17,6 +17,7 @@ import { AiChatRequestDto } from './dtos/ai-chat-request.dto';
 import { AiChatResponseDto } from './dtos/ai-chat-response.dto';
 import { ThreadIdDto } from './dtos/thread-id.dto';
 import { MessageReturnDto } from 'src/message/dtos/message-return.dto';
+import { CreditGuard } from 'src/gurads/credit.guard';
 
 @Controller({ path: 'ai', version: '1' })
 export class OpenAiController {
@@ -32,7 +33,7 @@ export class OpenAiController {
   @ApiBearerAuth()
   @ApiTags('Ai: Create Tactic')
   @Post('create-tactic')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, CreditGuard)
   async aiCreateTactic(
     @Body() body: CreateAiTacticDto,
     @UserId() userId: number,
@@ -50,7 +51,7 @@ export class OpenAiController {
   @ApiBearerAuth()
   @ApiTags('Ai: Chat')
   @Post('chat')
-  @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard, CreditGuard)
   async aiChat(@Body() body: AiChatRequestDto, @UserId() userId: number) {
     return this.openAiService.aiChat(body, userId);
   }

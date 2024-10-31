@@ -113,7 +113,6 @@ export class AuthService {
   /////////////////// Mobile Auth //////////////////////////
 
   async mobileSignIn(signIn: MobileSignInDto): Promise<AuthReturnDto> {
-    // return await this.otpService.verifyFirebaseOTP(signIn.phoneNumber);
     if (signIn.phoneNumber[0] == '$') {
       // remove $
       signIn.phoneNumber = signIn.phoneNumber.substring(1);
@@ -147,7 +146,8 @@ export class AuthService {
       throw new UnauthorizedException('User is blocked');
     }
 
-    await this.otpService.verifyFirebaseOTP(signIn.phoneNumber);
+    // await this.otpService.verifyFirebaseOTP(signIn.phoneNumber);
+    await this.otpService.verifyOTP(signIn.phoneNumber);
 
     let userData = await this.getUserAdditionalData(theUser);
 
@@ -168,7 +168,8 @@ export class AuthService {
       throw new BadRequestException('phone number already exists');
     }
 
-    await this.otpService.verifyFirebaseOTP(signUp.phoneNumber);
+    // await this.otpService.verifyFirebaseOTP(signUp.phoneNumber);
+    await this.otpService.verifyOTP(signUp.phoneNumber);
 
     let userStartCoins = (
       await this.settingService.getOneByName(SettingsEnum.USER_START_COINS)
@@ -193,6 +194,14 @@ export class AuthService {
       token: this.createNormalToken(createdUser),
       refreshToken: this.createRefreshToken(createdUser),
     };
+  }
+
+  async sendPhoneOtp(phoneNumber: string): Promise<Boolean> {
+    return await this.otpService.sendMobileOtp(phoneNumber);
+  }
+
+  async signPhoneOTP(phoneNumber: string, otp: string): Promise<Boolean> {
+    return await this.otpService.signOTP(phoneNumber, otp);
   }
 
   async checkSavedPhone(phoneNumber: string): Promise<boolean> {
@@ -276,7 +285,8 @@ export class AuthService {
       }
     }
 
-    await this.otpService.verifyFirebaseOTP(socialSignUp.phoneNumber);
+    // await this.otpService.verifyFirebaseOTP(socialSignUp.phoneNumber);
+    await this.otpService.verifyOTP(socialSignUp.phoneNumber);
 
     //check existing phone number
     let userWithSamePhone = await this.userRepository.findUserByPhoneNumber(
@@ -432,7 +442,8 @@ export class AuthService {
       throw new UnprocessableEntityException(`phone number doesn't exists`);
     }
 
-    await this.otpService.verifyFirebaseOTP(existingUser.phoneNumber);
+    // await this.otpService.verifyFirebaseOTP(existingUser.phoneNumber);
+    await this.otpService.verifyOTP(existingUser.phoneNumber);
 
     await this.userRepository.updateSocialMedia(
       connectSocial.firstName,
@@ -459,7 +470,7 @@ export class AuthService {
   ////////////////////////
 
   async sendEmailOtp(contactEmail: string): Promise<SendEmailReturnDto> {
-    await this.otpService.sendEmailOtp(contactEmail, OtpTypeEnum.ADD_EMAIL);
+    await this.otpService.sendEmailOtp(contactEmail);
     return { message: 'Email sent successfully' };
   }
 
@@ -468,7 +479,7 @@ export class AuthService {
     otp: string,
     userId: number,
   ): Promise<UserDto> {
-    await this.otpService.verifyOTP(contactEmail, otp, OtpTypeEnum.ADD_EMAIL);
+    await this.otpService.emailVerifyOTP(contactEmail, otp);
     // add the email to user data
 
     await this.userRepository.updateCommunicateEmail(contactEmail, userId);

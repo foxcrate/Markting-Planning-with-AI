@@ -29,7 +29,7 @@ export class UserRepository {
           users.profilePicture,
           users.phoneNumber,
           users.googleId,
-          users.finishStartCoins,
+          users.finishStartCredits,
           users.facebookId,
           CASE WHEN roles.id is null THEN null
           ELSE
@@ -65,7 +65,7 @@ export class UserRepository {
           users.profilePicture,
           users.phoneNumber,
           users.googleId,
-          users.finishStartCoins,
+          users.finishStartCredits,
           users.facebookId,
           CASE WHEN roles.id is null THEN null
           ELSE
@@ -101,7 +101,7 @@ export class UserRepository {
           users.profilePicture,
           users.phoneNumber,
           users.googleId,
-          users.finishStartCoins,
+          users.finishStartCredits,
           users.facebookId,
           CASE WHEN roles.id is null THEN null
           ELSE
@@ -191,6 +191,7 @@ export class UserRepository {
       updatedUser.roleId,
       userId,
     ]);
+    // console.log('updatedUser', updatedUser);
 
     return await this.findById(userId);
   }
@@ -263,7 +264,7 @@ export class UserRepository {
           users.profilePicture,
           users.phoneNumber,
           users.googleId,
-          users.finishStartCoins,
+          users.finishStartCredits,
           users.facebookId,
           CASE WHEN roles.id is null THEN null
           ELSE
@@ -298,7 +299,7 @@ export class UserRepository {
           users.profilePicture,
           users.phoneNumber,
           users.googleId,
-          users.finishStartCoins,
+          users.finishStartCredits,
           users.facebookId,
           CASE WHEN roles.id is null THEN null
           ELSE
@@ -360,7 +361,7 @@ export class UserRepository {
       users.profilePicture,
       users.phoneNumber,
       users.googleId,
-      users.finishStartCoins,
+      users.finishStartCredits,
       users.facebookId,
       CASE WHEN roles.id is null THEN null
       ELSE
@@ -376,6 +377,42 @@ export class UserRepository {
   `;
 
     const [theUser] = await this.db.query(query, [userId]);
+
+    return theUser;
+  }
+
+  async findByStripeCustomerId(stripeCustomerId): Promise<UserDto> {
+    let query = `
+    SELECT
+      users.id,
+      users.firstName,
+      users.lastName,
+      users.blocked,
+      users.type,
+      users.authEmail,
+      users.contactEmail,
+      users.stripeCustomerId,
+      users.credits,
+      users.roleId,
+      users.profilePicture,
+      users.phoneNumber,
+      users.googleId,
+      users.finishStartCredits,
+      users.facebookId,
+      CASE WHEN roles.id is null THEN null
+      ELSE
+      JSON_OBJECT(
+        'id',roles.id,
+        'name', roles.name,
+        'permissions', JSON_EXTRACT(roles.permissions,'$')
+      )
+      END AS role
+    FROM users
+    LEFT JOIN roles ON users.roleId = roles.id
+    WHERE users.stripeCustomerId = ?
+  `;
+
+    const [theUser] = await this.db.query(query, [stripeCustomerId]);
 
     return theUser;
   }
@@ -397,7 +434,7 @@ export class UserRepository {
           users.phoneNumber,
           users.roleId,
           users.googleId,
-          users.finishStartCoins,
+          users.finishStartCredits,
           users.facebookId,
           CASE WHEN roles.id is null THEN null
           ELSE

@@ -5,32 +5,41 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { OtpRepository } from './otp.repository';
-import { OtpTypeEnum } from 'src/enums/otp-types.enum';
 import { EmailService } from 'src/email/email.service';
 import emailVerificationOtp from 'src/email/templates/email-verification-otp.template';
 import * as admin from 'firebase-admin';
 import { UserRecord } from 'firebase-admin/lib/auth/user-record';
 import moment from 'moment';
+import { TwilioService } from 'nestjs-twilio';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class OtpService {
   constructor(
     private readonly otpRepository: OtpRepository,
     private readonly emailService: EmailService,
+    private readonly twilioService: TwilioService,
+    private readonly configService: ConfigService,
   ) {}
 
-  async sendMobileOtp(phoneNumber: string, type: OtpTypeEnum) {
-    // const createdOtp = this.createOtp();
-    const createdOtp = '123456';
-    await this.otpRepository.saveOTP(phoneNumber, createdOtp, type);
+  async sendMobileOtp(phoneNumber: string) {
+    const createdOtp = this.createOtp();
+    await this.otpRepository.saveMobileOTP(phoneNumber, createdOtp);
     //send otp
-    return 'OTP sent successfully';
+
+    await this.twilioService.client.messages.create({
+      body: `Crispo OTP: ${createdOtp}`,
+      from: this.configService.getOrThrow('TWILIO_PHONE_NUMBER'),
+      to: phoneNumber,
+    });
+
+    return true;
   }
 
-  async sendEmailOtp(email: string, type: OtpTypeEnum) {
+  async sendEmailOtp(email: string) {
     // const createdOtp = this.createOtp();
     const createdOtp = this.createOtp();
-    await this.otpRepository.saveOTP(email, createdOtp, type);
+    await this.otpRepository.saveEmailOTP(email, createdOtp);
     this.emailService.sendEmail(
       email,
       'Crespo Email Verification',
@@ -39,11 +48,26 @@ export class OtpService {
     return 'OTP sent successfully';
   }
 
-  async verifyOTP(phoneNumber, otp, type: OtpTypeEnum) {
-    //throw error if not passed
-    await this.otpRepository.checkSavedOTP(phoneNumber, otp, type);
+  async emailVerifyOTP(phoneNumber, otp) {
+    await this.otpRepository.emailCheckSavedOTP(phoneNumber, otp);
 
-    await this.otpRepository.deletePastOTP(phoneNumber, type);
+    await this.otpRepository.deletePastOTP(phoneNumber);
+
+    return true;
+  }
+
+  async verifyOTP(phoneNumber) {
+    return await this.otpRepository.checkSavedOTP(phoneNumber);
+  }
+
+  async signOTP(phoneNumber: string, otp: string) {
+    let lastOtp = await this.otpRepository.findOtp(phoneNumber, false);
+    // console.log({ lastOtp });
+
+    if (!lastOtp || lastOtp.otp != otp) {
+      throw new BadRequestException('Invalid OTP');
+    }
+    await this.otpRepository.signOTP(lastOtp.id);
 
     return true;
   }

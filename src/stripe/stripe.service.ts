@@ -1,4 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Res,
+  UnauthorizedException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 
 import Stripe from 'stripe';
 
@@ -6,6 +12,12 @@ import { ConfigService } from '@nestjs/config';
 import { UserRepository } from 'src/user/user.repository';
 import { FastifyRequest } from 'fastify';
 import moment from 'moment';
+import { join } from 'path';
+import * as fs from 'fs';
+import { FastifyReply } from 'fastify';
+import { SettingService } from 'src/settings/setting.service';
+import { SettingsEnum } from 'src/enums/settings.enum';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class StripeService {
@@ -14,6 +26,9 @@ export class StripeService {
   constructor(
     private configService: ConfigService,
     private userRepository: UserRepository,
+    private config: ConfigService,
+    private settingService: SettingService,
+    private readonly jwtService: JwtService,
   ) {
     this.stripe = new Stripe(
       this.configService.getOrThrow('STRIPE_SECRET_KEY'),
@@ -32,6 +47,13 @@ export class StripeService {
     return customer;
   }
 
+  async customerSubscriptions(customerId: string): Promise<[]> {
+    const subscriptions = await this.stripe.subscriptions.list({
+      customer: customerId,
+    });
+    return subscriptions;
+  }
+
   async createCustomerIdForAllUsers() {
     let allUsers: any[] = await this.userRepository.findAll(null);
     allUsers.forEach(async (user) => {
@@ -40,7 +62,7 @@ export class StripeService {
         name: user.firstName,
         phone: user.phoneNumber,
       });
-      console.log({ customer });
+      // console.log({ customer });
 
       await this.userRepository.setStripeCustomerId(customer.id, user.id);
     });
@@ -52,7 +74,7 @@ export class StripeService {
     console.log('customer id:', customerId);
 
     const customer = await this.stripe.customers.retrieve(customerId);
-    console.log('customer:', customer);
+    // console.log('customer:', customer);
     const customerSubscriptions = await this.stripe.subscriptions.list({
       customer: customer.id,
     });
@@ -62,18 +84,10 @@ export class StripeService {
       'customerSubscriptions:',
       JSON.stringify(customerSubscriptions),
     );
-    // console.log('customerSubscription:', customerSubscriptions.data[0]);
-    // console.log(
-    //   'customerSubscriptionItems:',
-    //   customerSubscriptions.data[0].items.data,
-    // );
-    // console.log('customerSubscriptions.items:', customerSubscriptions[0].data);
     return true;
   }
 
   async meterData(meterId: string, customerId: string) {
-    // console.log('meterId:', meterId);
-
     // const meter = await this.stripe.billing.meters.retrieve(meterId);
     // console.log('meter:', meter);
     // let customerId = 'cus_QjJIDRyYbz9ig3';
@@ -102,14 +116,10 @@ export class StripeService {
   async subsItemData(subsItemId: string) {
     console.log('subsItemId:', subsItemId);
 
-    // const meter = await this.stripe.billing.meters.retrieve(meterId);
-    // console.log('meter:', meter);
-    // let customerId = 'cus_QjJIDRyYbz9ig3';
-
     const subsItem =
       await this.stripe.subscriptionItems.listUsageRecordSummaries(subsItemId);
 
-    console.log('meterEvent:', subsItem);
+    console.log('subsItem:', subsItem);
 
     return true;
   }
@@ -131,33 +141,10 @@ export class StripeService {
     return true;
   }
 
-  async getPortalSession(customerId: string) {
-    // const checkoutSession =
-    //   await this.stripe.checkout.sessions.retrieve(sessionId);
-
-    let theCustomer =
-      await this.stripe.customers.retrieve('cus_QhlTmuZCv89ZYO');
-
-    console.log('customer:', theCustomer);
-
-    // This is the url to which the customer will be redirected when they are done
-    // managing their billing with the portal.
-    const returnUrl = 'https://www.google.com/';
-
-    const portalSession = await this.stripe.billingPortal.sessions.create({
-      customer: 'cus_QjEsI4qBvfpiiQ',
-      return_url: returnUrl,
-    });
-
-    console.log('portalSession:', portalSession);
-
-    return portalSession.url;
-  }
-
   async webhookListen(req: FastifyRequest) {
     console.log('----webhook listen----');
 
-    console.log('reqBody:', req.body);
+    // console.log('reqBody:', req.body);
 
     let event: any = req.body;
 
@@ -171,47 +158,64 @@ export class StripeService {
     //   signature,
     //   endpointSecret,
     // );
-    let subscription;
-    let status;
 
     switch (event.type) {
-      case 'customer.subscription.trial_will_end':
-        subscription = event.data.object;
-        status = subscription.status;
-        console.log(`Subscription status is ${status}.`);
-        // Then define and call a method to handle the subscription trial ending.
-        // handleSubscriptionTrialEnding(subscription);
-        break;
-      case 'customer.subscription.deleted':
-        subscription = event.data.object;
-        status = subscription.status;
-        console.log(`Subscription status is ${status}.`);
-        // Then define and call a method to handle the subscription deleted.
-        // handleSubscriptionDeleted(subscriptionDeleted);
-        break;
-      case 'customer.subscription.created':
-        subscription = event.data.object;
-        status = subscription.status;
-        console.log(`Subscription status is ${status}.`);
-        // Then define and call a method to handle the subscription created.
-        // handleSubscriptionCreated(subscription);
-        break;
-      case 'customer.subscription.updated':
-        subscription = event.data.object;
-        status = subscription.status;
-        console.log(`Subscription status is ${status}.`);
-        // Then define and call a method to handle the subscription update.
-        // handleSubscriptionUpdated(subscription);
-        break;
-      case 'entitlements.active_entitlement_summary.updated':
-        subscription = event.data.object;
-        console.log(`Active entitlement summary updated for ${subscription}.`);
-        // Then define and call a method to handle active entitlement summary updated
-        // handleEntitlementUpdated(subscription);
+      case 'invoice.payment_succeeded':
+        console.log('event', event);
+        console.log('-------------');
+
+        let subscriptionId = event.data.object.subscription;
+
+        let customerId = event.data.object.customer;
+
+        const theSubscription =
+          await this.stripe.subscriptions.retrieve(subscriptionId);
+
+        console.log('theSubscription:', theSubscription);
+
+        let item = theSubscription.items.data[0];
+
+        console.log('item:', item);
+
+        let priceCredits = item.price.metadata.credits;
+
+        if (!priceCredits) {
+          console.error('priceCredits not found');
+          break;
+        }
+
+        let theCredits = priceCredits;
+        console.log('theCredits:', theCredits);
+
+        // let productId = item.price.product;
+
+        // const theProduct = await this.stripe.products.retrieve(productId);
+
+        // console.log('thProduct:', theProduct);
+
+        // let theCredits = theProduct.metadata.credits;
+        // console.log('theCredits:', theCredits);
+
+        let theUser =
+          await this.userRepository.findByStripeCustomerId(customerId);
+
+        if (!theUser) {
+          throw new UnprocessableEntityException(
+            'Stripe Administration Error, User not found',
+          );
+        }
+
+        await this.userRepository.update(
+          {
+            credits: Number(theUser.credits) + Number(theCredits),
+          },
+          theUser.id,
+        );
+
         break;
       default:
-        // Unexpected event type
-        console.log(`Unhandled event type ${event.type}.`);
+      // Unexpected event type
+      // console.log(`Unhandled event type ${event.type}.`);
     }
 
     return true;
@@ -251,12 +255,17 @@ export class StripeService {
     return products;
   }
 
+  async getOneProduct(productId: String) {
+    const product = await this.stripe.products.retrieve(productId);
+    return product;
+  }
+
   async allSubscriptions() {
     const subscriptions = await this.stripe.subscriptions.list();
     return subscriptions;
   }
 
-  async createCheckoutSession(userId: number) {
+  async createCheckoutSession(customerId: string) {
     //////////////////////
     // const prices = await this.stripe.prices.list({
     // lookup_keys: [req.body.lookup_key],
@@ -272,11 +281,9 @@ export class StripeService {
     // return prices;
     //////////////
 
-    let theUser = await this.userRepository.findById(userId);
-
     const session = await this.stripe.checkout.sessions.create({
       // customer: theUser.stripeCustomerId,
-      customer: 'cus_QjEsI4qBvfpiiQ',
+      customer: customerId,
       billing_address_collection: 'auto',
       line_items: [
         {
@@ -289,24 +296,16 @@ export class StripeService {
       cancel_url: `${this.configService.getOrThrow('MY_LOCAL_DOMAIN')}/v1/stripe/cancel-checkout?session_id={CHECKOUT_SESSION_ID}`,
     });
 
-    // const session = await this.stripe.customerSessions.create({
-    //   customer: theUser.stripeCustomerId,
-    //   components: {
-    //     pricing_table: {
-    //       enabled: true,
-    //     },
-    //   },
-    // });
-
     console.log('----session checkout----');
     console.log(session);
 
     return session;
   }
 
-  async createCustomerSession() {
+  async createCustomerSession(userId: number) {
+    let theUser = await this.userRepository.findById(userId);
     const session = await this.stripe.customerSessions.create({
-      customer: 'cus_QjEsI4qBvfpiiQ',
+      customer: theUser.stripeCustomerId,
       components: {
         pricing_table: {
           enabled: true,
@@ -316,5 +315,158 @@ export class StripeService {
     console.log('----session----');
     console.log(session);
     return session;
+  }
+
+  async getPortalSession(customerId: string) {
+    let theCustomer = await this.stripe.customers.retrieve(customerId);
+
+    // console.log('customer:', theCustomer);
+
+    const returnUrl = 'https://www.google.com/';
+
+    const portalSession = await this.stripe.billingPortal.sessions.create({
+      customer: theCustomer.id,
+      return_url: returnUrl,
+    });
+
+    // console.log('portalSession:', portalSession);
+
+    return portalSession.url;
+  }
+
+  async getPricingTable(userToken: string, @Res() res: FastifyReply) {
+    // console.log('getPricingTable');
+
+    let decoded = this.verifyUserToken(userToken);
+
+    // console.log('decoded:', decoded);
+
+    let userId = decoded.userId;
+
+    let theUser = await this.userRepository.findById(userId);
+
+    const customerSession = await this.stripe.customerSessions.create({
+      customer: theUser.stripeCustomerId,
+      components: {
+        pricing_table: {
+          enabled: true,
+        },
+      },
+    });
+
+    let clientSecret = customerSession.client_secret;
+
+    let pricingTable = await this.settingService.getOneByName(
+      SettingsEnum.PRICING_TABLE_ID,
+    );
+
+    const filePath = join(
+      __dirname,
+      '../../../',
+      'public',
+      'views',
+      'stripe.html',
+    );
+
+    let html = `
+    <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
+    <stripe-pricing-table
+      pricing-table-id="${pricingTable.value}"
+      publishable-key="${this.configService.getOrThrow('STRIPE_PUBLISHABLE_KEY')}"
+      customer-session-client-secret= "${clientSecret}"
+    >
+    </stripe-pricing-table>
+    `;
+
+    fs.writeFile(filePath, html, (err) => {
+      if (err) {
+        throw new InternalServerErrorException('Error in writing to the file');
+      } else {
+        const stream = fs.createReadStream(filePath);
+        return res.type('text/html').send(stream);
+      }
+    });
+  }
+
+  async generalPayment(userId: number) {
+    let theUser = await this.userRepository.findById(userId);
+    let stripeCustomerId = theUser.stripeCustomerId;
+    let userSubscriptionsObject: any =
+      await this.customerSubscriptions(stripeCustomerId);
+
+    let userSubscriptions = userSubscriptionsObject.data;
+
+    if (userSubscriptions.length === 0) {
+      console.log('no subscriptions');
+
+      let userToken = await this.createUserToken(userId);
+
+      const encodedUserToken = encodeURIComponent(userToken);
+
+      return `${this.config.get('APP_DOMAIN')}/v1/stripe/pricing-table?userToken=${encodedUserToken}`;
+    } else {
+      // userSubscriptions.forEach((subscription) => {
+      //   //log subscription
+      //   console.log('---------------------');
+
+      //   console.log('subscription:', subscription);
+      // });
+
+      // return true;
+
+      if (userSubscriptions.length > 1) {
+        console.log('more than one subscriptions');
+
+        throw new UnprocessableEntityException(
+          `Stripe Administration Error, user should have only one subscription`,
+        );
+      }
+
+      let items = userSubscriptions[0].items.data;
+
+      if (items.length > 1) {
+        console.log('more than one item in a subscription');
+
+        throw new UnprocessableEntityException(
+          `Stripe Administration Error, subscription should have only one item`,
+        );
+      }
+
+      let price = items[0].price;
+
+      let product = await this.getOneProduct(price.product);
+
+      // console.log('product:', product);
+
+      let credits = product.metadata.credits;
+
+      // console.log('credits:', credits);
+
+      return await this.getPortalSession(stripeCustomerId);
+    }
+  }
+
+  private createUserToken(userId: number) {
+    const payload = {
+      userId: userId,
+    };
+    return this.jwtService.sign(payload, {
+      expiresIn: '1h',
+    });
+  }
+
+  private verifyUserToken(userToken) {
+    try {
+      const decoded = this.jwtService.verify(
+        userToken,
+        this.config.get('JWT_SECRET'),
+      );
+      // console.log({ decoded });
+
+      return decoded;
+    } catch (error) {
+      // console.log('error in userToken in stripe controller:', error);
+      throw new UnauthorizedException('Invalid userToken to Stripe');
+    }
   }
 }
