@@ -32,8 +32,7 @@ import { SettingModule } from './settings/setting.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: ['local.env', '.env'],
+      isGlobal: true,envFilePath: ['local.env', '.env'],
     }),
     JwtModule.registerAsync({
       useFactory: async (configService: ConfigService) => ({
